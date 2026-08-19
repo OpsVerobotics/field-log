@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>יומן שטח</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Heebo:wght@400;500;700&display=swap');
+
+  :root{
+    --bg:#12151A;
+    --panel:#1B2027;
+    --panel2:#20262F;
+    --panel3:#262D37;
+    --line:#2C333D;
+    --text:#EDEAE3;
+    --dim:#8B93A0;
+    --amber:#FFB020;
+    --amber-dim:#5C4416;
+    --orange:#FF5D3A;
+    --orange-dim:#4a2a20;
+    --green:#39D98A;
+    --green-dim:#123326;
+    --blue:#3A9EFF;
+    --blue-dim:#16385C;
+    --mono:'JetBrains Mono', monospace;
+    --disp:'Oswald', sans-serif;
+    --body:'Heebo', sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:var(--body); min-height:100vh;}
+  body{padding-bottom:40px;}
+
+  header{
+    padding:18px 16px 14px;
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--bg); z-index:20;
+  }
+  .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--amber); text-transform:uppercase;}
+  h1{font-family:var(--disp); font-size:22px; margin:2px 0 0; font-weight:700; letter-spacing:.01em;}
+  .datepick{margin-top:10px; display:flex; gap:8px; align-items:center;}
+  .datepick input[type=date]{
+    background:var(--panel); border:1px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:13px; padding:7px 9px; border-radius:6px; flex:1;
+  }
+  .datepick button{
+    background:var(--panel); border:1px solid var(--line); color:var(--dim);
+    font-family:var(--mono); font-size:12px; padding:7px 10px; border-radius:6px;
+  }
+
+  section{margin:20px 16px 0;}
+  .sec-title{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .sec-title::after{content:''; flex:1; height:1px; background:var(--line);}
+
+  .field-row{display:flex; gap:10px; margin-bottom:8px;}
+  .field{flex:1;}
+  .field label{display:block; font-family:var(--mono); font-size:10px; color:var(--dim); margin-bottom:5px; letter-spacing:.06em;}
+  .field input, .field select{
+    width:100%; background:var(--panel); border:1px solid var(--line); color:var(--text);
+    font-family:var(--body); font-size:14px; padding:11px 10px; border-radius:8px;
+  }
+
+  .kit-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    margin-bottom:14px; overflow:hidden;
+  }
+  .kit-card.wall-active{border-color:var(--amber);}
+  .kit-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 14px; cursor:pointer;
+  }
+  .kit-head-left{display:flex; align-items:center; gap:10px;}
+  .kit-type{font-family:var(--disp); font-weight:700; font-size:16px;}
+  .kit-status-dot{width:8px; height:8px; border-radius:50%; background:var(--line); flex-shrink:0;}
+  .kit-card.wall-active .kit-status-dot{background:var(--amber); box-shadow:0 0 0 3px var(--amber-dim);}
+  .kit-card.finished .kit-status-dot{background:var(--green);}
+  .kit-head-right{display:flex; align-items:center; gap:10px;}
+  .kit-clock{font-family:var(--mono); font-size:15px; font-weight:700; color:var(--dim); font-variant-numeric:tabular-nums;}
+  .kit-card.wall-active .kit-clock{color:var(--amber);}
+  .chevron{color:var(--dim); font-size:12px; transition:transform .15s;}
+  .kit-card.collapsed .chevron{transform:rotate(-90deg);}
+  .kit-body{border-top:1px solid var(--line); padding:12px 14px 14px;}
+  .kit-card.collapsed .kit-body{display:none;}
+
+  .stage-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:6px;}
+  .stage-chip{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:var(--panel2); border:1px solid var(--line); border-radius:8px;
+    padding:9px 3px; text-align:center;
+  }
+  .stage-chip .lbl{font-family:var(--disp); font-size:11px; font-weight:600; color:var(--text); line-height:1.15;}
+  .stage-chip .tm{font-family:var(--mono); font-size:9px; color:var(--dim); min-height:11px;}
+  .stage-chip.done{background:var(--amber-dim); border-color:var(--amber);}
+  .stage-chip.done .lbl{color:var(--amber);}
+  .stage-chip.done .tm{color:var(--amber);}
+  .stage-chip.locked{opacity:.35;}
+
+  .stops-block{margin-top:12px;}
+  .stop-pair{display:flex; gap:8px;}
+  .stop-btn{
+    flex:1; font-family:var(--disp); font-weight:700; font-size:13px;
+    padding:11px 0; border-radius:8px; border:1px solid var(--line);
+    background:var(--panel2); color:var(--text);
+  }
+  .stop-btn.stop{color:var(--orange); border-color:var(--orange-dim);}
+  .stop-btn.start{color:var(--green); border-color:var(--green-dim);}
+  .stop-btn:disabled{opacity:.3;}
+  .stop-log{font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:8px; line-height:1.7;}
+  .stop-log .reason{color:var(--text); font-family:var(--body);}
+
+  .kit-report{
+    margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
+  }
+  .kit-report .stat{background:var(--panel2); border-radius:8px; padding:8px 6px; text-align:center;}
+  .kit-report .stat .k{font-family:var(--mono); font-size:9px; color:var(--dim); text-transform:uppercase; letter-spacing:.04em;}
+  .kit-report .stat .v{font-family:var(--mono); font-size:14px; font-weight:700; color:var(--amber); margin-top:3px;}
+
+  .add-kit{
+    width:100%; padding:14px; border-radius:10px; border:1px dashed var(--line);
+    background:transparent; color:var(--dim); font-family:var(--mono); font-size:12px;
+  }
+  .kit-new{display:flex; gap:8px; margin-top:8px;}
+  .kit-new select, .kit-new input{
+    background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    font-family:var(--body); font-size:13px; padding:9px; border-radius:7px;
+  }
+  .kit-new select{flex:1.4;}
+  .kit-new .go{flex:1; background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber); font-family:var(--mono); font-weight:700;}
+
+  .summary{background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .summary-row{display:flex; justify-content:space-between; align-items:baseline; padding:14px 16px; border-bottom:1px solid var(--line);}
+  .summary-row:last-child{border-bottom:none; background:var(--panel2);}
+  .summary-label{font-family:var(--body); font-size:13px; color:var(--dim);}
+  .summary-label small{display:block; font-family:var(--mono); font-size:10px; color:var(--dim); margin-top:2px;}
+  .summary-val{font-family:var(--mono); font-size:19px; font-weight:700; color:var(--amber); font-variant-numeric:tabular-nums;}
+  .summary-row:last-child .summary-val{color:var(--green); font-size:21px;}
+  .empty-note{font-family:var(--mono); font-size:12px; color:var(--dim); padding:14px; text-align:center;}
+
+  .btn-group{display:flex; flex-direction:column; gap:10px; margin-top:14px;}
+  
+  .copy-btn{
+    width:100%; padding:12px; border-radius:10px;
+    background:var(--blue-dim); border:1px solid var(--blue); color:var(--blue);
+    font-family:var(--disp); font-size:14px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .copy-btn:active{opacity:0.8;}
+
+  .export-btn{
+    width:100%; padding:12px; border-radius:10px;
+    background:var(--green-dim); border:1px solid var(--green); color:var(--green);
+    font-family:var(--disp); font-size:14px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .export-btn:active{opacity:0.8;}
+
+  .reset-link{
+    display:block; text-align:center; margin:26px 16px 0; padding:10px;
+    font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.05em;
+    border:1px solid var(--line); border-radius:8px; background:transparent; width:calc(100% - 32px);
+  }
+  .toast{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+    background:var(--panel2); border:1px solid var(--amber); color:var(--amber);
+    font-family:var(--mono); font-size:12px; padding:9px 16px; border-radius:20px;
+    opacity:0; transition:opacity .2s; pointer-events:none; z-index:50;
+  }
+  .toast.show{opacity:1;}
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.6);
+    display:none; align-items:flex-end; justify-content:center; z-index:60;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    width:100%; max-width:480px; background:var(--panel); border:1px solid var(--line);
+    border-radius:16px 16px 0 0; padding:18px 16px 22px;
+  }
+  .modal-title{font-family:var(--disp); font-size:16px; font-weight:700; margin-bottom:4px;}
+  .modal-sub{font-family:var(--mono); font-size:11px; color:var(--dim); margin-bottom:12px;}
+  .modal-box textarea{
+    width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    font-family:var(--body); font-size:14px; padding:10px; border-radius:8px; resize:none; min-height:70px;
+  }
+  .modal-actions{display:flex; gap:8px; margin-top:12px;}
+  .modal-actions button{flex:1; padding:12px 0; border-radius:8px; font-family:var(--mono); font-size:13px; font-weight:700;}
+  .modal-actions .cancel{background:transparent; border:1px solid var(--line); color:var(--dim);}
+  .modal-actions .confirm{background:var(--amber-dim); border:1px solid var(--amber); color:var(--amber);}
+</style>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">יומן שטח · תיעוד לפי קיט</div>
+  <h1>מעקב קיטים ליום עבודה</h1>
+  <div class="datepick">
+    <input type="date" id="dateInput">
+    <button id="loadBtn">טען יום</button>
+  </div>
+</header>
+
+<section>
+  <div class="sec-title">נתונים כלליים</div>
+  <div class="field-row">
+    <div class="field">
+      <label>מספר אנשים בצוות</label>
+      <input type="number" id="peopleInput" min="0" placeholder="לדוגמה: 3">
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-title">קיטים</div>
+  <div id="kitsList"></div>
+  <button class="add-kit" id="addKitToggle">+ הוסף קיט חדש</button>
+  <div class="kit-new" id="kitNewRow" style="display:none;">
+    <select id="kitTypeSelect">
+      <option value="Parapod">Parapod</option>
+      <option value="Paraslide">Paraslide</option>
+      <option value="Paraclamp">Paraclamp</option>
+      <option value="Paraline">Paraline</option>
+      <option value="Paradavit">Paradavit</option>
+      <option value="custom">אחר...</option>
+    </select>
+    <input type="text" id="kitCustomInput" placeholder="סוג מותאם" style="display:none;">
+    <button class="go" id="kitCreateBtn">הוסף</button>
+  </div>
+</section>
+
+<section>
+  <div class="sec-title">סיכום היום</div>
+  <div class="summary" id="summaryBox"></div>
+  <div class="btn-group">
+    <button class="copy-btn" id="copyRowsBtn">📋 העתק שורות ל-Google Sheets</button>
+    <button class="export-btn" id="exportCsvBtn">📥 ייצא דוח יומי לקובץ CSV</button>
+  </div>
+</section>
+
+<button class="reset-link" id="resetBtn">אפס יום זה</button>
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="stopModal">
+  <div class="modal-box">
+    <div class="modal-title">סיבת עצירה</div>
+    <div class="modal-sub" id="stopModalSub">מה גורם לעצירה כרגע?</div>
+    <textarea id="stopReasonInput" placeholder="לדוגמה: המתנה לאישור, בעיה טכנית, מזג אוויר..."></textarea>
+    <div class="modal-actions">
+      <button class="cancel" id="stopReasonCancel">ביטול</button>
+      <button class="confirm" id="stopReasonConfirm">אשר עצירה</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCoq-GXRGkJLJ3jDeYo_KiZ04oqMyENFpY",
+  authDomain: "workday-kits-operations-9de4d.firebaseapp.com",
+  databaseURL: "https://workday-kits-operations-9de4d-default-rtdb.firebaseio.com",
+  projectId: "workday-kits-operations-9de4d",
+  storageBucket: "workday-kits-operations-9de4d.firebasestorage.app",
+  messagingSenderId: "781011410308",
+  appId: "1:781011410308:web:85c2805bd989c7851651d1"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const STAGES = [
+  {key:'arrival',    label:'הגעה'},
+  {key:'deployment', label:'דפלוימנט'},
+  {key:'onWall',     label:'על הקיר'},
+  {key:'dismantle',  label:'דיסמנטל'},
+  {key:'finish',     label:'סיום'}
+];
+
+let state = null;
+let currentDate = null;
+let pendingStopKitId = null;
+let collapsedMap = {};
+let dbRef = null;
+
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function blankDay(dateISO){
+  return { date: dateISO, people: '', kits: [] };
+}
+function blankKit(type){
+  return { id: Date.now()+''+Math.floor(Math.random()*1000), type, events:{}, stops:[] };
+}
+function fmtTime(iso){
+  if(!iso) return '';
+  return new Date(iso).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+function fmtDur(ms){
+  if(ms == null || ms < 0) return '—';
+  const totalSec = Math.floor(ms/1000);
+  const h = Math.floor(totalSec/3600), m = Math.floor((totalSec%3600)/60), s = totalSec%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1600);
+}
+
+function saveState(){
+  if(!state || !currentDate) return;
+  db.ref('days/' + currentDate).set(state).catch(e => {
+    console.error(e);
+    showToast('שגיאה בסנכרון לשרת');
+  });
+}
+
+function loadDay(dateISO){
+  currentDate = dateISO;
+  if (dbRef) dbRef.off();
+
+  dbRef = db.ref('days/' + dateISO);
+  dbRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      state = data;
+      if(!state.kits) state.kits = [];
+      state.kits.forEach(k => {
+        if(!k.stops) k.stops = [];
+        if(!k.events) k.events = {};
+      });
+    } else {
+      state = blankDay(dateISO);
+    }
+    render();
+  });
+}
+
+function nextUnlockedIndex(kit){
+  for(let i=0;i<STAGES.length;i++){ if(!kit.events[STAGES[i].key]) return i; }
+  return STAGES.length;
+}
+function openStopIndex(kit){ return (kit.stops || []).findIndex(p => p.end == null); }
+
+function markEvent(kit, key){
+  if(kit.events[key]) return;
+  kit.events[key] = new Date().toISOString();
+  saveState();
+  showToast(kit.type + ' · ' + STAGES.find(s=>s.key===key).label + ' נרשם');
+}
+
+function kitDurations(kit){
+  const e = kit.events || {};
+  const totalMs = (e.arrival && e.finish) ? new Date(e.finish)-new Date(e.arrival) : null;
+  const wallMs = (e.onWall && e.dismantle) ? new Date(e.dismantle)-new Date(e.onWall) : null;
+  let stopsMs = 0;
+  (kit.stops || []).forEach(p=>{ if(p.start && p.end) stopsMs += new Date(p.end)-new Date(p.start); });
+  const netMs = (wallMs != null) ? Math.max(0, wallMs - stopsMs) : null;
+  return {totalMs, wallMs, netMs, stopsMs};
+}
+
+function renderKitCard(kit){
+  const wallActive = kit.events?.onWall && !kit.events?.dismantle;
+  const finished = !!kit.events?.finish;
+  const collapsed = !!collapsedMap[kit.id];
+  const nextIdx = nextUnlockedIndex(kit);
+  const {totalMs, wallMs, netMs} = kitDurations(kit);
+
+  const card = document.createElement('div');
+  card.className = 'kit-card' + (wallActive?' wall-active':'') + (finished?' finished':'') + (collapsed?' collapsed':'');
+
+  let clockText = '';
+  if(wallActive){ clockText = fmtDur(new Date() - new Date(kit.events.onWall)); }
+  else if(wallMs != null){ clockText = fmtDur(wallMs); }
+
+  card.innerHTML = `
+    <div class="kit-head">
+      <div class="kit-head-left">
+        <div class="kit-status-dot"></div>
+        <div class="kit-type">${kit.type}</div>
+      </div>
+      <div class="kit-head-right">
+        <div class="kit-clock">${clockText}</div>
+        <div class="chevron">▾</div>
+      </div>
+    </div>
+    <div class="kit-body">
+      <div class="stage-grid"></div>
+      <div class="stops-block">
+        <div class="stop-pair">
+          <button class="stop-btn stop" data-act="stop">⏸ סטופ</button>
+          <button class="stop-btn start" data-act="start">▶ סטארט</button>
+        </div>
+        <div class="stop-log"></div>
+      </div>
+      <div class="kit-report">
+        <div class="stat"><div class="k">משך קיט</div><div class="v">${totalMs!=null?fmtDur(totalMs):'—'}</div></div>
+        <div class="stat"><div class="k">על הקיר</div><div class="v">${wallMs!=null?fmtDur(wallMs):'—'}</div></div>
+        <div class="stat"><div class="k">נטו</div><div class="v">${netMs!=null?fmtDur(netMs):'—'}</div></div>
+      </div>
+    </div>
+  `;
+
+  card.querySelector('.kit-head').addEventListener('click', ()=>{
+    collapsedMap[kit.id] = !collapsedMap[kit.id];
+    render();
+  });
+
+  const grid = card.querySelector('.stage-grid');
+  STAGES.forEach((s,i)=>{
+    const done = !!(kit.events && kit.events[s.key]);
+    const locked = i > nextIdx;
+    const chip = document.createElement('div');
+    chip.className = 'stage-chip' + (done?' done':'') + (locked?' locked':'');
+    chip.innerHTML = `<div class="lbl">${s.label}</div><div class="tm">${done?fmtTime(kit.events[s.key]):''}</div>`;
+    if(!done && !locked){
+      chip.addEventListener('click', (ev)=>{ ev.stopPropagation(); markEvent(kit, s.key); });
+    } else {
+      chip.addEventListener('click', (ev)=>ev.stopPropagation());
+    }
+    grid.appendChild(chip);
+  });
+
+  const stopBtn = card.querySelector('[data-act="stop"]');
+  const startBtn = card.querySelector('[data-act="start"]');
+  const openIdx = openStopIndex(kit);
+  stopBtn.disabled = openIdx !== -1 || !wallActive;
+  startBtn.disabled = openIdx === -1;
+  stopBtn.addEventListener('click', (ev)=>{
+    ev.stopPropagation();
+    if(!wallActive){ showToast('אפשר לעצור רק בזמן שהייה על הקיר'); return; }
+    pendingStopKitId = kit.id;
+    document.getElementById('stopModalSub').textContent = kit.type + ' — מה גורם לעצירה כרגע?';
+    document.getElementById('stopReasonInput').value = '';
+    document.getElementById('stopModal').classList.add('show');
+    setTimeout(()=>document.getElementById('stopReasonInput').focus(), 50);
+  });
+  startBtn.addEventListener('click', (ev)=>{
+    ev.stopPropagation();
+    const idx = openStopIndex(kit);
+    if(idx === -1) return;
+    kit.stops[idx].end = new Date().toISOString();
+    saveState();
+  });
+
+  const log = card.querySelector('.stop-log');
+  if(!kit.stops || kit.stops.length === 0){
+    log.innerHTML = 'אין עצירות רשומות';
+  } else {
+    log.innerHTML = kit.stops.map((p,i)=>{
+      const dur = p.end ? fmtDur(new Date(p.end)-new Date(p.start)) : 'פעיל...';
+      return `<div>עצירה ${i+1}: ${fmtTime(p.start)} → ${p.end?fmtTime(p.end):'—'} (${dur})<br><span class="reason">↳ ${p.reason||''}</span></div>`;
+    }).join('');
+  }
+
+  return card;
+}
+
+function renderKits(){
+  const wrap = document.getElementById('kitsList');
+  wrap.innerHTML = '';
+  if(!state.kits || state.kits.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'empty-note';
+    empty.textContent = 'אין קיטים עדיין — הוסף קיט כדי להתחיל תיעוד';
+    wrap.appendChild(empty);
+    return;
+  }
+  state.kits.forEach(kit => wrap.appendChild(renderKitCard(kit)));
+}
+
+document.getElementById('addKitToggle').addEventListener('click', ()=>{
+  const row = document.getElementById('kitNewRow');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+});
+document.getElementById('kitTypeSelect').addEventListener('change', (e)=>{
+  document.getElementById('kitCustomInput').style.display = e.target.value === 'custom' ? 'block' : 'none';
+});
+document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
+  const sel = document.getElementById('kitTypeSelect');
+  let type = sel.value;
+  if(type === 'custom'){
+    const custom = document.getElementById('kitCustomInput').value.trim();
+    if(!custom){ showToast('נא להזין סוג'); return; }
+    type = custom;
+  }
+  const kit = blankKit(type);
+  if(!state.kits) state.kits = [];
+  state.kits.push(kit);
+  collapsedMap[kit.id] = false;
+  saveState();
+  document.getElementById('kitNewRow').style.display = 'none';
+  document.getElementById('kitCustomInput').value = '';
+});
+
+document.getElementById('stopReasonCancel').addEventListener('click', ()=>{
+  document.getElementById('stopModal').classList.remove('show');
+  pendingStopKitId = null;
+});
+document.getElementById('stopReasonConfirm').addEventListener('click', ()=>{
+  const kit = state.kits.find(k=>k.id === pendingStopKitId);
+  if(!kit){ document.getElementById('stopModal').classList.remove('show'); return; }
+  const reason = document.getElementById('stopReasonInput').value.trim();
+  if(!kit.stops) kit.stops = [];
+  kit.stops.push({start: new Date().toISOString(), end:null, reason: reason || '(ללא סיבה)'});
+  document.getElementById('stopModal').classList.remove('show');
+  pendingStopKitId = null;
+  saveState();
+});
+
+document.getElementById('peopleInput').addEventListener('change', (e)=>{
+  state.people = e.target.value;
+  saveState();
+});
+
+function renderSummary(){
+  const box = document.getElementById('summaryBox');
+  if(!state.kits || state.kits.length === 0){
+    box.innerHTML = '<div class="empty-note">אין נתונים להצגה עדיין</div>';
+    return;
+  }
+  let earliestArrival = null, latestFinish = null;
+  let totalWallMs = 0, totalNetMs = 0, anyWall = false, anyNet = false;
+  
+  state.kits.forEach(kit=>{
+    const e = kit.events || {};
+    if(e.arrival){
+      const t = new Date(e.arrival);
+      if(!earliestArrival || t < earliestArrival) earliestArrival = t;
+    }
+    if(e.finish){
+      const t = new Date(e.finish);
+      if(!latestFinish || t > latestFinish) latestFinish = t;
+    }
+    const {wallMs, netMs} = kitDurations(kit);
+    if(wallMs != null){ totalWallMs += wallMs; anyWall = true; }
+    if(netMs != null){ totalNetMs += netMs; anyNet = true; }
+  });
+
+  const totalDayMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
+
+  box.innerHTML = `
+    <div class="summary-row">
+      <div class="summary-label">
+        א. אורך יום עבודה כולל
+        <small>${earliestArrival ? fmtTime(earliestArrival) : '—'} ← ${latestFinish ? fmtTime(latestFinish) : '—'}</small>
+      </div>
+      <div class="summary-val">${fmtDur(totalDayMs)}</div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-label">
+        ב. סה"כ זמן שהות על הקיר
+        <small>מצטבר לכל הקיטים</small>
+      </div>
+      <div class="summary-val">${anyWall ? fmtDur(totalWallMs) : '—'}</div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-label">
+        ג. זמן עבודה נטו
+        <small>על הקיר ללא עצירות</small>
+      </div>
+      <div class="summary-val">${anyNet ? fmtDur(totalNetMs) : '—'}</div>
+    </div>
+  `;
+}
+
+function render(){
+  document.getElementById('dateInput').value = currentDate;
+  document.getElementById('peopleInput').value = state ? (state.people || '') : '';
+  if(state) {
+    renderKits();
+    renderSummary();
+  }
+}
+
+// העתקת שורות בלבד בסדר העמודות המדויק ל-Google Sheets
+function copyRowsForSheets(){
+  if(!state || !state.kits || state.kits.length === 0){
+    showToast('אין נתונים להעתקה ביום זה');
+    return;
+  }
+
+  // חישוב אורך יום עבודה כולל (הגעה מוקדמת ביותר - סיום מאוחר ביותר)
+  let earliestArrival = null, latestFinish = null;
+  state.kits.forEach(kit=>{
+    const e = kit.events || {};
+    if(e.arrival){
+      const t = new Date(e.arrival);
+      if(!earliestArrival || t < earliestArrival) earliestArrival = t;
+    }
+    if(e.finish){
+      const t = new Date(e.finish);
+      if(!latestFinish || t > latestFinish) latestFinish = t;
+    }
+  });
+  const totalDayMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
+
+  const rows = [];
+  state.kits.forEach(kit => {
+    const e = kit.events || {};
+    const { totalMs, wallMs, netMs, stopsMs } = kitDurations(kit);
+    
+    // פירוט העצירות והסיבות עבור הקיט הנוכחי
+    const stopsDetail = (kit.stops || []).map((s, idx) => {
+      const dur = s.end ? fmtDur(new Date(s.end) - new Date(s.start)) : 'פעיל';
+      return `עצירה ${idx+1}: ${fmtTime(s.start)}-${s.end ? fmtTime(s.end) : '—'} (${dur}) [סיבה: ${s.reason || 'ללא'}]`;
+    }).join(' | ');
+
+    // סדר העמודות שנבחר:
+    // Date, Day length, Arrive at site, End of operation, TOTAL Throughput, RBU, VRU, MCP, Drop Columns, Deployment, On the wall, Dismantle, System Time, Downtime, Uptime, TOTAL Throughput, ParaDevice, KIT, Team Size, Stops & Reasons
+    const row = [
+      state.date,                           // Date
+      fmtDur(totalDayMs),                   // Day length
+      e.arrival ? fmtTime(e.arrival) : '',  // Arrive at site
+      e.finish ? fmtTime(e.finish) : '',    // End of operation
+      '',                                   // TOTAL Throughput
+      '',                                   // RBU
+      '',                                   // VRU
+      '',                                   // MCP
+      '',                                   // Drop Columns
+      e.deployment ? fmtTime(e.deployment) : '', // Deployment
+      e.onWall ? fmtTime(e.onWall) : '',    // On the wall
+      e.dismantle ? fmtTime(e.dismantle) : '', // Dismantle
+      fmtDur(totalMs),                      // System Time
+      fmtDur(stopsMs),                      // Downtime (עצירות)
+      fmtDur(netMs),                        // Uptime (עבודה נטו)
+      '',                                   // TOTAL Throughput
+      kit.type,                             // ParaDevice
+      kit.id,                               // KIT
+      state.people || '0',                  // Team Size
+      stopsDetail                           // Stops & Reasons (פירוט העצירות והסיבות)
+    ];
+
+    // הפרדה ב-Tab כדי לשמור על מבנה העמודות בהדבקה ל-Sheets
+    rows.push(row.join('\t'));
+  });
+
+  const textToCopy = rows.join('\n');
+
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    showToast('השורות הועתקו בסדר המבוקש! הדבק ב-Sheets');
+  }).catch(() => {
+    const textArea = document.createElement('textarea');
+    textArea.value = textToCopy;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showToast('השורות הועתקו בסדר המבוקש! הדבק ב-Sheets');
+  });
+}
+
+function exportToCSV(){
+  if(!state || !state.kits || state.kits.length === 0){
+    showToast('אין נתונים לייצוא ביום זה');
+    return;
+  }
+
+  const headers = [
+    "Date", "Day length", "Arrive at site", "End of operation", "TOTAL Throughput", 
+    "RBU", "VRU", "MCP", "Drop Columns", "Deployment", "On the wall", "Dismantle", 
+    "System Time", "Downtime", "Uptime", "TOTAL Throughput", "ParaDevice", "KIT", "Team Size", "Stops & Reasons"
+  ];
+
+  const rows = [headers];
+
+  let earliestArrival = null, latestFinish = null;
+  state.kits.forEach(kit=>{
+    const e = kit.events || {};
+    if(e.arrival){
+      const t = new Date(e.arrival);
+      if(!earliestArrival || t < earliestArrival) earliestArrival = t;
+    }
+    if(e.finish){
+      const t = new Date(e.finish);
+      if(!latestFinish || t > latestFinish) latestFinish = t;
+    }
+  });
+  const totalDayMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
+
+  state.kits.forEach(kit => {
+    const e = kit.events || {};
+    const { totalMs, wallMs, netMs, stopsMs } = kitDurations(kit);
+    
+    const stopsDetail = (kit.stops || []).map((s, idx) => {
+      const dur = s.end ? fmtDur(new Date(s.end) - new Date(s.start)) : 'פעיל';
+      return `עצירה ${idx+1}: ${fmtTime(s.start)}-${s.end ? fmtTime(s.end) : '—'} (${dur}) [סיבה: ${s.reason || 'ללא'}]`;
+    }).join(' | ');
+
+    const row = [
+      state.date,
+      fmtDur(totalDayMs),
+      e.arrival ? fmtTime(e.arrival) : '',
+      e.finish ? fmtTime(e.finish) : '',
+      '', '', '', '', '',
+      e.deployment ? fmtTime(e.deployment) : '',
+      e.onWall ? fmtTime(e.onWall) : '',
+      e.dismantle ? fmtTime(e.dismantle) : '',
+      fmtDur(totalMs),
+      fmtDur(stopsMs),
+      fmtDur(netMs),
+      '',
+      kit.type,
+      kit.id,
+      state.people || '0',
+      stopsDetail
+    ];
+
+    rows.push(row.map(val => `"${String(val).replace(/"/g, '""')}"`));
+  });
+
+  const csvContent = rows.map(r => r.join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `field_log_${state.date}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast('קובץ CSV הורד בהצלחה!');
+}
+
+document.getElementById('copyRowsBtn').addEventListener('click', copyRowsForSheets);
+document.getElementById('exportCsvBtn').addEventListener('click', exportToCSV);
+
+document.getElementById('loadBtn').addEventListener('click', ()=>{
+  const inputDate = document.getElementById('dateInput').value;
+  if(inputDate) loadDay(inputDate);
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(confirm('האם אתה בטוח שברצונך לאפס את כל הנתונים ליום זה?')){
+    state = blankDay(currentDate);
+    saveState();
+    showToast('הנתונים אופסו בהצלחה');
+  }
+});
+
+// אתחול האפליקציה בטעינה
+(function init(){
+  const today = todayISO();
+  document.getElementById('dateInput').value = today;
+  loadDay(today);
+  
+  setInterval(()=>{
+    const activeKits = state?.kits?.filter(k => k.events?.onWall && !k.events?.dismantle);
+    if(activeKits && activeKits.length > 0){
+      renderKits();
+      renderSummary();
+    }
+  }, 1000);
+})();
+</script>
+</body>
+</html>
