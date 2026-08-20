@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>יומן שטח</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Field Operations Log</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Heebo:wght@400;500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Heebo:wght@400;500;700;800&display=swap');
 
-  :root{
+  :root[data-theme="dark"] {
     --bg:#12151A;
     --panel:#1B2027;
     --panel2:#20262F;
     --panel3:#262D37;
-    --line:#2C333D;
+    --line:#3A4452;
     --text:#EDEAE3;
-    --dim:#8B93A0;
+    --dim:#A0AAB8;
     --amber:#FFB020;
     --amber-dim:#5C4416;
     --orange:#FF5D3A;
@@ -23,169 +23,456 @@
     --green-dim:#123326;
     --blue:#3A9EFF;
     --blue-dim:#16385C;
+  }
+
+  :root[data-theme="light"] {
+    --bg:#F4F6F8;
+    --panel:#FFFFFF;
+    --panel2:#EAEFF5;
+    --panel3:#DCE3ED;
+    --line:#BCC6D5;
+    --text:#1A212B;
+    --dim:#5A6678;
+    --amber:#D98200;
+    --amber-dim:#FFE3B3;
+    --orange:#E03B18;
+    --orange-dim:#FFD8D0;
+    --green:#0FA25B;
+    --green-dim:#C9F7DF;
+    --blue:#0072E5;
+    --blue-dim:#CFE4FF;
+  }
+
+  :root[data-theme="high-contrast"] {
+    --bg:#000000;
+    --panel:#111111;
+    --panel2:#222222;
+    --panel3:#333333;
+    --line:#FFFFFF;
+    --text:#FFFFFF;
+    --dim:#CCCCCC;
+    --amber:#FFD700;
+    --amber-dim:#443B00;
+    --orange:#FF3300;
+    --orange-dim:#551100;
+    --green:#00FF66;
+    --green-dim:#004411;
+    --blue:#00CCFF;
+    --blue-dim:#003355;
+  }
+
+  :root {
     --mono:'JetBrains Mono', monospace;
     --disp:'Oswald', sans-serif;
     --body:'Heebo', sans-serif;
   }
+
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:var(--body); min-height:100vh;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:var(--body); min-height:100vh; transition: background 0.2s, color 0.2s;}
   body{padding-bottom:40px;}
 
+  .app-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
   header{
-    padding:18px 16px 14px;
-    border-bottom:1px solid var(--line);
+    padding:14px 16px;
+    border-bottom:2px solid var(--line);
     position:sticky; top:0; background:var(--bg); z-index:20;
   }
-  .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--amber); text-transform:uppercase;}
+  .header-top{display:flex; justify-content:space-between; align-items:center;}
+  .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--amber); text-transform:uppercase; font-weight:700;}
   h1{font-family:var(--disp); font-size:22px; margin:2px 0 0; font-weight:700; letter-spacing:.01em;}
-  .datepick{margin-top:10px; display:flex; gap:8px; align-items:center;}
-  .datepick input[type=date]{
+  
+  .theme-selector{
+    background:var(--panel2); border:1.5px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:12px; padding:6px 10px; border-radius:8px; font-weight:700; cursor:pointer;
+  }
+
+  .site-pick{
+    margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap: wrap;
+    background:var(--panel2); padding:8px 10px; border-radius:8px; border:1.5px solid var(--amber);
+  }
+  .site-pick label{font-family:var(--mono); font-size:12px; font-weight:bold; color:var(--amber); white-space:nowrap;}
+  .site-pick select, .site-pick input{
     background:var(--panel); border:1px solid var(--line); color:var(--text);
-    font-family:var(--mono); font-size:13px; padding:7px 9px; border-radius:6px; flex:1;
+    font-family:var(--body); font-size:14px; padding:6px 8px; border-radius:6px; flex:1; font-weight:bold;
+  }
+
+  .json-upload-btn {
+    background: var(--blue-dim);
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .datepick{margin-top:8px; display:flex; gap:8px; align-items:center;}
+  .datepick input[type=date]{
+    background:var(--panel); border:1.5px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:14px; padding:8px 10px; border-radius:8px; flex:1; font-weight:bold;
   }
   .datepick button{
-    background:var(--panel); border:1px solid var(--line); color:var(--dim);
-    font-family:var(--mono); font-size:12px; padding:7px 10px; border-radius:6px;
+    background:var(--panel2); border:1.5px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:13px; padding:8px 14px; border-radius:8px; font-weight:700; cursor:pointer;
   }
 
   section{margin:20px 16px 0;}
-  .sec-title{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px;}
-  .sec-title::after{content:''; flex:1; height:1px; background:var(--line);}
+  .sec-title{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px; font-weight:700;}
+  .sec-title::after{content:''; flex:1; height:2px; background:var(--line);}
 
   .field-row{display:flex; gap:10px; margin-bottom:8px;}
   .field{flex:1;}
-  .field label{display:block; font-family:var(--mono); font-size:10px; color:var(--dim); margin-bottom:5px; letter-spacing:.06em;}
-  .field input, .field select{
-    width:100%; background:var(--panel); border:1px solid var(--line); color:var(--text);
-    font-family:var(--body); font-size:14px; padding:11px 10px; border-radius:8px;
+  .field label{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); margin-bottom:5px; letter-spacing:.06em; font-weight:700;}
+  .field input, .field select, .field textarea{
+    width:100%; background:var(--panel); border:1.5px solid var(--line); color:var(--text);
+    font-family:var(--body); font-size:15px; padding:11px 10px; border-radius:8px; font-weight:500;
+  }
+
+  #kitsList {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .kit-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:12px;
-    margin-bottom:14px; overflow:hidden;
+    background:var(--panel); border:2px solid var(--line); border-radius:12px;
+    overflow:hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   }
-  .kit-card.wall-active{border-color:var(--amber);}
+  .kit-card.wall-active{border-color:var(--amber); border-width:2.5px;}
   .kit-head{
     display:flex; justify-content:space-between; align-items:center;
-    padding:12px 14px; cursor:pointer;
+    padding:14px 16px; cursor:pointer; background:var(--panel);
   }
   .kit-head-left{display:flex; align-items:center; gap:10px;}
-  .kit-type{font-family:var(--disp); font-weight:700; font-size:16px;}
-  .kit-status-dot{width:8px; height:8px; border-radius:50%; background:var(--line); flex-shrink:0;}
+  .kit-type{font-family:var(--disp); font-weight:700; font-size:18px;}
+  .kit-status-dot{width:10px; height:10px; border-radius:50%; background:var(--line); flex-shrink:0;}
   .kit-card.wall-active .kit-status-dot{background:var(--amber); box-shadow:0 0 0 3px var(--amber-dim);}
   .kit-card.finished .kit-status-dot{background:var(--green);}
   .kit-head-right{display:flex; align-items:center; gap:10px;}
-  .kit-clock{font-family:var(--mono); font-size:15px; font-weight:700; color:var(--dim); font-variant-numeric:tabular-nums;}
+  .kit-clock{font-family:var(--mono); font-size:16px; font-weight:700; color:var(--dim); font-variant-numeric:tabular-nums;}
   .kit-card.wall-active .kit-clock{color:var(--amber);}
-  .chevron{color:var(--dim); font-size:12px; transition:transform .15s;}
+  .chevron{color:var(--dim); font-size:14px; transition:transform .15s; font-weight:bold;}
   .kit-card.collapsed .chevron{transform:rotate(-90deg);}
-  .kit-body{border-top:1px solid var(--line); padding:12px 14px 14px;}
+  .kit-body{border-top:1.5px solid var(--line); padding:14px;}
   .kit-card.collapsed .kit-body{display:none;}
+
+  .kit-fields-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;
+    background:var(--panel2); padding:12px; border-radius:8px; border:1px solid var(--line);
+  }
+  .kit-fields-grid .field label{font-size:10px;}
+  .kit-fields-grid .field input, .kit-fields-grid .field select{padding:8px 10px; font-size:13px; background:var(--panel); border:1px solid var(--line);}
+  .kit-fields-grid .field.full-width{grid-column:span 2;}
+
+  /* Dynamic Drop Columns Box */
+  .drop-cols-container {
+    grid-column: span 2;
+    background: var(--panel3);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    margin-bottom: 4px;
+  }
+  .drop-cols-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+  .drop-col-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 8px;
+    background: var(--panel2);
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  .drop-col-item input {
+    font-size: 11px !important;
+    padding: 6px !important;
+  }
+  .btn-remove-drop {
+    background: var(--orange-dim);
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .btn-add-drop {
+    background: var(--amber-dim);
+    color: var(--amber);
+    border: 1px solid var(--amber);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .map-select-btn {
+    width: 100%;
+    grid-column: span 2;
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
 
   .stage-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:6px;}
   .stage-chip{
     display:flex; flex-direction:column; align-items:center; gap:4px;
-    background:var(--panel2); border:1px solid var(--line); border-radius:8px;
-    padding:9px 3px; text-align:center;
+    background:var(--panel2); border:1.5px solid var(--line); border-radius:8px;
+    padding:10px 2px; text-align:center; position:relative; cursor:pointer; transition:transform 0.1s;
   }
-  .stage-chip .lbl{font-family:var(--disp); font-size:11px; font-weight:600; color:var(--text); line-height:1.15;}
-  .stage-chip .tm{font-family:var(--mono); font-size:9px; color:var(--dim); min-height:11px;}
-  .stage-chip.done{background:var(--amber-dim); border-color:var(--amber);}
+  .stage-chip:active{transform:scale(0.96);}
+  .stage-chip .lbl{font-family:var(--disp); font-size:11px; font-weight:700; color:var(--text); line-height:1.15;}
+  .stage-chip .tm{font-family:var(--mono); font-size:10px; color:var(--dim); min-height:12px; font-weight:bold;}
+  .stage-chip .edit-tm-btn{
+    font-size:11px; opacity:0.8; cursor:pointer; margin-top:2px;
+  }
+  .stage-chip.done{background:var(--amber-dim); border-color:var(--amber); border-width:2px;}
   .stage-chip.done .lbl{color:var(--amber);}
   .stage-chip.done .tm{color:var(--amber);}
-  .stage-chip.locked{opacity:.35;}
+  .stage-chip.locked{opacity:.35; cursor:default;}
 
   .stops-block{margin-top:12px;}
-  .stop-pair{display:flex; gap:8px;}
+  .stop-pair{display:flex; gap:10px;}
   .stop-btn{
-    flex:1; font-family:var(--disp); font-weight:700; font-size:13px;
-    padding:11px 0; border-radius:8px; border:1px solid var(--line);
-    background:var(--panel2); color:var(--text);
+    flex:1; font-family:var(--disp); font-weight:700; font-size:15px;
+    padding:12px 0; border-radius:8px; border:2px solid var(--line);
+    background:var(--panel2); color:var(--text); cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.1);
   }
-  .stop-btn.stop{color:var(--orange); border-color:var(--orange-dim);}
-  .stop-btn.start{color:var(--green); border-color:var(--green-dim);}
-  .stop-btn:disabled{opacity:.3;}
+  .stop-btn:active{transform:scale(0.98);}
+  .stop-btn.stop{color:var(--orange); border-color:var(--orange); background:var(--orange-dim);}
+  .stop-btn.start{color:var(--green); border-color:var(--green); background:var(--green-dim);}
+  .stop-btn:disabled{opacity:.3; cursor:default; transform:none;}
   .stop-log{font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:8px; line-height:1.7;}
-  .stop-log .reason{color:var(--text); font-family:var(--body);}
+  .stop-item{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;}
+  .stop-log .reason{color:var(--text); font-family:var(--body); font-weight:bold;}
+  .edit-stop-btn{font-size:12px; opacity:0.8; cursor:pointer; padding:0 4px;}
 
   .kit-report{
-    margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
+    margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px;
   }
-  .kit-report .stat{background:var(--panel2); border-radius:8px; padding:8px 6px; text-align:center;}
-  .kit-report .stat .k{font-family:var(--mono); font-size:9px; color:var(--dim); text-transform:uppercase; letter-spacing:.04em;}
-  .kit-report .stat .v{font-family:var(--mono); font-size:14px; font-weight:700; color:var(--amber); margin-top:3px;}
+  .kit-report .stat{background:var(--panel2); border-radius:8px; padding:8px 4px; text-align:center; border:1px solid var(--line);}
+  .kit-report .stat .k{font-family:var(--mono); font-size:8px; color:var(--dim); text-transform:uppercase; letter-spacing:.02em; font-weight:bold;}
+  .kit-report .stat .v{font-family:var(--mono); font-size:13px; font-weight:700; color:var(--amber); margin-top:3px;}
+
+  .delete-kit-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px;
+    background: var(--orange-dim);
+    color: var(--orange);
+    border: 1.5px solid var(--orange);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .delete-kit-btn:active { transform: scale(0.98); }
 
   .add-kit{
-    width:100%; padding:14px; border-radius:10px; border:1px dashed var(--line);
-    background:transparent; color:var(--dim); font-family:var(--mono); font-size:12px;
+    width:100%; padding:14px; border-radius:10px; border:2px dashed var(--amber);
+    background:var(--amber-dim); color:var(--amber); font-family:var(--disp); font-size:16px; font-weight:700; cursor:pointer;
+    margin-top: 10px;
   }
-  .kit-new{display:flex; gap:8px; margin-top:8px;}
-  .kit-new select, .kit-new input{
-    background:var(--panel2); border:1px solid var(--line); color:var(--text);
-    font-family:var(--body); font-size:13px; padding:9px; border-radius:7px;
-  }
-  .kit-new select{flex:1.4;}
-  .kit-new .go{flex:1; background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber); font-family:var(--mono); font-weight:700;}
+  .add-kit:active{transform:scale(0.99);}
 
-  .summary{background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .kit-new-box{
+    background:var(--panel2); border:2px solid var(--line); border-radius:10px; padding:14px; margin-top:10px;
+  }
+  .kit-new-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .kit-new-box .go{
+    width:100%; margin-top:12px; padding:12px; background:var(--amber-dim); color:var(--amber); 
+    border:2px solid var(--amber); border-radius:8px; font-family:var(--disp); font-size:16px; font-weight:700; cursor:pointer;
+  }
+
+  .summary{background:var(--panel); border:2px solid var(--line); border-radius:12px; overflow:hidden;}
   .summary-row{display:flex; justify-content:space-between; align-items:baseline; padding:14px 16px; border-bottom:1px solid var(--line);}
   .summary-row:last-child{border-bottom:none; background:var(--panel2);}
-  .summary-label{font-family:var(--body); font-size:13px; color:var(--dim);}
-  .summary-label small{display:block; font-family:var(--mono); font-size:10px; color:var(--dim); margin-top:2px;}
-  .summary-val{font-family:var(--mono); font-size:19px; font-weight:700; color:var(--amber); font-variant-numeric:tabular-nums;}
-  .summary-row:last-child .summary-val{color:var(--green); font-size:21px;}
+  .summary-label{font-family:var(--body); font-size:14px; color:var(--dim); font-weight:700;}
+  .summary-label small{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:2px;}
+  .summary-val{font-family:var(--mono); font-size:20px; font-weight:700; color:var(--amber); font-variant-numeric:tabular-nums;}
+  .summary-row:last-child .summary-val{color:var(--green); font-size:22px;}
   .empty-note{font-family:var(--mono); font-size:12px; color:var(--dim); padding:14px; text-align:center;}
 
   .btn-group{display:flex; flex-direction:column; gap:10px; margin-top:14px;}
   
   .copy-btn{
-    width:100%; padding:12px; border-radius:10px;
-    background:var(--blue-dim); border:1px solid var(--blue); color:var(--blue);
-    font-family:var(--disp); font-size:14px; font-weight:700; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:14px; border-radius:10px;
+    background:var(--blue-dim); border:2px solid var(--blue); color:var(--blue);
+    font-family:var(--disp); font-size:16px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 3px 6px rgba(0,0,0,0.15);
   }
-  .copy-btn:active{opacity:0.8;}
+  .copy-btn:active{transform:scale(0.98);}
 
   .export-btn{
-    width:100%; padding:12px; border-radius:10px;
-    background:var(--green-dim); border:1px solid var(--green); color:var(--green);
-    font-family:var(--disp); font-size:14px; font-weight:700; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:14px; border-radius:10px;
+    background:var(--green-dim); border:2px solid var(--green); color:var(--green);
+    font-family:var(--disp); font-size:16px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 3px 6px rgba(0,0,0,0.15);
   }
-  .export-btn:active{opacity:0.8;}
+  .export-btn:active{transform:scale(0.98);}
 
   .reset-link{
-    display:block; text-align:center; margin:26px 16px 0; padding:10px;
-    font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.05em;
-    border:1px solid var(--line); border-radius:8px; background:transparent; width:calc(100% - 32px);
+    display:block; text-align:center; margin:26px 16px 0; padding:12px;
+    font-family:var(--mono); font-size:12px; color:var(--orange); letter-spacing:.05em;
+    border:1.5px solid var(--orange); border-radius:8px; background:var(--orange-dim); width:calc(100% - 32px); cursor:pointer; font-weight:bold;
   }
   .toast{
-    position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
-    background:var(--panel2); border:1px solid var(--amber); color:var(--amber);
-    font-family:var(--mono); font-size:12px; padding:9px 16px; border-radius:20px;
-    opacity:0; transition:opacity .2s; pointer-events:none; z-index:50;
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--panel2); border:2px solid var(--amber); color:var(--amber);
+    font-family:var(--mono); font-size:13px; font-weight:bold; padding:12px 20px; border-radius:24px;
+    opacity:0; transition:opacity .2s; pointer-events:none; z-index:50; box-shadow:0 4px 12px rgba(0,0,0,0.3);
   }
   .toast.show{opacity:1;}
 
   .modal-overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,.6);
+    position:fixed; inset:0; background:rgba(0,0,0,.7);
     display:none; align-items:flex-end; justify-content:center; z-index:60;
   }
   .modal-overlay.show{display:flex;}
   .modal-box{
-    width:100%; max-width:480px; background:var(--panel); border:1px solid var(--line);
-    border-radius:16px 16px 0 0; padding:18px 16px 22px;
+    width:100%; max-width:500px; background:var(--panel); border:2px solid var(--line);
+    border-radius:16px 16px 0 0; padding:20px 16px 24px;
   }
-  .modal-title{font-family:var(--disp); font-size:16px; font-weight:700; margin-bottom:4px;}
-  .modal-sub{font-family:var(--mono); font-size:11px; color:var(--dim); margin-bottom:12px;}
-  .modal-box textarea{
-    width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--text);
-    font-family:var(--body); font-size:14px; padding:10px; border-radius:8px; resize:none; min-height:70px;
+  .modal-title{font-family:var(--disp); font-size:18px; font-weight:700; margin-bottom:4px;}
+  .modal-sub{font-family:var(--mono); font-size:12px; color:var(--dim); margin-bottom:12px;}
+  .modal-box textarea, .modal-box input[type=time]{
+    width:100%; background:var(--panel2); border:1.5px solid var(--line); color:var(--text);
+    font-family:var(--body); font-size:16px; padding:12px; border-radius:8px; resize:none; font-weight:500;
   }
-  .modal-actions{display:flex; gap:8px; margin-top:12px;}
-  .modal-actions button{flex:1; padding:12px 0; border-radius:8px; font-family:var(--mono); font-size:13px; font-weight:700;}
-  .modal-actions .cancel{background:transparent; border:1px solid var(--line); color:var(--dim);}
-  .modal-actions .confirm{background:var(--amber-dim); border:1px solid var(--amber); color:var(--amber);}
+  .modal-actions{display:flex; gap:10px; margin-top:14px;}
+  .modal-actions button{flex:1; padding:12px 0; border-radius:8px; font-family:var(--mono); font-size:13px; font-weight:700; cursor:pointer;}
+  .modal-actions .cancel{background:transparent; border:1.5px solid var(--line); color:var(--dim);}
+  .modal-actions .confirm{background:var(--amber-dim); border:2px solid var(--amber); color:var(--amber);}
+  .modal-actions .danger{background:var(--orange-dim); border:2px solid var(--orange); color:var(--orange);}
+
+  /* Proportional Facade Grid Visualizer Modal */
+  .facade-grid-modal {
+    max-width: 900px !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .facade-section-select {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-weight: bold;
+    border-radius: 8px;
+  }
+  .facade-grid-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    touch-action: none;
+  }
+  .facade-row-container {
+    display: flex;
+    gap: 4px;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+  .window-cell {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px 2px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 9px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s, border-color 0.1s;
+    box-sizing: border-box;
+  }
+  .window-cell.selected {
+    background: var(--amber) !important;
+    color: #000 !important;
+    font-weight: bold;
+  }
+  .window-cell.previously-cleaned {
+    background: #3A4452 !important;
+    color: #A0AAB8 !important;
+    border-color: #5A6678 !important;
+    opacity: 0.85;
+  }
+
+  .reset-history-btn {
+    background: var(--orange-dim);
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+
+  @media (min-width: 650px) {
+    #kitsList {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .btn-group {
+      flex-direction: row;
+    }
+    .btn-group button {
+      flex: 1;
+    }
+    .kit-new-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .kit-new-grid .field.full-width {
+      grid-column: span 3;
+    }
+    .modal-overlay {
+      align-items: center;
+    }
+    .modal-box {
+      border-radius: 16px;
+    }
+  }
 </style>
 
 <!-- Firebase SDK -->
@@ -194,68 +481,230 @@
 </head>
 <body>
 
-<header>
-  <div class="eyebrow">יומן שטח · תיעוד לפי קיט</div>
-  <h1>מעקב קיטים ליום עבודה</h1>
-  <div class="datepick">
-    <input type="date" id="dateInput">
-    <button id="loadBtn">טען יום</button>
-  </div>
-</header>
-
-<section>
-  <div class="sec-title">נתונים כלליים</div>
-  <div class="field-row">
-    <div class="field">
-      <label>מספר אנשים בצוות</label>
-      <input type="number" id="peopleInput" min="0" placeholder="לדוגמה: 3">
+<div class="app-container">
+  <header>
+    <div class="header-top">
+      <div class="eyebrow">FIELD LOG · KIT TRACKER</div>
+      <select class="theme-selector" id="themeSelect">
+        <option value="dark">🌙 Dark</option>
+        <option value="light">☀️ Light</option>
+        <option value="high-contrast">⚡ High Contrast</option>
+      </select>
     </div>
-  </div>
-</section>
+    <h1>Daily Field Operations</h1>
+    
+    <!-- Site Selection & Building JSON Upload -->
+    <div class="site-pick">
+      <label>Site:</label>
+      <select id="siteSelect">
+        <option value="Suzuki">Suzuki</option>
+        <option value="Vica Park">Vica Park</option>
+        <option value="Herzliya Quarters">Herzliya Quarters</option>
+        <option value="custom">+ New Site...</option>
+      </select>
+      <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
+      
+      <button type="button" class="json-upload-btn" id="uploadJsonBtn">📁 Upload Building JSON</button>
+      <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
+    </div>
 
-<section>
-  <div class="sec-title">קיטים</div>
-  <div id="kitsList"></div>
-  <button class="add-kit" id="addKitToggle">+ הוסף קיט חדש</button>
-  <div class="kit-new" id="kitNewRow" style="display:none;">
-    <select id="kitTypeSelect">
-      <option value="Parapod">Parapod</option>
-      <option value="Paraslide">Paraslide</option>
-      <option value="Paraclamp">Paraclamp</option>
-      <option value="Paraline">Paraline</option>
-      <option value="Paradavit">Paradavit</option>
-      <option value="custom">אחר...</option>
-    </select>
-    <input type="text" id="kitCustomInput" placeholder="סוג מותאם" style="display:none;">
-    <button class="go" id="kitCreateBtn">הוסף</button>
-  </div>
-</section>
+    <div class="datepick">
+      <input type="date" id="dateInput">
+      <button id="loadBtn">Load Date</button>
+    </div>
+  </header>
 
-<section>
-  <div class="sec-title">סיכום היום</div>
-  <div class="summary" id="summaryBox"></div>
-  <div class="btn-group">
-    <button class="copy-btn" id="copyRowsBtn">📋 העתק שורות ל-Google Sheets</button>
-    <button class="export-btn" id="exportCsvBtn">📥 ייצא דוח יומי לקובץ CSV</button>
-  </div>
-</section>
+  <section>
+    <div class="sec-title">General Info</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Team Size</label>
+        <input type="number" id="peopleInput" min="0" placeholder="e.g. 3">
+      </div>
+    </div>
+  </section>
 
-<button class="reset-link" id="resetBtn">אפס יום זה</button>
+  <section>
+    <div class="sec-title">Kits</div>
+    <div id="kitsList"></div>
+    <button class="add-kit" id="addKitToggle">+ Add New Kit</button>
+    
+    <div class="kit-new-box" id="kitNewRow" style="display:none;">
+      <div class="kit-new-grid">
+        <div class="field">
+          <label>Kit #</label>
+          <select id="newKitNum"></select>
+        </div>
+        <div class="field">
+          <label>ParaDevice</label>
+          <select id="newKitTypeSelect">
+            <option value="Parapod">Parapod</option>
+            <option value="Paraslide">Paraslide</option>
+            <option value="Paraclamp">Paraclamp</option>
+            <option value="Paraline">Paraline</option>
+            <option value="Paradavit">Paradavit</option>
+            <option value="custom">Other...</option>
+          </select>
+        </div>
+        <div class="field" id="customTypeWrap" style="display:none; grid-column:span 2;">
+          <label>Custom ParaDevice</label>
+          <input type="text" id="newKitCustomInput" placeholder="Enter device type">
+        </div>
+        <div class="field">
+          <label>RBU #</label>
+          <select id="newRbu"></select>
+        </div>
+        <div class="field">
+          <label>VRU #</label>
+          <select id="newVru"></select>
+        </div>
+        <div class="field">
+          <label>MCP #</label>
+          <select id="newMcp"></select>
+        </div>
+        <div class="field">
+          <label>Deployment Mode</label>
+          <select id="newDeployLoc">
+            <option value="Roof">Roof</option>
+            <option value="Ground">Ground</option>
+            <option value="Grasshopper">Grasshopper</option>
+          </select>
+        </div>
+
+        <div class="drop-cols-container" style="grid-column: span 2;">
+          <div class="drop-cols-header">
+            <span>DROP COLUMNS / AREAS</span>
+            <button type="button" class="btn-add-drop" id="newKitAddDropBtn">+ Add Drop Area</button>
+          </div>
+          <div id="newKitDropList"></div>
+        </div>
+
+        <div class="field full-width">
+          <label>Deployment Notes</label>
+          <input type="text" id="newDeployNotes" placeholder="Notes regarding deployment & equipment...">
+        </div>
+      </div>
+      <button class="go" id="kitCreateBtn">Create Kit</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-title">Daily Summary</div>
+    <div class="summary" id="summaryBox"></div>
+    <div class="btn-group">
+      <button class="copy-btn" id="copyRowsBtn">📋 Copy Rows for Google Sheets</button>
+      <button class="export-btn" id="exportCsvBtn">📥 Export CSV Report</button>
+    </div>
+  </section>
+
+  <button class="reset-link" id="resetBtn">Reset Current Day Data</button>
+</div>
+
 <div class="toast" id="toast"></div>
 
+<!-- New Stop Modal -->
 <div class="modal-overlay" id="stopModal">
   <div class="modal-box">
-    <div class="modal-title">סיבת עצירה</div>
-    <div class="modal-sub" id="stopModalSub">מה גורם לעצירה כרגע?</div>
-    <textarea id="stopReasonInput" placeholder="לדוגמה: המתנה לאישור, בעיה טכנית, מזג אוויר..."></textarea>
+    <div class="modal-title">Stop Reason</div>
+    <div class="modal-sub" id="stopModalSub">What is causing the delay?</div>
+    <textarea id="stopReasonInput" placeholder="e.g. Waiting for approval, technical issue, weather..."></textarea>
     <div class="modal-actions">
-      <button class="cancel" id="stopReasonCancel">ביטול</button>
-      <button class="confirm" id="stopReasonConfirm">אשר עצירה</button>
+      <button class="cancel" id="stopReasonCancel">Cancel</button>
+      <button class="confirm" id="stopReasonConfirm">Confirm Stop</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Stop Modal -->
+<div class="modal-overlay" id="stopEditModal">
+  <div class="modal-box">
+    <div class="modal-title">Edit Stop</div>
+    <div class="modal-sub">Update stop times and reason</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+      <div>
+        <label style="font-size:10px; color:var(--dim);">Start Time (Stop)</label>
+        <input type="time" id="stopEditStart" step="1">
+      </div>
+      <div>
+        <label style="font-size:10px; color:var(--dim);">End Time (Start)</label>
+        <input type="time" id="stopEditEnd" step="1">
+      </div>
+    </div>
+    <textarea id="stopEditReason" placeholder="Stop reason..."></textarea>
+    <div class="modal-actions">
+      <button class="danger" id="stopEditDelete">🗑️ Delete</button>
+      <button class="cancel" id="stopEditCancel">Cancel</button>
+      <button class="confirm" id="stopEditConfirm">Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Stage Time Modal -->
+<div class="modal-overlay" id="timeEditModal">
+  <div class="modal-box">
+    <div class="modal-title">Edit / Reset Time</div>
+    <div class="modal-sub" id="timeEditSub">Select a new timestamp or reset this stage</div>
+    <input type="time" id="timeEditInput" step="1">
+    <div class="modal-actions">
+      <button class="danger" id="timeEditReset">🗑️ Reset Stage</button>
+      <button class="cancel" id="timeEditCancel">Cancel</button>
+      <button class="confirm" id="timeEditConfirm">Update Time</button>
+    </div>
+  </div>
+</div>
+
+<!-- Facade Map Visualizer Modal -->
+<div class="modal-overlay" id="facadeMapModal">
+  <div class="modal-box facade-grid-modal">
+    <div class="modal-title">Building Map & Window Selection</div>
+    <div class="modal-sub" id="facadeMapSub">Click & drag to select windows. Double-click grey cells to unlock/reset previously cleaned windows.</div>
+    
+    <button type="button" class="reset-history-btn" id="resetHistoryBtn">🔄 Reset Entire Project Window History</button>
+
+    <select class="facade-section-select" id="facadeSectionSelect"></select>
+    <div class="facade-grid-wrapper" id="facadeGridWrapper"></div>
+
+    <div style="margin-top:12px; font-family:var(--mono); font-size:13px; font-weight:bold; color:var(--amber);">
+      Selected Windows Area: <span id="facadeSqmTotal">0.00</span> m²
+    </div>
+
+    <div class="modal-actions">
+      <button class="cancel" id="facadeMapCancel">Cancel</button>
+      <button class="confirm" id="facadeMapConfirm">Save Selection</button>
     </div>
   </div>
 </div>
 
 <script>
+// Theme Management
+const themeSelect = document.getElementById('themeSelect');
+const savedTheme = localStorage.getItem('app-theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+themeSelect.value = savedTheme;
+
+themeSelect.addEventListener('change', (e) => {
+  const selectedTheme = e.target.value;
+  document.documentElement.setAttribute('data-theme', selectedTheme);
+  localStorage.setItem('app-theme', selectedTheme);
+});
+
+// Helper for 1-50 Dropdowns
+function populate1To50Select(selectElem, defaultVal = '') {
+  selectElem.innerHTML = '<option value="">— Select —</option>';
+  for (let i = 1; i <= 50; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = i;
+    if (String(i) === String(defaultVal)) opt.selected = true;
+    selectElem.appendChild(opt);
+  }
+}
+
+populate1To50Select(document.getElementById('newKitNum'), '1');
+populate1To50Select(document.getElementById('newRbu'));
+populate1To50Select(document.getElementById('newVru'));
+populate1To50Select(document.getElementById('newMcp'));
+
 const firebaseConfig = {
   apiKey: "AIzaSyCoq-GXRGkJLJ3jDeYo_KiZ04oqMyENFpY",
   authDomain: "workday-kits-operations-9de4d.firebaseapp.com",
@@ -270,32 +719,145 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const STAGES = [
-  {key:'arrival',    label:'הגעה'},
-  {key:'deployment', label:'דפלוימנט'},
-  {key:'onWall',     label:'על הקיר'},
-  {key:'dismantle',  label:'דיסמנטל'},
-  {key:'finish',     label:'סיום'}
+  {key:'arrival',    label:'Arrival'},
+  {key:'deployment', label:'Deployment'},
+  {key:'onWall',     label:'On the Wall'},
+  {key:'dismantle',  label:'Dismantle'},
+  {key:'finish',     label:'Finish'}
 ];
 
 let state = null;
 let currentDate = null;
+let currentSite = 'Suzuki';
+let buildingData = null; // Loaded Building JSON Object
+let siteCleanedFramesHistory = new Set(); // Global project-wide historical cleaned frames
+
+let activeMapKitId = null;
+let selectedFrameIds = new Set();
+let isDraggingSelection = false;
+let dragSelectState = true;
+
 let pendingStopKitId = null;
+let editingTimeInfo = null;
+let editingStopInfo = null;
 let collapsedMap = {};
 let dbRef = null;
+
+let newKitDrops = [{ facade: '', rows: '', cols: '' }];
+
+// JSON Building File Upload Handling
+document.getElementById('uploadJsonBtn').addEventListener('click', () => {
+  document.getElementById('jsonFileInput').click();
+});
+
+document.getElementById('jsonFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const parsed = JSON.parse(evt.target.result);
+      buildingData = parsed;
+      const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+      db.ref(`sites/${cleanSite}/buildingJson`).set(parsed);
+      showToast(`Building JSON "${parsed.name || 'Building'}" loaded!`);
+    } catch(err) {
+      alert('Invalid JSON file format');
+    }
+  };
+  reader.readAsText(file);
+});
+
+// Render Drop Columns List in New Kit Form
+function renderNewKitDrops() {
+  const container = document.getElementById('newKitDropList');
+  container.innerHTML = '';
+  newKitDrops.forEach((item, idx) => {
+    const row = document.createElement('div');
+    row.className = 'drop-col-item';
+    row.innerHTML = `
+      <input type="text" placeholder="Facade (e.g. North)" value="${item.facade||''}" data-idx="${idx}" data-field="facade">
+      <input type="text" placeholder="Rows (e.g. 1-5)" value="${item.rows||''}" data-idx="${idx}" data-field="rows">
+      <input type="text" placeholder="Cols (e.g. 2-4)" value="${item.cols||''}" data-idx="${idx}" data-field="cols">
+      ${newKitDrops.length > 1 ? `<button type="button" class="btn-remove-drop" data-idx="${idx}">✕</button>` : '<span></span>'}
+    `;
+    container.appendChild(row);
+  });
+
+  container.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = e.target.getAttribute('data-idx');
+      const field = e.target.getAttribute('data-field');
+      newKitDrops[idx][field] = e.target.value;
+    });
+  });
+
+  container.querySelectorAll('.btn-remove-drop').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+      newKitDrops.splice(idx, 1);
+      renderNewKitDrops();
+    });
+  });
+}
+
+document.getElementById('newKitAddDropBtn').addEventListener('click', () => {
+  newKitDrops.push({ facade: '', rows: '', cols: '' });
+  renderNewKitDrops();
+});
+
+renderNewKitDrops();
+
+// Site Selection Handling
+const siteSelect = document.getElementById('siteSelect');
+const customSiteInput = document.getElementById('customSiteInput');
+
+siteSelect.addEventListener('change', (e) => {
+  if (e.target.value === 'custom') {
+    customSiteInput.style.display = 'block';
+    customSiteInput.focus();
+  } else {
+    customSiteInput.style.display = 'none';
+    currentSite = e.target.value;
+    loadDay(currentDate);
+  }
+});
+
+customSiteInput.addEventListener('change', () => {
+  const val = customSiteInput.value.trim();
+  if (val) {
+    currentSite = val;
+    loadDay(currentDate);
+  }
+});
 
 function todayISO(){
   const d = new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function blankDay(dateISO){
-  return { date: dateISO, people: '', kits: [] };
+  return { date: dateISO, site: currentSite, people: '', kits: [] };
 }
-function blankKit(type){
-  return { id: Date.now()+''+Math.floor(Math.random()*1000), type, events:{}, stops:[] };
+function blankKit(kitNum, type, rbu, vru, mcp, dropsList, deployLoc, deployNotes){
+  return { 
+    id: kitNum || ('KIT-'+(Date.now()%1000)), 
+    type: type || 'Parapod', 
+    rbu: rbu || '', 
+    vru: vru || '', 
+    mcp: mcp || '', 
+    drops: dropsList && dropsList.length ? JSON.parse(JSON.stringify(dropsList)) : [{ facade: '', rows: '', cols: '' }],
+    deployLoc: deployLoc || 'Roof',
+    deployNotes: deployNotes || '',
+    selectedFrames: [],
+    sqmCleaned: 0,
+    events:{}, 
+    stops:[] 
+  };
 }
 function fmtTime(iso){
   if(!iso) return '';
-  return new Date(iso).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  return new Date(iso).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false});
 }
 function fmtDur(ms){
   if(ms == null || ms < 0) return '—';
@@ -310,10 +872,18 @@ function showToast(msg){
 }
 
 function saveState(){
-  if(!state || !currentDate) return;
-  db.ref('days/' + currentDate).set(state).catch(e => {
+  if(!state || !currentDate || !currentSite) return;
+  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+  
+  // Sync selected frames to Site-wide Cleaned History in Firebase permanently
+  (state.kits || []).forEach(k => {
+    (k.selectedFrames || []).forEach(fId => siteCleanedFramesHistory.add(fId));
+  });
+  
+  db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set(Array.from(siteCleanedFramesHistory));
+  db.ref(`sites/${cleanSite}/days/${currentDate}`).set(state).catch(e => {
     console.error(e);
-    showToast('שגיאה בסנכרון לשרת');
+    showToast('Error syncing with server');
   });
 }
 
@@ -321,7 +891,20 @@ function loadDay(dateISO){
   currentDate = dateISO;
   if (dbRef) dbRef.off();
 
-  dbRef = db.ref('days/' + dateISO);
+  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+
+  // Load Building JSON
+  db.ref(`sites/${cleanSite}/buildingJson`).once('value', (snap) => {
+    buildingData = snap.val() || null;
+  });
+
+  // Load Site-wide Project Historical Cleaned Frames
+  db.ref(`sites/${cleanSite}/cleanedFramesHistory`).on('value', (snap) => {
+    const arr = snap.val() || [];
+    siteCleanedFramesHistory = new Set(arr);
+  });
+
+  dbRef = db.ref(`sites/${cleanSite}/days/${dateISO}`);
   dbRef.on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -330,6 +913,10 @@ function loadDay(dateISO){
       state.kits.forEach(k => {
         if(!k.stops) k.stops = [];
         if(!k.events) k.events = {};
+        if(!k.drops) {
+          k.drops = [{ facade: k.facade||'', rows: k.rows||'', cols: k.cols||'' }];
+        }
+        if(!k.selectedFrames) k.selectedFrames = [];
       });
     } else {
       state = blankDay(dateISO);
@@ -348,15 +935,25 @@ function markEvent(kit, key){
   if(kit.events[key]) return;
   kit.events[key] = new Date().toISOString();
   saveState();
-  showToast(kit.type + ' · ' + STAGES.find(s=>s.key===key).label + ' נרשם');
+  showToast('Kit ' + kit.id + ' · ' + STAGES.find(s=>s.key===key).label + ' logged');
 }
 
+// Corrected Time Formulas:
+// System Time: On Wall -> Dismantle
+// Downtime: Sum of all Stops
+// Uptime: System Time - Downtime
 function kitDurations(kit){
   const e = kit.events || {};
   const totalMs = (e.arrival && e.finish) ? new Date(e.finish)-new Date(e.arrival) : null;
+  
+  // System Time: On Wall -> Dismantle
   const wallMs = (e.onWall && e.dismantle) ? new Date(e.dismantle)-new Date(e.onWall) : null;
+  
+  // Downtime: Sum of all Stops
   let stopsMs = 0;
   (kit.stops || []).forEach(p=>{ if(p.start && p.end) stopsMs += new Date(p.end)-new Date(p.start); });
+  
+  // Uptime: System Time - Downtime
   const netMs = (wallMs != null) ? Math.max(0, wallMs - stopsMs) : null;
   return {totalMs, wallMs, netMs, stopsMs};
 }
@@ -366,7 +963,7 @@ function renderKitCard(kit){
   const finished = !!kit.events?.finish;
   const collapsed = !!collapsedMap[kit.id];
   const nextIdx = nextUnlockedIndex(kit);
-  const {totalMs, wallMs, netMs} = kitDurations(kit);
+  const {totalMs, wallMs, netMs, stopsMs} = kitDurations(kit);
 
   const card = document.createElement('div');
   card.className = 'kit-card' + (wallActive?' wall-active':'') + (finished?' finished':'') + (collapsed?' collapsed':'');
@@ -375,11 +972,13 @@ function renderKitCard(kit){
   if(wallActive){ clockText = fmtDur(new Date() - new Date(kit.events.onWall)); }
   else if(wallMs != null){ clockText = fmtDur(wallMs); }
 
+  const sqmText = kit.sqmCleaned ? `${kit.sqmCleaned.toFixed(2)} m²` : '0 m²';
+
   card.innerHTML = `
     <div class="kit-head">
       <div class="kit-head-left">
         <div class="kit-status-dot"></div>
-        <div class="kit-type">${kit.type}</div>
+        <div class="kit-type">Kit #${kit.id} (${kit.type})</div>
       </div>
       <div class="kit-head-right">
         <div class="kit-clock">${clockText}</div>
@@ -387,25 +986,148 @@ function renderKitCard(kit){
       </div>
     </div>
     <div class="kit-body">
+      <div class="kit-fields-grid">
+        <div class="field">
+          <label>RBU #</label>
+          <select data-field="rbu" class="rbu-sel"></select>
+        </div>
+        <div class="field">
+          <label>VRU #</label>
+          <select data-field="vru" class="vru-sel"></select>
+        </div>
+        <div class="field">
+          <label>MCP #</label>
+          <select data-field="mcp" class="mcp-sel"></select>
+        </div>
+        <div class="field">
+          <label>Deployment Mode</label>
+          <select data-field="deployLoc">
+            <option value="Roof" ${kit.deployLoc==='Roof'?'selected':''}>Roof</option>
+            <option value="Ground" ${kit.deployLoc==='Ground'?'selected':''}>Ground</option>
+            <option value="Grasshopper" ${kit.deployLoc==='Grasshopper'?'selected':''}>Grasshopper</option>
+          </select>
+        </div>
+
+        <button type="button" class="map-select-btn" data-kit-id="${kit.id}">🗺️ Open Building Map & Select Windows (${sqmText})</button>
+
+        <!-- Dynamic Drop Columns per Kit -->
+        <div class="drop-cols-container" style="grid-column: span 2;">
+          <div class="drop-cols-header">
+            <span>DROP COLUMNS / AREAS</span>
+            <button type="button" class="btn-add-drop card-add-drop">+ Add Drop Area</button>
+          </div>
+          <div class="card-drop-list"></div>
+        </div>
+
+        <div class="field full-width">
+          <label>Deployment Notes</label>
+          <input type="text" value="${kit.deployNotes||''}" data-field="deployNotes" placeholder="Notes...">
+        </div>
+      </div>
+
       <div class="stage-grid"></div>
+      
       <div class="stops-block">
         <div class="stop-pair">
-          <button class="stop-btn stop" data-act="stop">⏸ סטופ</button>
-          <button class="stop-btn start" data-act="start">▶ סטארט</button>
+          <button class="stop-btn stop" data-act="stop">⏸ Stop</button>
+          <button class="stop-btn start" data-act="start">▶ Start</button>
         </div>
         <div class="stop-log"></div>
       </div>
       <div class="kit-report">
-        <div class="stat"><div class="k">משך קיט</div><div class="v">${totalMs!=null?fmtDur(totalMs):'—'}</div></div>
-        <div class="stat"><div class="k">על הקיר</div><div class="v">${wallMs!=null?fmtDur(wallMs):'—'}</div></div>
-        <div class="stat"><div class="k">נטו</div><div class="v">${netMs!=null?fmtDur(netMs):'—'}</div></div>
+        <div class="stat"><div class="k">System Time</div><div class="v">${wallMs!=null?fmtDur(wallMs):'—'}</div></div>
+        <div class="stat"><div class="k">Downtime</div><div class="v">${fmtDur(stopsMs)}</div></div>
+        <div class="stat"><div class="k">Uptime</div><div class="v">${netMs!=null?fmtDur(netMs):'—'}</div></div>
+        <div class="stat"><div class="k">Cleaned SQM</div><div class="v">${sqmText}</div></div>
       </div>
+
+      <!-- Delete Kit Button -->
+      <button class="delete-kit-btn" data-kit-id="${kit.id}">🗑️ Delete Kit #${kit.id}</button>
     </div>
   `;
+
+  populate1To50Select(card.querySelector('.rbu-sel'), kit.rbu);
+  populate1To50Select(card.querySelector('.vru-sel'), kit.vru);
+  populate1To50Select(card.querySelector('.mcp-sel'), kit.mcp);
+
+  // Map Visualizer Modal Trigger
+  card.querySelector('.map-select-btn').addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if (!buildingData) {
+      alert('Please upload a Building JSON file for this site first using the button at the top!');
+      return;
+    }
+    openFacadeMapModal(kit);
+  });
+
+  // Delete Kit Action
+  card.querySelector('.delete-kit-btn').addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if(confirm(`Are you sure you want to delete Kit #${kit.id}?`)){
+      state.kits = state.kits.filter(k => k.id !== kit.id);
+      saveState();
+      showToast(`Kit #${kit.id} deleted`);
+    }
+  });
+
+  // Render Drop List for this card
+  const dropsContainer = card.querySelector('.card-drop-list');
+  function renderCardDrops() {
+    dropsContainer.innerHTML = '';
+    if(!kit.drops || !kit.drops.length) kit.drops = [{ facade: '', rows: '', cols: '' }];
+    kit.drops.forEach((dItem, dIdx) => {
+      const row = document.createElement('div');
+      row.className = 'drop-col-item';
+      row.innerHTML = `
+        <input type="text" placeholder="Facade (e.g. North)" value="${dItem.facade||''}" data-didx="${dIdx}" data-dfield="facade">
+        <input type="text" placeholder="Rows (e.g. 1-5)" value="${dItem.rows||''}" data-didx="${dIdx}" data-dfield="rows">
+        <input type="text" placeholder="Cols (e.g. 2-4)" value="${dItem.cols||''}" data-didx="${dIdx}" data-dfield="cols">
+        ${kit.drops.length > 1 ? `<button type="button" class="btn-remove-drop" data-didx="${dIdx}">✕</button>` : '<span></span>'}
+      `;
+      dropsContainer.appendChild(row);
+    });
+
+    dropsContainer.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('change', (ev) => {
+        const didx = ev.target.getAttribute('data-didx');
+        const dfield = ev.target.getAttribute('data-dfield');
+        kit.drops[didx][dfield] = ev.target.value;
+        saveState();
+      });
+    });
+
+    dropsContainer.querySelectorAll('.btn-remove-drop').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        const didx = parseInt(ev.target.getAttribute('data-didx'), 10);
+        kit.drops.splice(didx, 1);
+        saveState();
+        renderCardDrops();
+      });
+    });
+  }
+
+  renderCardDrops();
+
+  card.querySelector('.card-add-drop').addEventListener('click', () => {
+    if(!kit.drops) kit.drops = [];
+    kit.drops.push({ facade: '', rows: '', cols: '' });
+    saveState();
+    renderCardDrops();
+  });
 
   card.querySelector('.kit-head').addEventListener('click', ()=>{
     collapsedMap[kit.id] = !collapsedMap[kit.id];
     render();
+  });
+
+  card.querySelectorAll('.kit-fields-grid > .field input, .kit-fields-grid > .field select').forEach(elem => {
+    elem.addEventListener('change', (ev) => {
+      const fieldName = ev.target.getAttribute('data-field');
+      if(fieldName) {
+        kit[fieldName] = ev.target.value;
+        saveState();
+      }
+    });
   });
 
   const grid = card.querySelector('.stage-grid');
@@ -414,12 +1136,34 @@ function renderKitCard(kit){
     const locked = i > nextIdx;
     const chip = document.createElement('div');
     chip.className = 'stage-chip' + (done?' done':'') + (locked?' locked':'');
-    chip.innerHTML = `<div class="lbl">${s.label}</div><div class="tm">${done?fmtTime(kit.events[s.key]):''}</div>`;
+    
+    chip.innerHTML = `
+      <div class="lbl">${s.label}</div>
+      <div class="tm">${done?fmtTime(kit.events[s.key]):''}</div>
+      ${done ? `<div class="edit-tm-btn" title="Edit/Reset stage">✏️</div>` : ''}
+    `;
+
     if(!done && !locked){
       chip.addEventListener('click', (ev)=>{ ev.stopPropagation(); markEvent(kit, s.key); });
     } else {
       chip.addEventListener('click', (ev)=>ev.stopPropagation());
     }
+
+    if(done){
+      const editBtn = chip.querySelector('.edit-tm-btn');
+      editBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        editingTimeInfo = { kitId: kit.id, stageKey: s.key };
+        const curDate = new Date(kit.events[s.key]);
+        const timeStr = String(curDate.getHours()).padStart(2,'0') + ':' + 
+                        String(curDate.getMinutes()).padStart(2,'0') + ':' + 
+                        String(curDate.getSeconds()).padStart(2,'0');
+        document.getElementById('timeEditInput').value = timeStr;
+        document.getElementById('timeEditSub').textContent = `Editing stage time for: ${kit.type} (#${kit.id}) — ${s.label}`;
+        document.getElementById('timeEditModal').classList.add('show');
+      });
+    }
+
     grid.appendChild(chip);
   });
 
@@ -428,15 +1172,17 @@ function renderKitCard(kit){
   const openIdx = openStopIndex(kit);
   stopBtn.disabled = openIdx !== -1 || !wallActive;
   startBtn.disabled = openIdx === -1;
+  
   stopBtn.addEventListener('click', (ev)=>{
     ev.stopPropagation();
-    if(!wallActive){ showToast('אפשר לעצור רק בזמן שהייה על הקיר'); return; }
+    if(!wallActive){ showToast('Stops can only be recorded while on the wall'); return; }
     pendingStopKitId = kit.id;
-    document.getElementById('stopModalSub').textContent = kit.type + ' — מה גורם לעצירה כרגע?';
+    document.getElementById('stopModalSub').textContent = `Kit #${kit.id} — Reason for stop?`;
     document.getElementById('stopReasonInput').value = '';
     document.getElementById('stopModal').classList.add('show');
     setTimeout(()=>document.getElementById('stopReasonInput').focus(), 50);
   });
+  
   startBtn.addEventListener('click', (ev)=>{
     ev.stopPropagation();
     const idx = openStopIndex(kit);
@@ -447,16 +1193,226 @@ function renderKitCard(kit){
 
   const log = card.querySelector('.stop-log');
   if(!kit.stops || kit.stops.length === 0){
-    log.innerHTML = 'אין עצירות רשומות';
+    log.innerHTML = 'No recorded stops';
   } else {
     log.innerHTML = kit.stops.map((p,i)=>{
-      const dur = p.end ? fmtDur(new Date(p.end)-new Date(p.start)) : 'פעיל...';
-      return `<div>עצירה ${i+1}: ${fmtTime(p.start)} → ${p.end?fmtTime(p.end):'—'} (${dur})<br><span class="reason">↳ ${p.reason||''}</span></div>`;
+      const dur = p.end ? fmtDur(new Date(p.end)-new Date(p.start)) : 'Active...';
+      return `
+        <div class="stop-item">
+          <div>Stop ${i+1}: ${fmtTime(p.start)} → ${p.end?fmtTime(p.end):'—'} (${dur})<br><span class="reason">↳ ${p.reason||''}</span></div>
+          <span class="edit-stop-btn" data-stop-idx="${i}" title="Edit stop">✏️</span>
+        </div>
+      `;
     }).join('');
+
+    log.querySelectorAll('.edit-stop-btn').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const stopIdx = parseInt(btn.getAttribute('data-stop-idx'), 10);
+        editingStopInfo = { kitId: kit.id, stopIdx };
+        const st = kit.stops[stopIdx];
+        
+        const dStart = new Date(st.start);
+        document.getElementById('stopEditStart').value = String(dStart.getHours()).padStart(2,'0') + ':' + String(dStart.getMinutes()).padStart(2,'0') + ':' + String(dStart.getSeconds()).padStart(2,'0');
+        
+        if(st.end){
+          const dEnd = new Date(st.end);
+          document.getElementById('stopEditEnd').value = String(dEnd.getHours()).padStart(2,'0') + ':' + String(dEnd.getMinutes()).padStart(2,'0') + ':' + String(dEnd.getSeconds()).padStart(2,'0');
+        } else {
+          document.getElementById('stopEditEnd').value = '';
+        }
+        
+        document.getElementById('stopEditReason').value = st.reason || '';
+        document.getElementById('stopEditModal').classList.add('show');
+      });
+    });
   }
 
   return card;
 }
+
+// Facade Map Modal & SQM Calculation Logic
+function openFacadeMapModal(kit) {
+  activeMapKitId = kit.id;
+  selectedFrameIds = new Set(kit.selectedFrames || []);
+  
+  const sectionSel = document.getElementById('facadeSectionSelect');
+  sectionSel.innerHTML = '';
+  
+  (buildingData.sections || []).forEach((sec, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = `${sec.name || sec.section_id} (${sec.n_cols} cols x ${sec.n_rows} rows)`;
+    sectionSel.appendChild(opt);
+  });
+
+  sectionSel.onchange = () => renderFacadeGrid(sectionSel.value);
+  renderFacadeGrid(0);
+
+  document.getElementById('facadeMapModal').classList.add('show');
+}
+
+function calculateSelectedSqm() {
+  let totalSqm = 0;
+  if (!buildingData || !buildingData.sections) return 0;
+
+  buildingData.sections.forEach(sec => {
+    (sec.window_frames || []).forEach(frame => {
+      if (selectedFrameIds.has(frame.frame_id)) {
+        totalSqm += (frame.width || 0) * (frame.height || 0);
+      }
+    });
+  });
+  return totalSqm;
+}
+
+function toggleWindowCell(cell, frameId) {
+  // Prevent re-selection of locked, previously cleaned frames from prior days/kits during dragging
+  if (siteCleanedFramesHistory.has(frameId) && !selectedFrameIds.has(frameId)) {
+    return;
+  }
+
+  if (dragSelectState) {
+    selectedFrameIds.add(frameId);
+    cell.classList.add('selected');
+  } else {
+    selectedFrameIds.delete(frameId);
+    cell.classList.remove('selected');
+  }
+  document.getElementById('facadeSqmTotal').textContent = calculateSelectedSqm().toFixed(2);
+}
+
+function renderFacadeGrid(sectionIdx) {
+  const wrapper = document.getElementById('facadeGridWrapper');
+  wrapper.innerHTML = '';
+
+  const sec = buildingData.sections[sectionIdx];
+  if (!sec || !sec.window_frames) return;
+
+  // Group Frames by Rows (frame_pos.y)
+  const rowMap = {};
+  sec.window_frames.forEach(frame => {
+    const y = (frame.frame_pos && frame.frame_pos.y !== undefined) ? frame.frame_pos.y : 0;
+    if (!rowMap[y]) rowMap[y] = [];
+    rowMap[y].push(frame);
+  });
+
+  const sortedRowKeys = Object.keys(rowMap).map(Number).sort((a,b) => a - b);
+
+  sortedRowKeys.forEach(yKey => {
+    const rowFrames = rowMap[yKey].sort((a,b) => (a.frame_pos.x || 0) - (b.frame_pos.x || 0));
+    const rowContainer = document.createElement('div');
+    rowContainer.className = 'facade-row-container';
+
+    // Find Row Height Proportion
+    const rowHeight = rowFrames[0]?.height || 1.5;
+    rowContainer.style.height = `${Math.max(32, Math.min(80, rowHeight * 12))}px`;
+
+    rowFrames.forEach(frame => {
+      const cell = document.createElement('div');
+      const isSelected = selectedFrameIds.has(frame.frame_id);
+      const isPrevCleaned = siteCleanedFramesHistory.has(frame.frame_id) && !isSelected;
+
+      cell.className = 'window-cell' + (isSelected ? ' selected' : '') + (isPrevCleaned ? ' previously-cleaned' : '');
+      cell.setAttribute('data-frame-id', frame.frame_id);
+
+      // Proportional Width Relative to Frame Dimensions
+      const frameWidth = frame.width || 1.0;
+      cell.style.flex = `${frameWidth} 0 auto`;
+      cell.style.minWidth = `${Math.max(45, frameWidth * 40)}px`;
+
+      const sqm = ((frame.width || 0) * (frame.height || 0)).toFixed(2);
+      cell.innerHTML = `<div>${frame.frame_id}</div><div style="opacity:0.75">${sqm}m²</div>${isPrevCleaned ? '<div style="font-size:7px; opacity:0.8;">(Cleaned)</div>' : ''}`;
+
+      // Mouse Drag & Touch Selection Logic
+      const handleStart = (e) => {
+        e.preventDefault();
+        if (isPrevCleaned) return; // Prevent drag selection over locked frames
+        isDraggingSelection = true;
+        dragSelectState = !selectedFrameIds.has(frame.frame_id);
+        toggleWindowCell(cell, frame.frame_id);
+      };
+
+      const handleEnter = () => {
+        if (isDraggingSelection && !isPrevCleaned) {
+          toggleWindowCell(cell, frame.frame_id);
+        }
+      };
+
+      // Double-click/Tap to forcibly unlock a previously cleaned frame
+      cell.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        if (isPrevCleaned) {
+          siteCleanedFramesHistory.delete(frame.frame_id);
+          selectedFrameIds.add(frame.frame_id);
+          const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+          db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set(Array.from(siteCleanedFramesHistory));
+          renderFacadeGrid(sectionIdx);
+          showToast(`Frame ${frame.frame_id} unlocked!`);
+        }
+      });
+
+      cell.addEventListener('mousedown', handleStart);
+      cell.addEventListener('mouseenter', handleEnter);
+      cell.addEventListener('touchstart', handleStart, {passive: false});
+
+      rowContainer.appendChild(cell);
+    });
+
+    wrapper.appendChild(rowContainer);
+  });
+
+  document.getElementById('facadeSqmTotal').textContent = calculateSelectedSqm().toFixed(2);
+}
+
+// Reset Entire Project History Action
+document.getElementById('resetHistoryBtn').addEventListener('click', () => {
+  if (confirm(`Are you sure you want to reset all cleaned window history for project "${currentSite}"? All windows will become uncleaned.`)) {
+    siteCleanedFramesHistory.clear();
+    const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set([]);
+    
+    const sectionSel = document.getElementById('facadeSectionSelect');
+    renderFacadeGrid(sectionSel.value || 0);
+    showToast('Project window history reset successfully!');
+  }
+});
+
+// Global Mouse & Touch MouseUp for Dragging
+window.addEventListener('mouseup', () => { isDraggingSelection = false; });
+window.addEventListener('touchend', () => { isDraggingSelection = false; });
+
+// Touch Movement over Grid Cells
+document.getElementById('facadeGridWrapper').addEventListener('touchmove', (e) => {
+  if (!isDraggingSelection) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  const targetElem = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (targetElem) {
+    const cell = targetElem.closest('.window-cell');
+    if (cell) {
+      const frameId = cell.getAttribute('data-frame-id');
+      if (frameId) toggleWindowCell(cell, frameId);
+    }
+  }
+}, {passive: false});
+
+document.getElementById('facadeMapCancel').addEventListener('click', () => {
+  document.getElementById('facadeMapModal').classList.remove('show');
+  activeMapKitId = null;
+});
+
+document.getElementById('facadeMapConfirm').addEventListener('click', () => {
+  const kit = state.kits.find(k => k.id === activeMapKitId);
+  if (kit) {
+    kit.selectedFrames = Array.from(selectedFrameIds);
+    kit.sqmCleaned = calculateSelectedSqm();
+    saveState();
+    showToast(`SQM Updated: ${kit.sqmCleaned.toFixed(2)} m²`);
+  }
+  document.getElementById('facadeMapModal').classList.remove('show');
+  activeMapKitId = null;
+});
 
 function renderKits(){
   const wrap = document.getElementById('kitsList');
@@ -464,7 +1420,7 @@ function renderKits(){
   if(!state.kits || state.kits.length === 0){
     const empty = document.createElement('div');
     empty.className = 'empty-note';
-    empty.textContent = 'אין קיטים עדיין — הוסף קיט כדי להתחיל תיעוד';
+    empty.textContent = `No kits recorded yet for site "${currentSite}" — Add a kit to start`;
     wrap.appendChild(empty);
     return;
   }
@@ -473,28 +1429,41 @@ function renderKits(){
 
 document.getElementById('addKitToggle').addEventListener('click', ()=>{
   const row = document.getElementById('kitNewRow');
-  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+  row.style.display = row.style.display === 'none' ? 'block' : 'none';
 });
-document.getElementById('kitTypeSelect').addEventListener('change', (e)=>{
-  document.getElementById('kitCustomInput').style.display = e.target.value === 'custom' ? 'block' : 'none';
+document.getElementById('newKitTypeSelect').addEventListener('change', (e)=>{
+  document.getElementById('customTypeWrap').style.display = e.target.value === 'custom' ? 'block' : 'none';
 });
+
 document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
-  const sel = document.getElementById('kitTypeSelect');
+  const kitNum = document.getElementById('newKitNum').value;
+  const sel = document.getElementById('newKitTypeSelect');
   let type = sel.value;
   if(type === 'custom'){
-    const custom = document.getElementById('kitCustomInput').value.trim();
-    if(!custom){ showToast('נא להזין סוג'); return; }
+    const custom = document.getElementById('newKitCustomInput').value.trim();
+    if(!custom){ showToast('Please enter custom ParaDevice type'); return; }
     type = custom;
   }
-  const kit = blankKit(type);
+  const rbu = document.getElementById('newRbu').value;
+  const vru = document.getElementById('newVru').value;
+  const mcp = document.getElementById('newMcp').value;
+  const deployLoc = document.getElementById('newDeployLoc').value;
+  const deployNotes = document.getElementById('newDeployNotes').value.trim();
+
+  const kit = blankKit(kitNum, type, rbu, vru, mcp, newKitDrops, deployLoc, deployNotes);
   if(!state.kits) state.kits = [];
   state.kits.push(kit);
   collapsedMap[kit.id] = false;
   saveState();
+
   document.getElementById('kitNewRow').style.display = 'none';
-  document.getElementById('kitCustomInput').value = '';
+  document.getElementById('newKitCustomInput').value = '';
+  document.getElementById('newDeployNotes').value = '';
+  newKitDrops = [{ facade: '', rows: '', cols: '' }];
+  renderNewKitDrops();
 });
 
+// Stop Modal Action
 document.getElementById('stopReasonCancel').addEventListener('click', ()=>{
   document.getElementById('stopModal').classList.remove('show');
   pendingStopKitId = null;
@@ -504,10 +1473,94 @@ document.getElementById('stopReasonConfirm').addEventListener('click', ()=>{
   if(!kit){ document.getElementById('stopModal').classList.remove('show'); return; }
   const reason = document.getElementById('stopReasonInput').value.trim();
   if(!kit.stops) kit.stops = [];
-  kit.stops.push({start: new Date().toISOString(), end:null, reason: reason || '(ללא סיבה)'});
+  kit.stops.push({start: new Date().toISOString(), end:null, reason: reason || '(No reason specified)'});
   document.getElementById('stopModal').classList.remove('show');
   pendingStopKitId = null;
   saveState();
+});
+
+// Edit Stop Action
+document.getElementById('stopEditCancel').addEventListener('click', ()=>{
+  document.getElementById('stopEditModal').classList.remove('show');
+  editingStopInfo = null;
+});
+document.getElementById('stopEditDelete').addEventListener('click', ()=>{
+  if(!editingStopInfo) return;
+  const kit = state.kits.find(k=>k.id === editingStopInfo.kitId);
+  if(kit && kit.stops){
+    kit.stops.splice(editingStopInfo.stopIdx, 1);
+    saveState();
+    showToast('Stop entry deleted');
+  }
+  document.getElementById('stopEditModal').classList.remove('show');
+  editingStopInfo = null;
+});
+document.getElementById('stopEditConfirm').addEventListener('click', ()=>{
+  if(!editingStopInfo) return;
+  const kit = state.kits.find(k=>k.id === editingStopInfo.kitId);
+  if(kit && kit.stops && kit.stops[editingStopInfo.stopIdx]){
+    const st = kit.stops[editingStopInfo.stopIdx];
+    const valStart = document.getElementById('stopEditStart').value;
+    const valEnd = document.getElementById('stopEditEnd').value;
+    const reason = document.getElementById('stopEditReason').value.trim();
+
+    if(valStart){
+      const p = valStart.split(':');
+      const d = new Date(st.start);
+      d.setHours(parseInt(p[0],10)); d.setMinutes(parseInt(p[1],10)); d.setSeconds(p[2]?parseInt(p[2],10):0);
+      st.start = d.toISOString();
+    }
+    if(valEnd){
+      const p = valEnd.split(':');
+      const d = st.end ? new Date(st.end) : new Date();
+      d.setHours(parseInt(p[0],10)); d.setMinutes(parseInt(p[1],10)); d.setSeconds(p[2]?parseInt(p[2],10):0);
+      st.end = d.toISOString();
+    } else {
+      st.end = null;
+    }
+    st.reason = reason;
+    saveState();
+    showToast('Stop updated');
+  }
+  document.getElementById('stopEditModal').classList.remove('show');
+  editingStopInfo = null;
+});
+
+// Time Edit Actions
+document.getElementById('timeEditCancel').addEventListener('click', ()=>{
+  document.getElementById('timeEditModal').classList.remove('show');
+  editingTimeInfo = null;
+});
+
+document.getElementById('timeEditConfirm').addEventListener('click', ()=>{
+  if(!editingTimeInfo) return;
+  const kit = state.kits.find(k=>k.id === editingTimeInfo.kitId);
+  const timeVal = document.getElementById('timeEditInput').value;
+  if(kit && timeVal){
+    const parts = timeVal.split(':');
+    const existingDate = new Date(kit.events[editingTimeInfo.stageKey]);
+    existingDate.setHours(parseInt(parts[0],10));
+    existingDate.setMinutes(parseInt(parts[1],10));
+    existingDate.setSeconds(parts[2] ? parseInt(parts[2],10) : 0);
+    
+    kit.events[editingTimeInfo.stageKey] = existingDate.toISOString();
+    saveState();
+    showToast('Time updated successfully');
+  }
+  document.getElementById('timeEditModal').classList.remove('show');
+  editingTimeInfo = null;
+});
+
+document.getElementById('timeEditReset').addEventListener('click', ()=>{
+  if(!editingTimeInfo) return;
+  const kit = state.kits.find(k=>k.id === editingTimeInfo.kitId);
+  if(kit && kit.events && kit.events[editingTimeInfo.stageKey]){
+    delete kit.events[editingTimeInfo.stageKey];
+    saveState();
+    showToast('Stage reset successfully');
+  }
+  document.getElementById('timeEditModal').classList.remove('show');
+  editingTimeInfo = null;
 });
 
 document.getElementById('peopleInput').addEventListener('change', (e)=>{
@@ -515,14 +1568,16 @@ document.getElementById('peopleInput').addEventListener('change', (e)=>{
   saveState();
 });
 
+// Day Length: Arrival -> Finish
 function renderSummary(){
   const box = document.getElementById('summaryBox');
   if(!state.kits || state.kits.length === 0){
-    box.innerHTML = '<div class="empty-note">אין נתונים להצגה עדיין</div>';
+    box.innerHTML = '<div class="empty-note">No data available to summarize</div>';
     return;
   }
   let earliestArrival = null, latestFinish = null;
   let totalWallMs = 0, totalNetMs = 0, anyWall = false, anyNet = false;
+  let dayTotalSqm = 0;
   
   state.kits.forEach(kit=>{
     const e = kit.events || {};
@@ -537,31 +1592,33 @@ function renderSummary(){
     const {wallMs, netMs} = kitDurations(kit);
     if(wallMs != null){ totalWallMs += wallMs; anyWall = true; }
     if(netMs != null){ totalNetMs += netMs; anyNet = true; }
+    if(kit.sqmCleaned) dayTotalSqm += kit.sqmCleaned;
   });
 
+  // Day length: Arrival -> Finish
   const totalDayMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
 
   box.innerHTML = `
     <div class="summary-row">
       <div class="summary-label">
-        א. אורך יום עבודה כולל
+        A. Total Shift Duration / Day Length (${currentSite})
         <small>${earliestArrival ? fmtTime(earliestArrival) : '—'} ← ${latestFinish ? fmtTime(latestFinish) : '—'}</small>
       </div>
       <div class="summary-val">${fmtDur(totalDayMs)}</div>
     </div>
     <div class="summary-row">
       <div class="summary-label">
-        ב. סה"כ זמן שהות על הקיר
-        <small>מצטבר לכל הקיטים</small>
+        B. Total System Time
+        <small>Cumulative time on wall across all kits</small>
       </div>
       <div class="summary-val">${anyWall ? fmtDur(totalWallMs) : '—'}</div>
     </div>
     <div class="summary-row">
       <div class="summary-label">
-        ג. זמן עבודה נטו
-        <small>על הקיר ללא עצירות</small>
+        C. Total Area Cleaned (SQM)
+        <small>Total m² cleaned across all kits</small>
       </div>
-      <div class="summary-val">${anyNet ? fmtDur(totalNetMs) : '—'}</div>
+      <div class="summary-val">${dayTotalSqm.toFixed(2)} m²</div>
     </div>
   `;
 }
@@ -575,14 +1632,31 @@ function render(){
   }
 }
 
-// העתקת שורות בלבד בסדר העמודות המדויק ל-Google Sheets
+function formatDropColumns(kit) {
+  if (kit.drops && kit.drops.length) {
+    const formatted = kit.drops.map(d => {
+      const parts = [];
+      if (d.facade) parts.push(`Facade ${d.facade}`);
+      if (d.rows) parts.push(`Rows ${d.rows}`);
+      if (d.cols) parts.push(`Cols ${d.cols}`);
+      return parts.join(', ');
+    }).filter(str => str.length > 0);
+    return formatted.join(' | ');
+  }
+  const parts = [];
+  if (kit.facade) parts.push(`Facade ${kit.facade}`);
+  if (kit.rows) parts.push(`Rows ${kit.rows}`);
+  if (kit.cols) parts.push(`Cols ${kit.cols}`);
+  return parts.join(', ');
+}
+
+// Copy Rows for Google Sheets (Copies Raw Number Only for SQM)
 function copyRowsForSheets(){
   if(!state || !state.kits || state.kits.length === 0){
-    showToast('אין נתונים להעתקה ביום זה');
+    showToast('No data available to copy');
     return;
   }
 
-  // חישוב אורך יום עבודה כולל (הגעה מוקדמת ביותר - סיום מאוחר ביותר)
   let earliestArrival = null, latestFinish = null;
   state.kits.forEach(kit=>{
     const e = kit.events || {};
@@ -602,45 +1676,51 @@ function copyRowsForSheets(){
     const e = kit.events || {};
     const { totalMs, wallMs, netMs, stopsMs } = kitDurations(kit);
     
-    // פירוט העצירות והסיבות עבור הקיט הנוכחי
     const stopsDetail = (kit.stops || []).map((s, idx) => {
-      const dur = s.end ? fmtDur(new Date(s.end) - new Date(s.start)) : 'פעיל';
-      return `עצירה ${idx+1}: ${fmtTime(s.start)}-${s.end ? fmtTime(s.end) : '—'} (${dur}) [סיבה: ${s.reason || 'ללא'}]`;
+      const dur = s.end ? fmtDur(new Date(s.end) - new Date(s.start)) : 'Active';
+      return `Stop ${idx+1}: ${fmtTime(s.start)}-${s.end ? fmtTime(s.end) : '—'} (${dur}) [Reason: ${s.reason || 'None'}]`;
     }).join(' | ');
 
-    // סדר העמודות שנבחר:
-    // Date, Day length, Arrive at site, End of operation, TOTAL Throughput, RBU, VRU, MCP, Drop Columns, Deployment, On the wall, Dismantle, System Time, Downtime, Uptime, TOTAL Throughput, ParaDevice, KIT, Team Size, Stops & Reasons
+    let locLabel = kit.deployLoc || 'Roof';
+
+    let deployNotesStr = `[Mode: ${locLabel}]`;
+    if(kit.deployNotes) deployNotesStr += ` ${kit.deployNotes}`;
+
+    const dropColsStr = formatDropColumns(kit);
+    const sqmRawNumber = kit.sqmCleaned ? kit.sqmCleaned.toFixed(2) : '0';
+
     const row = [
       state.date,                           // Date
-      fmtDur(totalDayMs),                   // Day length
+      currentSite,                          // Site
+      fmtDur(totalDayMs),                   // Day length (Arrival -> Finish)
       e.arrival ? fmtTime(e.arrival) : '',  // Arrive at site
       e.finish ? fmtTime(e.finish) : '',    // End of operation
-      '',                                   // TOTAL Throughput
-      '',                                   // RBU
-      '',                                   // VRU
-      '',                                   // MCP
-      '',                                   // Drop Columns
+      sqmRawNumber,                         // TOTAL Throughput (Clean Number for Excel/Sheets)
+      kit.rbu || '',                        // RBU
+      kit.vru || '',                        // VRU
+      kit.mcp || '',                        // MCP
+      dropColsStr,                          // Drop Columns
       e.deployment ? fmtTime(e.deployment) : '', // Deployment
       e.onWall ? fmtTime(e.onWall) : '',    // On the wall
       e.dismantle ? fmtTime(e.dismantle) : '', // Dismantle
-      fmtDur(totalMs),                      // System Time
-      fmtDur(stopsMs),                      // Downtime (עצירות)
-      fmtDur(netMs),                        // Uptime (עבודה נטו)
-      '',                                   // TOTAL Throughput
-      kit.type,                             // ParaDevice
-      kit.id,                               // KIT
+      fmtDur(wallMs),                       // System Time (On Wall -> Dismantle)
+      fmtDur(stopsMs),                      // Downtime (Sum of Stops)
+      fmtDur(netMs),                        // Uptime (System Time - Downtime)
+      sqmRawNumber,                         // TOTAL Throughput
+      kit.type || '',                       // ParaDevice
+      kit.id || '',                         // KIT
       state.people || '0',                  // Team Size
-      stopsDetail                           // Stops & Reasons (פירוט העצירות והסיבות)
+      deployNotesStr,                       // Deployment Notes
+      stopsDetail                           // Stops & Reasons
     ];
 
-    // הפרדה ב-Tab כדי לשמור על מבנה העמודות בהדבקה ל-Sheets
     rows.push(row.join('\t'));
   });
 
   const textToCopy = rows.join('\n');
 
   navigator.clipboard.writeText(textToCopy).then(() => {
-    showToast('השורות הועתקו בסדר המבוקש! הדבק ב-Sheets');
+    showToast('Rows copied! Paste into Sheets');
   }).catch(() => {
     const textArea = document.createElement('textarea');
     textArea.value = textToCopy;
@@ -648,20 +1728,21 @@ function copyRowsForSheets(){
     textArea.select();
     document.execCommand('copy');
     document.body.removeChild(textArea);
-    showToast('השורות הועתקו בסדר המבוקש! הדבק ב-Sheets');
+    showToast('Rows copied! Paste into Sheets');
   });
 }
 
 function exportToCSV(){
   if(!state || !state.kits || state.kits.length === 0){
-    showToast('אין נתונים לייצוא ביום זה');
+    showToast('No data available to export');
     return;
   }
 
   const headers = [
-    "Date", "Day length", "Arrive at site", "End of operation", "TOTAL Throughput", 
+    "Date", "Site", "Day length", "Arrive at site", "End of operation", "TOTAL Throughput (SQM)", 
     "RBU", "VRU", "MCP", "Drop Columns", "Deployment", "On the wall", "Dismantle", 
-    "System Time", "Downtime", "Uptime", "TOTAL Throughput", "ParaDevice", "KIT", "Team Size", "Stops & Reasons"
+    "System Time", "Downtime", "Uptime", "TOTAL Throughput (SQM)", "ParaDevice", "KIT", "Team Size", 
+    "Deployment Notes", "Stops & Reasons"
   ];
 
   const rows = [headers];
@@ -685,26 +1766,40 @@ function exportToCSV(){
     const { totalMs, wallMs, netMs, stopsMs } = kitDurations(kit);
     
     const stopsDetail = (kit.stops || []).map((s, idx) => {
-      const dur = s.end ? fmtDur(new Date(s.end) - new Date(s.start)) : 'פעיל';
-      return `עצירה ${idx+1}: ${fmtTime(s.start)}-${s.end ? fmtTime(s.end) : '—'} (${dur}) [סיבה: ${s.reason || 'ללא'}]`;
+      const dur = s.end ? fmtDur(new Date(s.end) - new Date(s.start)) : 'Active';
+      return `Stop ${idx+1}: ${fmtTime(s.start)}-${s.end ? fmtTime(s.end) : '—'} (${dur}) [Reason: ${s.reason || 'None'}]`;
     }).join(' | ');
+
+    let locLabel = kit.deployLoc || 'Roof';
+
+    let deployNotesStr = `[Mode: ${locLabel}]`;
+    if(kit.deployNotes) deployNotesStr += ` ${kit.deployNotes}`;
+
+    const dropColsStr = formatDropColumns(kit);
+    const sqmRawNumber = kit.sqmCleaned ? kit.sqmCleaned.toFixed(2) : '0';
 
     const row = [
       state.date,
+      currentSite,
       fmtDur(totalDayMs),
       e.arrival ? fmtTime(e.arrival) : '',
       e.finish ? fmtTime(e.finish) : '',
-      '', '', '', '', '',
+      sqmRawNumber,
+      kit.rbu || '',
+      kit.vru || '',
+      kit.mcp || '',
+      dropColsStr,
       e.deployment ? fmtTime(e.deployment) : '',
       e.onWall ? fmtTime(e.onWall) : '',
       e.dismantle ? fmtTime(e.dismantle) : '',
-      fmtDur(totalMs),
+      fmtDur(wallMs),
       fmtDur(stopsMs),
       fmtDur(netMs),
-      '',
-      kit.type,
-      kit.id,
+      sqmRawNumber,
+      kit.type || '',
+      kit.id || '',
       state.people || '0',
+      deployNotesStr,
       stopsDetail
     ];
 
@@ -717,12 +1812,12 @@ function exportToCSV(){
   
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", `field_log_${state.date}.csv`);
+  link.setAttribute("download", `field_log_${currentSite}_${state.date}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   
-  showToast('קובץ CSV הורד בהצלחה!');
+  showToast('CSV report downloaded!');
 }
 
 document.getElementById('copyRowsBtn').addEventListener('click', copyRowsForSheets);
@@ -734,14 +1829,13 @@ document.getElementById('loadBtn').addEventListener('click', ()=>{
 });
 
 document.getElementById('resetBtn').addEventListener('click', ()=>{
-  if(confirm('האם אתה בטוח שברצונך לאפס את כל הנתונים ליום זה?')){
+  if(confirm(`Are you sure you want to reset all data for date ${state.date} at site "${currentSite}"?`)){
     state = blankDay(currentDate);
     saveState();
-    showToast('הנתונים אופסו בהצלחה');
+    showToast('Data reset successfully');
   }
 });
 
-// אתחול האפליקציה בטעינה
 (function init(){
   const today = todayISO();
   document.getElementById('dateInput').value = today;
