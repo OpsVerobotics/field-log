@@ -23,6 +23,12 @@
     --green-dim:#123326;
     --blue:#3A9EFF;
     --blue-dim:#16385C;
+
+    /* Cleaned Window Colors for Dark Mode: Bright White with Dark Text */
+    --cleaned-bg: #FFFFFF;
+    --cleaned-border: #FFFFFF;
+    --cleaned-text-header: #12151A;
+    --cleaned-text-sqm: #D97706;
   }
 
   :root[data-theme="light"] {
@@ -41,6 +47,12 @@
     --green-dim:#C9F7DF;
     --blue:#0072E5;
     --blue-dim:#CFE4FF;
+
+    /* Cleaned Window Colors for Light Mode: Distinct Gray */
+    --cleaned-bg: #94A3B8;
+    --cleaned-border: #64748B;
+    --cleaned-text-header: #0F172A;
+    --cleaned-text-sqm: #0F172A;
   }
 
   :root[data-theme="high-contrast"] {
@@ -59,6 +71,11 @@
     --green-dim:#004411;
     --blue:#00CCFF;
     --blue-dim:#003355;
+
+    --cleaned-bg: #FFFFFF;
+    --cleaned-border: #FFFFFF;
+    --cleaned-text-header: #000000;
+    --cleaned-text-sqm: #000000;
   }
 
   :root {
@@ -156,7 +173,11 @@
   .field-row.three-col{grid-template-columns: 1fr 1fr 1fr;}
   .field-row.four-col{grid-template-columns: repeat(4, 1fr);}
   .field{flex:1;}
-  .field label{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); margin-bottom:5px; letter-spacing:.06em; font-weight:700;}
+
+  .field label{
+    display:block; font-family:var(--mono); font-size:10px; color:var(--dim);
+    margin-bottom:5px; letter-spacing:.02em; font-weight:700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
   .field input, .field select, .field textarea{
     width:100%; background:var(--panel); border:1.5px solid var(--line); color:var(--text);
     font-family:var(--body); font-size:16px; padding:11px 10px; border-radius:8px; font-weight:500;
@@ -194,7 +215,6 @@
   .kit-fields-grid .field input, .kit-fields-grid .field select{padding:10px; font-size:15px; background:var(--panel); border:1px solid var(--line);}
   .kit-fields-grid .field.full-width{grid-column:span 2;}
 
-  /* Improved Vertical Drop Columns Layout */
   .drop-cols-container {
     grid-column: span 2; background: var(--panel3); padding: 10px;
     border-radius: 8px; border: 1px solid var(--line); margin-bottom: 4px;
@@ -312,10 +332,6 @@
   .export-btn { background:var(--green-dim); border:2px solid var(--green); color:var(--green); }
   .pdf-btn { background:var(--amber-dim); border:2px solid var(--amber); color:var(--amber); }
 
-  .reset-link{
-    display:block; text-align:center; margin:26px 16px 0; padding:14px; font-family:var(--mono); font-size:13px; color:var(--orange);
-    letter-spacing:.05em; border:1.5px solid var(--orange); border-radius:8px; background:var(--orange-dim); width:calc(100% - 32px); cursor:pointer; font-weight:bold;
-  }
   .toast{
     position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--panel2); border:2px solid var(--amber); color:var(--amber);
     font-family:var(--mono); font-size:13px; font-weight:bold; padding:12px 20px; border-radius:24px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:50; box-shadow:0 4px 12px rgba(0,0,0,0.3);
@@ -350,6 +366,7 @@
 
   .facade-row-container { display: flex; gap: 6px; align-items: stretch; justify-content: flex-start; }
 
+  /* Window Cell Default Unselected Styling */
   .window-cell {
     background: var(--panel2); border: 1.5px solid var(--line); border-radius: 6px;
     padding: 4px 6px; display: flex; flex-direction: column; justify-content: space-between;
@@ -362,17 +379,23 @@
   .cell-sqm-val { font-size: 10px; font-weight: 600; color: var(--amber); }
   .cell-tag { font-size: 7px; font-weight: 800; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.02em; }
 
+  /* Currently Selected Windows -> Orange */
   .window-cell.selected { background: var(--amber) !important; border-color: var(--amber) !important; }
-  .window-cell.selected .cell-header, .window-cell.selected .cell-sqm-val { color: #000 !important; }
-  .window-cell.previously-cleaned { background: #262D37 !important; border-color: #3A4452 !important; opacity: 0.85; }
-  .window-cell.previously-cleaned .cell-header { color: #A0AAB8 !important; }
-  .window-cell.previously-cleaned .cell-sqm-val { color: var(--amber) !important; }
+  .window-cell.selected .cell-header, .window-cell.selected .cell-sqm-val { color: #000000 !important; }
+
+  /* Previously Cleaned Windows -> Gray in Light mode, Pure White in Dark mode */
+  .window-cell.previously-cleaned { 
+    background: var(--cleaned-bg) !important; 
+    border: 2px solid var(--cleaned-border) !important; 
+    opacity: 1; 
+  }
+  .window-cell.previously-cleaned .cell-header { color: var(--cleaned-text-header) !important; font-weight: 800; }
+  .window-cell.previously-cleaned .cell-sqm-val { color: var(--cleaned-text-sqm) !important; font-weight: 800; }
 
   .window-cell.unwalkable { background: var(--orange-dim) !important; color: var(--orange) !important; border: 1.5px solid var(--orange) !important; cursor: not-allowed !important; opacity: 0.8; }
   .window-cell.defective-report { background: #5C4416 !important; color: #FFB020 !important; border: 1.5px dashed #FFB020 !important; font-weight: bold; }
   .window-cell.defective-unwalkable { background: var(--orange-dim) !important; color: var(--orange) !important; border: 1.5px solid var(--orange) !important; cursor: not-allowed !important; font-weight: bold; }
 
-  /* Inspection mode allow selecting unwalkables */
   body.inspection-mode .window-cell.unwalkable { cursor: pointer !important; opacity: 1 !important; }
 
   /* Dashboard Modal */
@@ -409,7 +432,7 @@
 
   @media print {
     body { background: #fff; color: #000; }
-    header, .btn-group, .add-kit, .reset-link, .site-pick, .datepick { display: none !important; }
+    header, .btn-group, .add-kit, .site-pick, .datepick { display: none !important; }
     .kit-card { border: 1px solid #000; break-inside: avoid; margin-bottom: 20px; }
   }
 </style>
@@ -613,8 +636,6 @@
       <button class="pdf-btn" id="exportPdfBtn">📄 Export PDF Client Report</button>
     </div>
   </section>
-
-  <button class="reset-link" id="resetBtn">Reset Current Day Data</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -955,7 +976,6 @@ document.getElementById('windGustsInput').addEventListener('input', checkWindAle
 
 function isFrameUnwalkable(frame) {
   if (!frame) return false;
-  // If work type is Inspection, unwalkable windows are allowed to be inspected/selected!
   if (state && state.workType === 'Inspection') {
     return false;
   }
@@ -1136,7 +1156,6 @@ function calculateAndRenderDashboard() {
   });
 }
 
-// Improved Vertical Render for Drop Columns
 function renderNewKitDrops() {
   const container = document.getElementById('newKitDropList');
   if (!container) return;
@@ -1318,7 +1337,6 @@ function loadDay(dateISO){
       state = blankDay(dateISO);
     }
     
-    // Toggle Inspection class on body for CSS styling rules
     if (state.workType === 'Inspection') {
       document.body.classList.add('inspection-mode');
     } else {
@@ -1810,7 +1828,7 @@ function renderFacadeGrid(sectionIdx) {
       if (isDefectUnwalkable) statusTag = `<div class="cell-tag" style="color:var(--orange);">(Defect/Block)</div>`;
       else if (isDefectReport) statusTag = `<div class="cell-tag" style="color:var(--amber);">(Defect/Report)</div>`;
       else if (unwalkable) statusTag = `<div class="cell-tag" style="color:var(--orange);">(Unwalkable)</div>`;
-      else if (isPrevCleaned) statusTag = `<div class="cell-tag" style="opacity:0.8;">(Cleaned)</div>`;
+      else if (isPrevCleaned) statusTag = `<div class="cell-tag" style="opacity:0.9; font-weight:bold;">(Cleaned)</div>`;
 
       cell.innerHTML = `
         <div class="cell-header">Frame: ${frame.frame_id}</div>
@@ -2449,14 +2467,6 @@ document.getElementById('exportCsvBtn').addEventListener('click', exportToCSV);
 document.getElementById('loadBtn').addEventListener('click', ()=>{
   const inputDate = document.getElementById('dateInput').value;
   if(inputDate) loadDay(inputDate);
-});
-
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  if(confirm(`Are you sure you want to reset all data for date ${state.date} at site "${currentSite}"?`)){
-    state = blankDay(currentDate);
-    saveState();
-    showToast('Data reset successfully');
-  }
 });
 
 (function init(){
