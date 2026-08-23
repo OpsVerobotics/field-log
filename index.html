@@ -194,6 +194,7 @@
   .kit-fields-grid .field input, .kit-fields-grid .field select{padding:10px; font-size:15px; background:var(--panel); border:1px solid var(--line);}
   .kit-fields-grid .field.full-width{grid-column:span 2;}
 
+  /* Improved Vertical Drop Columns Layout */
   .drop-cols-container {
     grid-column: span 2; background: var(--panel3); padding: 10px;
     border-radius: 8px; border: 1px solid var(--line); margin-bottom: 4px;
@@ -203,14 +204,18 @@
     font-family: var(--mono); font-size: 11px; font-weight: bold; color: var(--amber); margin-bottom: 8px;
   }
   .drop-col-item {
-    display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 6px;
-    align-items: center; margin-bottom: 8px; background: var(--panel2); padding: 6px;
-    border-radius: 6px; border: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 10px; background: var(--panel2); padding: 8px;
+    border-radius: 8px; border: 1px solid var(--line); position: relative;
   }
-  .drop-col-item input { font-size: 14px !important; padding: 8px !important; }
+  .drop-col-fields-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+  }
+  .drop-col-item input { font-size: 13px !important; padding: 8px !important; width: 100%; }
   .btn-remove-drop {
     background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange);
-    border-radius: 6px; padding: 8px 10px; font-size: 14px; cursor: pointer; font-weight: bold; min-height: 38px;
+    border-radius: 6px; padding: 6px; font-size: 12px; cursor: pointer; font-weight: bold;
+    align-self: flex-end; width: 100%; text-align: center;
   }
   .btn-add-drop {
     background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber);
@@ -254,6 +259,12 @@
   .stop-log .reason{color:var(--text); font-family:var(--body); font-weight:bold;}
   .stop-img-preview { max-width: 100%; max-height: 120px; border-radius: 6px; margin-top: 6px; border: 1px solid var(--line); }
 
+  .remove-photo-btn {
+    background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange);
+    border-radius: 6px; padding: 4px 8px; font-size: 11px; font-family: var(--mono);
+    font-weight: bold; cursor: pointer; margin-top: 4px; display: inline-block;
+  }
+
   .kit-report{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; }
   .kit-report .stat{background:var(--panel2); border-radius:8px; padding:10px 4px; text-align:center; border:1px solid var(--line);}
   .kit-report .stat .k{font-family:var(--mono); font-size:9px; color:var(--dim); text-transform:uppercase; letter-spacing:.02em; font-weight:bold;}
@@ -274,7 +285,6 @@
   }
   .kit-new-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   
-  /* Prominent & Large Create Kit Button Styling */
   .kit-new-box .go{
     width:100%; margin-top:14px; padding:14px 20px; background:var(--amber-dim); color:var(--amber); 
     border:2px solid var(--amber); border-radius:10px; font-family:var(--disp); font-size:18px; font-weight:700; 
@@ -334,9 +344,6 @@
   .map-mode-btn.mode-def-report.active { background: #5C4416; border-color: #FFB020; color: #FFB020; }
   .map-mode-btn.mode-def-block.active { background: var(--orange-dim); border-color: var(--orange); color: var(--orange); }
 
-  .reset-options-row { display: flex; gap: 8px; margin-bottom: 12px; }
-  .reset-section-btn { flex: 1; background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); border-radius: 6px; padding: 8px 6px; font-family: var(--mono); font-size: 11px; font-weight: bold; cursor: pointer; }
-
   .facade-grid-wrapper { display: flex; flex-direction: column; gap: 6px; overflow-x: auto; overflow-y: auto; padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--line); max-height: 55vh; }
   .facade-grid-wrapper.mode-select, .facade-grid-wrapper.mode-deflect { touch-action: none; }
   .facade-grid-wrapper.mode-scroll { touch-action: pan-x pan-y; }
@@ -364,6 +371,9 @@
   .window-cell.unwalkable { background: var(--orange-dim) !important; color: var(--orange) !important; border: 1.5px solid var(--orange) !important; cursor: not-allowed !important; opacity: 0.8; }
   .window-cell.defective-report { background: #5C4416 !important; color: #FFB020 !important; border: 1.5px dashed #FFB020 !important; font-weight: bold; }
   .window-cell.defective-unwalkable { background: var(--orange-dim) !important; color: var(--orange) !important; border: 1.5px solid var(--orange) !important; cursor: not-allowed !important; font-weight: bold; }
+
+  /* Inspection mode allow selecting unwalkables */
+  body.inspection-mode .window-cell.unwalkable { cursor: pointer !important; opacity: 1 !important; }
 
   /* Dashboard Modal */
   .dashboard-modal { max-width: 950px !important; max-height: 90vh; overflow-y: auto; }
@@ -618,6 +628,10 @@
     <div style="margin-top: 10px;">
       <label style="font-size: 11px; font-weight: bold; color: var(--dim);">Attach Photo (Optional):</label>
       <input type="file" id="stopPhotoInput" accept="image/*" style="font-size: 12px; margin-top: 4px;">
+      <div id="stopPhotoPreviewWrap" style="display:none; margin-top:6px;">
+        <img id="stopPhotoPreview" class="stop-img-preview">
+        <button type="button" class="remove-photo-btn" id="removeStopPhotoBtn">🗑️ Remove Photo</button>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="cancel" id="stopReasonCancel">Cancel</button>
@@ -630,7 +644,7 @@
 <div class="modal-overlay" id="stopEditModal">
   <div class="modal-box">
     <div class="modal-title">Edit Stop</div>
-    <div class="modal-sub">Update stop times and reason</div>
+    <div class="modal-sub">Update stop times, reason, and photo</div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
       <div>
         <label style="font-size:10px; color:var(--dim);">Start Time (Stop)</label>
@@ -642,6 +656,13 @@
       </div>
     </div>
     <textarea id="stopEditReason" placeholder="Stop reason..."></textarea>
+
+    <div style="margin-top: 10px;">
+      <label style="font-size: 11px; font-weight: bold; color: var(--dim);">Photo Attachment:</label>
+      <div id="stopEditPhotoWrap"></div>
+      <input type="file" id="stopEditPhotoInput" accept="image/*" style="font-size: 12px; margin-top: 4px;">
+    </div>
+
     <div class="modal-actions">
       <button class="danger" id="stopEditDelete">🗑️ Delete</button>
       <button class="cancel" id="stopEditCancel">Cancel</button>
@@ -675,10 +696,6 @@
       <button type="button" class="map-mode-btn mode-def-report" id="modeDeflectReportBtn">🛠️ Defective (Report Only)</button>
       <button type="button" class="map-mode-btn mode-def-block" id="modeDeflectBlockBtn">🚫 Defective (Unwalkable)</button>
       <button type="button" class="map-mode-btn" id="modeScrollBtn">🖐️ Scroll / Pan Mode</button>
-    </div>
-
-    <div class="reset-options-row">
-      <button type="button" class="reset-section-btn" id="resetSectionBtn">🧹 Clear Current Section</button>
     </div>
 
     <select class="facade-section-select" id="facadeSectionSelect"></select>
@@ -782,6 +799,7 @@ let dragSelectState = true;
 let currentMapInteractionMode = 'select'; 
 
 let pendingStopKitId = null;
+let pendingStopPhotoData = null;
 let editingTimeInfo = null;
 let editingStopInfo = null;
 let collapsedMap = {};
@@ -937,6 +955,10 @@ document.getElementById('windGustsInput').addEventListener('input', checkWindAle
 
 function isFrameUnwalkable(frame) {
   if (!frame) return false;
+  // If work type is Inspection, unwalkable windows are allowed to be inspected/selected!
+  if (state && state.workType === 'Inspection') {
+    return false;
+  }
   return (frame.walking_valid === false || frame.walkable === false || frame.unwalkable === true || siteDefectiveUnwalkableFrames.has(frame.frame_id));
 }
 
@@ -1114,6 +1136,7 @@ function calculateAndRenderDashboard() {
   });
 }
 
+// Improved Vertical Render for Drop Columns
 function renderNewKitDrops() {
   const container = document.getElementById('newKitDropList');
   if (!container) return;
@@ -1122,10 +1145,12 @@ function renderNewKitDrops() {
     const row = document.createElement('div');
     row.className = 'drop-col-item';
     row.innerHTML = `
-      <input type="text" placeholder="Facade (e.g. North)" value="${item.facade||''}" data-idx="${idx}" data-field="facade">
-      <input type="text" placeholder="Rows (e.g. 1-5)" value="${item.rows||''}" data-idx="${idx}" data-field="rows">
-      <input type="text" placeholder="Cols (e.g. 2-4)" value="${item.cols||''}" data-idx="${idx}" data-field="cols">
-      ${newKitDrops.length > 1 ? `<button type="button" class="btn-remove-drop" data-idx="${idx}">✕</button>` : '<span></span>'}
+      <div class="drop-col-fields-grid">
+        <input type="text" placeholder="Facade (e.g. North)" value="${item.facade||''}" data-idx="${idx}" data-field="facade">
+        <input type="text" placeholder="Rows (e.g. 1-5)" value="${item.rows||''}" data-idx="${idx}" data-field="rows">
+        <input type="text" placeholder="Cols (e.g. 2-4)" value="${item.cols||''}" data-idx="${idx}" data-field="cols">
+      </div>
+      ${newKitDrops.length > 1 ? `<button type="button" class="btn-remove-drop" data-idx="${idx}">🗑️ Remove Drop Area</button>` : ''}
     `;
     container.appendChild(row);
   });
@@ -1292,6 +1317,13 @@ function loadDay(dateISO){
     } else {
       state = blankDay(dateISO);
     }
+    
+    // Toggle Inspection class on body for CSS styling rules
+    if (state.workType === 'Inspection') {
+      document.body.classList.add('inspection-mode');
+    } else {
+      document.body.classList.remove('inspection-mode');
+    }
     render();
   });
 }
@@ -1452,10 +1484,12 @@ function renderKitCard(kit){
       const row = document.createElement('div');
       row.className = 'drop-col-item';
       row.innerHTML = `
-        <input type="text" placeholder="Facade (e.g. North)" value="${dItem.facade||''}" data-didx="${dIdx}" data-dfield="facade">
-        <input type="text" placeholder="Rows (e.g. 1-5)" value="${dItem.rows||''}" data-didx="${dIdx}" data-dfield="rows">
-        <input type="text" placeholder="Cols (e.g. 2-4)" value="${dItem.cols||''}" data-didx="${dIdx}" data-dfield="cols">
-        ${kit.drops.length > 1 ? `<button type="button" class="btn-remove-drop" data-didx="${dIdx}">✕</button>` : '<span></span>'}
+        <div class="drop-col-fields-grid">
+          <input type="text" placeholder="Facade (e.g. North)" value="${dItem.facade||''}" data-didx="${dIdx}" data-dfield="facade">
+          <input type="text" placeholder="Rows (e.g. 1-5)" value="${dItem.rows||''}" data-didx="${dIdx}" data-dfield="rows">
+          <input type="text" placeholder="Cols (e.g. 2-4)" value="${dItem.cols||''}" data-didx="${dIdx}" data-dfield="cols">
+        </div>
+        ${kit.drops.length > 1 ? `<button type="button" class="btn-remove-drop" data-didx="${dIdx}">🗑️ Remove Drop Area</button>` : ''}
       `;
       dropsContainer.appendChild(row);
     });
@@ -1564,9 +1598,11 @@ function renderKitCard(kit){
     ev.stopPropagation();
     if(!wallActive){ showToast('Stops can only be recorded while on the wall'); return; }
     pendingStopKitId = kit.id;
+    pendingStopPhotoData = null;
     document.getElementById('stopModalSub').textContent = `Kit #${kit.id} — Reason for stop?`;
     document.getElementById('stopReasonInput').value = '';
     document.getElementById('stopPhotoInput').value = '';
+    document.getElementById('stopPhotoPreviewWrap').style.display = 'none';
     document.getElementById('stopModal').classList.add('show');
     setTimeout(()=>document.getElementById('stopReasonInput').focus(), 50);
   });
@@ -1614,6 +1650,23 @@ function renderKitCard(kit){
         }
         
         document.getElementById('stopEditReason').value = st.reason || '';
+
+        const photoWrap = document.getElementById('stopEditPhotoWrap');
+        if (st.photoUrl) {
+          photoWrap.innerHTML = `
+            <img src="${st.photoUrl}" class="stop-img-preview"><br>
+            <button type="button" class="remove-photo-btn" id="removeExistingEditPhoto">🗑️ Remove Photo</button>
+          `;
+          document.getElementById('removeExistingEditPhoto').addEventListener('click', () => {
+            delete st.photoUrl;
+            photoWrap.innerHTML = '<div style="font-size:11px; color:var(--dim);">Photo removed</div>';
+            saveState();
+          });
+        } else {
+          photoWrap.innerHTML = '<div style="font-size:11px; color:var(--dim);">No photo attached</div>';
+        }
+
+        document.getElementById('stopEditPhotoInput').value = '';
         document.getElementById('stopEditModal').classList.add('show');
       });
     });
@@ -1845,23 +1898,6 @@ modeScrollBtn.addEventListener('click', () => {
   gridWrapper.className = 'facade-grid-wrapper mode-scroll';
 });
 
-document.getElementById('resetSectionBtn').addEventListener('click', () => {
-  const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
-  const sec = buildingData?.sections[sectionIdx];
-  if (!sec) return;
-
-  if (confirm(`Reset cleaned window history ONLY for section "${sec.name || sec.section_id}"?`)) {
-    (sec.window_frames || []).forEach(f => {
-      siteCleanedFramesHistory.delete(f.frame_id);
-      selectedFrameIds.delete(f.frame_id);
-    });
-    const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set(Array.from(siteCleanedFramesHistory));
-    renderFacadeGrid(sectionIdx);
-    showToast(`Section "${sec.name || sec.section_id}" history cleared!`);
-  }
-});
-
 window.addEventListener('mouseup', () => { isDraggingSelection = false; });
 window.addEventListener('touchend', () => { isDraggingSelection = false; });
 
@@ -1962,37 +1998,49 @@ document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
   renderNewKitDrops();
 });
 
+// New Stop Photo Preview & Removal Handlers
+document.getElementById('stopPhotoInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      pendingStopPhotoData = evt.target.result;
+      document.getElementById('stopPhotoPreview').src = pendingStopPhotoData;
+      document.getElementById('stopPhotoPreviewWrap').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+document.getElementById('removeStopPhotoBtn').addEventListener('click', () => {
+  pendingStopPhotoData = null;
+  document.getElementById('stopPhotoInput').value = '';
+  document.getElementById('stopPhotoPreviewWrap').style.display = 'none';
+});
+
 document.getElementById('stopReasonCancel').addEventListener('click', ()=>{
   document.getElementById('stopModal').classList.remove('show');
   pendingStopKitId = null;
+  pendingStopPhotoData = null;
 });
 
 document.getElementById('stopReasonConfirm').addEventListener('click', ()=>{
   const kit = state.kits.find(k=>k.id === pendingStopKitId);
   if(!kit){ document.getElementById('stopModal').classList.remove('show'); return; }
   const reason = document.getElementById('stopReasonInput').value.trim();
-  const fileInput = document.getElementById('stopPhotoInput');
 
-  function saveStopObj(photoUrl = null) {
-    if(!kit.stops) kit.stops = [];
-    kit.stops.push({
-      start: new Date().toISOString(), 
-      end: null, 
-      reason: reason || '(No reason specified)',
-      photoUrl: photoUrl
-    });
-    document.getElementById('stopModal').classList.remove('show');
-    pendingStopKitId = null;
-    saveState();
-  }
+  if(!kit.stops) kit.stops = [];
+  kit.stops.push({
+    start: new Date().toISOString(), 
+    end: null, 
+    reason: reason || '(No reason specified)',
+    photoUrl: pendingStopPhotoData
+  });
 
-  if (fileInput.files && fileInput.files[0]) {
-    const reader = new FileReader();
-    reader.onload = (e) => saveStopObj(e.target.result);
-    reader.readAsDataURL(fileInput.files[0]);
-  } else {
-    saveStopObj(null);
-  }
+  document.getElementById('stopModal').classList.remove('show');
+  pendingStopKitId = null;
+  pendingStopPhotoData = null;
+  saveState();
 });
 
 document.getElementById('stopEditCancel').addEventListener('click', ()=>{
@@ -2020,6 +2068,7 @@ document.getElementById('stopEditConfirm').addEventListener('click', ()=>{
     const valStart = document.getElementById('stopEditStart').value;
     const valEnd = document.getElementById('stopEditEnd').value;
     const reason = document.getElementById('stopEditReason').value.trim();
+    const photoInput = document.getElementById('stopEditPhotoInput');
 
     if(valStart){
       const p = valStart.split(':');
@@ -2036,8 +2085,19 @@ document.getElementById('stopEditConfirm').addEventListener('click', ()=>{
       st.end = null;
     }
     st.reason = reason;
-    saveState();
-    showToast('Stop updated');
+
+    if (photoInput.files && photoInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        st.photoUrl = e.target.result;
+        saveState();
+        showToast('Stop updated with new photo');
+      };
+      reader.readAsDataURL(photoInput.files[0]);
+    } else {
+      saveState();
+      showToast('Stop updated');
+    }
   }
   document.getElementById('stopEditModal').classList.remove('show');
   editingStopInfo = null;
@@ -2079,7 +2139,18 @@ document.getElementById('timeEditReset').addEventListener('click', ()=>{
   editingTimeInfo = null;
 });
 
-document.getElementById('workTypeInput').addEventListener('change', (e)=>{ if(state) { state.workType = e.target.value; saveState(); } });
+document.getElementById('workTypeInput').addEventListener('change', (e)=>{ 
+  if(state) { 
+    state.workType = e.target.value; 
+    if (state.workType === 'Inspection') {
+      document.body.classList.add('inspection-mode');
+    } else {
+      document.body.classList.remove('inspection-mode');
+    }
+    saveState(); 
+  } 
+});
+
 document.getElementById('qualityRatingInput').addEventListener('change', (e)=>{ if(state) { state.qualityRating = e.target.value; saveState(); } });
 document.getElementById('peopleInput').addEventListener('change', (e)=>{ if(state) { state.people = e.target.value; saveState(); } });
 document.getElementById('juniorCountInput').addEventListener('change', (e)=>{ if(state) { state.juniorCount = e.target.value; saveState(); } });
@@ -2158,6 +2229,12 @@ function render(){
   document.getElementById('windSpeedInput').value = state ? (state.windSpeed || '') : '';
   document.getElementById('windGustsInput').value = state ? (state.windGusts || '') : '';
   document.getElementById('rainInput').value = state ? (state.rain || 'None') : 'None';
+
+  if (state && state.workType === 'Inspection') {
+    document.body.classList.add('inspection-mode');
+  } else {
+    document.body.classList.remove('inspection-mode');
+  }
 
   checkWindAlert();
 
