@@ -100,6 +100,20 @@
     font-family:var(--body); font-size:14px; padding:6px 8px; border-radius:6px; flex:1; font-weight:bold;
   }
 
+  .dashboard-btn {
+    background: var(--amber-dim);
+    color: var(--amber);
+    border: 1.5px solid var(--amber);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    min-height: 40px;
+  }
+
   .json-upload-btn {
     background: var(--blue-dim);
     color: var(--blue);
@@ -126,6 +140,20 @@
     cursor: pointer;
     white-space: nowrap;
     min-height: 40px;
+  }
+
+  .weather-btn {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid var(--green);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    margin-bottom: 8px;
   }
 
   .datepick{margin-top:8px; display:flex; gap:8px; align-items:center;}
@@ -187,7 +215,6 @@
   .kit-fields-grid .field input, .kit-fields-grid .field select{padding:10px; font-size:15px; background:var(--panel); border:1px solid var(--line);}
   .kit-fields-grid .field.full-width{grid-column:span 2;}
 
-  /* Dynamic Drop Columns Box */
   .drop-cols-container {
     grid-column: span 2;
     background: var(--panel3);
@@ -393,7 +420,7 @@
   .modal-actions .confirm{background:var(--amber-dim); border:2px solid var(--amber); color:var(--amber);}
   .modal-actions .danger{background:var(--orange-dim); border:2px solid var(--orange); color:var(--orange);}
 
-  /* Proportional Facade Grid Visualizer Modal */
+  /* Facade Grid Visualizer Modal */
   .facade-grid-modal {
     max-width: 900px !important;
     max-height: 90vh;
@@ -506,6 +533,105 @@
     border-color: #5A6678 !important;
     opacity: 0.85;
   }
+  .window-cell.unwalkable {
+    background: var(--orange-dim) !important;
+    color: var(--orange) !important;
+    border: 1.5px solid var(--orange) !important;
+    cursor: not-allowed !important;
+    opacity: 0.8;
+  }
+
+  /* Dashboard Analytics Overlay & Styles */
+  .dashboard-modal {
+    max-width: 950px !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .dash-card {
+    background: var(--panel2);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .dash-card.full-width {
+    grid-column: span 2;
+  }
+  .dash-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+  .dash-val {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--amber);
+  }
+  .dash-sub {
+    font-size: 12px;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  .progress-bar-bg {
+    width: 100%;
+    height: 16px;
+    background: var(--panel3);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 8px;
+    border: 1px solid var(--line);
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--amber);
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  .facade-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .facade-progress-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .facade-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .daily-logs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .daily-logs-table th, .daily-logs-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  .daily-logs-table th {
+    color: var(--amber);
+  }
 
   @media (min-width: 650px) {
     #kitsList {
@@ -528,6 +654,12 @@
     }
     .modal-box {
       border-radius: 16px;
+    }
+    .dashboard-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .dash-card.full-width {
+      grid-column: span 4;
     }
   }
 </style>
@@ -561,6 +693,7 @@
       </select>
       <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
       
+      <button type="button" class="dashboard-btn" id="openDashboardBtn">📊 Open Dashboard</button>
       <button type="button" class="json-upload-btn" id="uploadJsonBtn">📁 Upload Building JSON</button>
       <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
 
@@ -612,7 +745,10 @@
   </section>
 
   <section>
-    <div class="sec-title">Environmental Data</div>
+    <div class="sec-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>Environmental Data</span>
+      <button type="button" class="weather-btn" id="fetchWeatherBtn">🌤️ Fetch Live Weather</button>
+    </div>
     <div class="field-row three-col">
       <div class="field">
         <label>Temperature (°C)</label>
@@ -768,9 +904,8 @@
 <div class="modal-overlay" id="facadeMapModal">
   <div class="modal-box facade-grid-modal">
     <div class="modal-title">Building Map & Window Selection</div>
-    <div class="modal-sub" id="facadeMapSub">Select windows or toggle scroll mode for mobile panning. Double-click grey cells to unlock.</div>
+    <div class="modal-sub" id="facadeMapSub">Select windows or toggle scroll mode for mobile panning. Double-click grey cells to unlock. Red cells are unwalkable.</div>
     
-    <!-- Mobile Panning / Selection Mode Toggle -->
     <div class="map-mode-toggle">
       <button type="button" class="map-mode-btn active" id="modeSelectBtn">✏️ Select Mode</button>
       <button type="button" class="map-mode-btn" id="modeScrollBtn">🖐️ Scroll / Pan Mode</button>
@@ -790,6 +925,75 @@
     <div class="modal-actions">
       <button class="cancel" id="facadeMapCancel">Cancel</button>
       <button class="confirm" id="facadeMapConfirm">Save Selection</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cycle Dashboard Modal -->
+<div class="modal-overlay" id="dashboardModal">
+  <div class="modal-box dashboard-modal">
+    <div class="modal-title">📊 Cycle Analytics & Dashboard</div>
+    <div class="modal-sub" id="dashboardSiteSub">Site: Suzuki</div>
+
+    <div class="dashboard-grid">
+      <div class="dash-card full-width">
+        <div class="dash-title">Overall Building Completion Progress</div>
+        <div class="dash-val"><span id="dashProgressPercent">0.0</span>%</div>
+        <div class="dash-sub"><span id="dashCleanedSqm">0</span> m² cleaned of <span id="dashTotalSqm">0</span> m² total</div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="dashProgressBarFill"></div>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Cleaned Area</div>
+        <div class="dash-val"><span id="dashStatSqm">0</span> m²</div>
+        <div class="dash-sub">Total Project Output</div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Cleaning Speed</div>
+        <div class="dash-val"><span id="dashStatSpeed">0.0</span></div>
+        <div class="dash-sub">m² / Uptime Hour</div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Total Shift Time</div>
+        <div class="dash-val"><span id="dashStatTotalTime">00:00</span></div>
+        <div class="dash-sub">Cumulative Shift Hours</div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Downtime Impact</div>
+        <div class="dash-val"><span id="dashStatDowntimePercent">0.0</span>%</div>
+        <div class="dash-sub">Stops / Total Time</div>
+      </div>
+
+      <div class="dash-card full-width">
+        <div class="dash-title">Progress by Building Facades / Sections</div>
+        <div class="facade-progress-list" id="dashFacadeProgressList"></div>
+      </div>
+
+      <div class="dash-card full-width">
+        <div class="dash-title">Recorded Daily Logs Summary</div>
+        <div style="overflow-x: auto;">
+          <table class="daily-logs-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Shift Time</th>
+                <th>SQM Cleaned</th>
+                <th>Active Kits</th>
+              </tr>
+            </thead>
+            <tbody id="dashDailyLogsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="cancel" id="closeDashboardBtn">Close Dashboard</button>
     </div>
   </div>
 </div>
@@ -848,8 +1052,9 @@ const STAGES = [
 let state = null;
 let currentDate = null;
 let currentSite = 'Suzuki';
-let buildingData = null; // Loaded Building JSON Object
-let siteCleanedFramesHistory = new Set(); // Global project-wide historical cleaned frames
+let buildingData = null;
+let siteCleanedFramesHistory = new Set();
+let siteAllDaysData = {};
 
 let activeMapKitId = null;
 let selectedFrameIds = new Set();
@@ -864,6 +1069,68 @@ let collapsedMap = {};
 let dbRef = null;
 
 let newKitDrops = [{ facade: '', rows: '', cols: '' }];
+
+// Live Weather Fetching Logic via Open-Meteo API
+document.getElementById('fetchWeatherBtn').addEventListener('click', fetchLiveWeather);
+
+function fetchLiveWeather() {
+  showToast('Fetching weather forecast...');
+  
+  // Default coordinates (Tel Aviv region, can fallback or use browser Geolocation)
+  let lat = 32.0853;
+  let lon = 34.7818;
+
+  function queryWeatherApi(latitude, longitude) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relativehumidity_2m`;
+    
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.current_weather) {
+          const temp = Math.round(data.current_weather.temperature);
+          const humidity = data.hourly && data.hourly.relativehumidity_2m ? data.hourly.relativehumidity_2m[0] : 60;
+          const weatherCode = data.current_weather.weathercode;
+          
+          let rainVal = 'None';
+          if (weatherCode >= 51 && weatherCode <= 55) rainVal = 'Light Rain';
+          else if (weatherCode >= 61 && weatherCode <= 65) rainVal = 'Moderate Rain';
+          else if (weatherCode >= 80) rainVal = 'Heavy Rain';
+
+          document.getElementById('tempInput').value = temp;
+          document.getElementById('humidityInput').value = humidity;
+          document.getElementById('rainInput').value = rainVal;
+
+          state.temp = temp;
+          state.humidity = humidity;
+          state.rain = rainVal;
+          saveState();
+
+          showToast(`Weather Updated: ${temp}°C, ${humidity}% Humidity`);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        showToast('Error fetching live weather');
+      });
+  }
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => queryWeatherApi(pos.coords.latitude, pos.coords.longitude),
+      () => queryWeatherApi(lat, lon)
+    );
+  } else {
+    queryWeatherApi(lat, lon);
+  }
+}
+
+function isFrameUnwalkable(frame) {
+  if (!frame) return false;
+  if (frame.walking_valid === false || frame.walkable === false || frame.unwalkable === true) {
+    return true;
+  }
+  return false;
+}
 
 // JSON Building File Upload Handling
 document.getElementById('uploadJsonBtn').addEventListener('click', () => {
@@ -895,7 +1162,6 @@ document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
     siteCleanedFramesHistory.clear();
     selectedFrameIds.clear();
     
-    // Clear in State Kits
     if (state && state.kits) {
       state.kits.forEach(k => {
         k.selectedFrames = [];
@@ -910,6 +1176,135 @@ document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
     showToast('Entire Building Cycle Reset Successfully!');
   }
 });
+
+// Dashboard Calculation & Open Logic
+document.getElementById('openDashboardBtn').addEventListener('click', () => {
+  calculateAndRenderDashboard();
+  document.getElementById('dashboardModal').classList.add('show');
+});
+
+document.getElementById('closeDashboardBtn').addEventListener('click', () => {
+  document.getElementById('dashboardModal').classList.remove('show');
+});
+
+function calculateAndRenderDashboard() {
+  document.getElementById('dashboardSiteSub').textContent = `Site: ${currentSite}`;
+
+  let totalBuildingSqm = 0;
+  const sectionSqmMap = {};
+  const sectionCleanedMap = {};
+
+  if (buildingData && buildingData.sections) {
+    buildingData.sections.forEach(sec => {
+      let secTotal = 0;
+      let secCleaned = 0;
+      (sec.window_frames || []).forEach(f => {
+        const sqm = (f.width || 0) * (f.height || 0);
+        secTotal += sqm;
+        if (siteCleanedFramesHistory.has(f.frame_id)) {
+          secCleaned += sqm;
+        }
+      });
+      const name = sec.name || sec.section_id;
+      sectionSqmMap[name] = secTotal;
+      sectionCleanedMap[name] = secCleaned;
+      totalBuildingSqm += secTotal;
+    });
+  }
+
+  let cleanedBuildingSqm = 0;
+  if (buildingData && buildingData.sections) {
+    buildingData.sections.forEach(sec => {
+      (sec.window_frames || []).forEach(f => {
+        if (siteCleanedFramesHistory.has(f.frame_id)) {
+          cleanedBuildingSqm += (f.width || 0) * (f.height || 0);
+        }
+      });
+    });
+  }
+
+  const progressPercent = totalBuildingSqm > 0 ? (cleanedBuildingSqm / totalBuildingSqm * 100) : 0;
+  
+  document.getElementById('dashProgressPercent').textContent = progressPercent.toFixed(1);
+  document.getElementById('dashCleanedSqm').textContent = cleanedBuildingSqm.toFixed(2);
+  document.getElementById('dashTotalSqm').textContent = totalBuildingSqm.toFixed(2);
+  document.getElementById('dashStatSqm').textContent = cleanedBuildingSqm.toFixed(2);
+  document.getElementById('dashProgressBarFill').style.width = `${Math.min(100, progressPercent)}%`;
+
+  let totalShiftMs = 0;
+  let totalUptimeMs = 0;
+  let totalDowntimeMs = 0;
+
+  const dailyTableBody = document.getElementById('dashDailyLogsTableBody');
+  dailyTableBody.innerHTML = '';
+
+  Object.keys(siteAllDaysData).forEach(dateKey => {
+    const dayObj = siteAllDaysData[dateKey];
+    if (dayObj && dayObj.kits && dayObj.kits.length > 0) {
+      let earliestArrival = null, latestFinish = null;
+      let daySqm = 0;
+
+      dayObj.kits.forEach(kit => {
+        const e = kit.events || {};
+        if (e.arrival) {
+          const t = new Date(e.arrival);
+          if (!earliestArrival || t < earliestArrival) earliestArrival = t;
+        }
+        if (e.finish) {
+          const t = new Date(e.finish);
+          if (!latestFinish || t > latestFinish) latestFinish = t;
+        }
+
+        const { wallMs, netMs, stopsMs } = kitDurations(kit);
+        if (wallMs) totalShiftMs += wallMs;
+        if (netMs) totalUptimeMs += netMs;
+        if (stopsMs) totalDowntimeMs += stopsMs;
+        if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
+      });
+
+      const dayShiftMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${dateKey}</td>
+        <td>${fmtDur(dayShiftMs)}</td>
+        <td>${daySqm.toFixed(2)} m²</td>
+        <td>${dayObj.kits.length} Kits</td>
+      `;
+      dailyTableBody.appendChild(tr);
+    }
+  });
+
+  const uptimeHours = totalUptimeMs / (1000 * 3600);
+  const speedSqmPerHour = uptimeHours > 0 ? (cleanedBuildingSqm / uptimeHours) : 0;
+  const downtimePercent = (totalShiftMs + totalDowntimeMs) > 0 ? (totalDowntimeMs / (totalShiftMs + totalDowntimeMs) * 100) : 0;
+
+  document.getElementById('dashStatSpeed').textContent = speedSqmPerHour.toFixed(1);
+  document.getElementById('dashStatTotalTime').textContent = fmtDur(totalShiftMs);
+  document.getElementById('dashStatDowntimePercent').textContent = downtimePercent.toFixed(1);
+
+  const facadeListContainer = document.getElementById('dashFacadeProgressList');
+  facadeListContainer.innerHTML = '';
+
+  Object.keys(sectionSqmMap).forEach(secName => {
+    const totalSec = sectionSqmMap[secName] || 1;
+    const cleanedSec = sectionCleanedMap[secName] || 0;
+    const secPercent = (cleanedSec / totalSec * 100).toFixed(1);
+
+    const item = document.createElement('div');
+    item.className = 'facade-progress-item';
+    item.innerHTML = `
+      <div class="facade-progress-label">
+        <span>${secName}</span>
+        <span>${cleanedSec.toFixed(1)} / ${totalSec.toFixed(1)} m² (${secPercent}%)</span>
+      </div>
+      <div class="progress-bar-bg" style="height: 10px;">
+        <div class="progress-bar-fill" style="width: ${Math.min(100, secPercent)}%;"></div>
+      </div>
+    `;
+    facadeListContainer.appendChild(item);
+  });
+}
 
 // Render Drop Columns List in New Kit Form
 function renderNewKitDrops() {
@@ -1058,6 +1453,10 @@ function loadDay(dateISO){
   db.ref(`sites/${cleanSite}/cleanedFramesHistory`).on('value', (snap) => {
     const arr = snap.val() || [];
     siteCleanedFramesHistory = new Set(arr);
+  });
+
+  db.ref(`sites/${cleanSite}/days`).on('value', (snap) => {
+    siteAllDaysData = snap.val() || {};
   });
 
   dbRef = db.ref(`sites/${cleanSite}/days/${dateISO}`);
@@ -1415,7 +1814,7 @@ function calculateSelectedSqm() {
 
   buildingData.sections.forEach(sec => {
     (sec.window_frames || []).forEach(frame => {
-      if (selectedFrameIds.has(frame.frame_id)) {
+      if (selectedFrameIds.has(frame.frame_id) && !isFrameUnwalkable(frame)) {
         totalSqm += (frame.width || 0) * (frame.height || 0);
       }
     });
@@ -1423,8 +1822,9 @@ function calculateSelectedSqm() {
   return totalSqm;
 }
 
-function toggleWindowCell(cell, frameId) {
+function toggleWindowCell(cell, frame, frameId) {
   if (currentMapInteractionMode === 'scroll') return;
+  if (isFrameUnwalkable(frame)) return;
 
   if (siteCleanedFramesHistory.has(frameId) && !selectedFrameIds.has(frameId)) {
     return;
@@ -1454,7 +1854,8 @@ function renderFacadeGrid(sectionIdx) {
     rowMap[y].push(frame);
   });
 
-  const sortedRowKeys = Object.keys(rowMap).map(Number).sort((a,b) => a - b);
+  // CRITICAL FIX: Sorted in DESCENDING order so high Y (top floors) are rendered FIRST at top of visual grid, and low Y (bottom floors/ground) are rendered LAST at bottom
+  const sortedRowKeys = Object.keys(rowMap).map(Number).sort((a,b) => b - a);
 
   sortedRowKeys.forEach(yKey => {
     const rowFrames = rowMap[yKey].sort((a,b) => (a.frame_pos.x || 0) - (b.frame_pos.x || 0));
@@ -1466,10 +1867,15 @@ function renderFacadeGrid(sectionIdx) {
 
     rowFrames.forEach(frame => {
       const cell = document.createElement('div');
-      const isSelected = selectedFrameIds.has(frame.frame_id);
-      const isPrevCleaned = siteCleanedFramesHistory.has(frame.frame_id) && !isSelected;
+      const unwalkable = isFrameUnwalkable(frame);
+      const isSelected = selectedFrameIds.has(frame.frame_id) && !unwalkable;
+      const isPrevCleaned = siteCleanedFramesHistory.has(frame.frame_id) && !isSelected && !unwalkable;
 
-      cell.className = 'window-cell' + (isSelected ? ' selected' : '') + (isPrevCleaned ? ' previously-cleaned' : '');
+      cell.className = 'window-cell' + 
+                     (unwalkable ? ' unwalkable' : '') + 
+                     (isSelected ? ' selected' : '') + 
+                     (isPrevCleaned ? ' previously-cleaned' : '');
+
       cell.setAttribute('data-frame-id', frame.frame_id);
 
       const frameWidth = frame.width || 1.0;
@@ -1477,26 +1883,34 @@ function renderFacadeGrid(sectionIdx) {
       cell.style.minWidth = `${Math.max(45, frameWidth * 40)}px`;
 
       const sqm = ((frame.width || 0) * (frame.height || 0)).toFixed(2);
-      cell.innerHTML = `<div>${frame.frame_id}</div><div style="opacity:0.75">${sqm}m²</div>${isPrevCleaned ? '<div style="font-size:7px; opacity:0.8;">(Cleaned)</div>' : ''}`;
+      
+      let labelText = `<div>${frame.frame_id}</div><div style="opacity:0.75">${sqm}m²</div>`;
+      if (unwalkable) {
+        labelText += `<div style="font-size:7px; font-weight:bold;">(Unwalkable)</div>`;
+      } else if (isPrevCleaned) {
+        labelText += `<div style="font-size:7px; opacity:0.8;">(Cleaned)</div>`;
+      }
+
+      cell.innerHTML = labelText;
 
       const handleStart = (e) => {
-        if (currentMapInteractionMode === 'scroll') return;
+        if (currentMapInteractionMode === 'scroll' || unwalkable) return;
         e.preventDefault();
         if (isPrevCleaned) return;
         isDraggingSelection = true;
         dragSelectState = !selectedFrameIds.has(frame.frame_id);
-        toggleWindowCell(cell, frame.frame_id);
+        toggleWindowCell(cell, frame, frame.frame_id);
       };
 
       const handleEnter = () => {
-        if (isDraggingSelection && currentMapInteractionMode === 'select' && !isPrevCleaned) {
-          toggleWindowCell(cell, frame.frame_id);
+        if (isDraggingSelection && currentMapInteractionMode === 'select' && !isPrevCleaned && !unwalkable) {
+          toggleWindowCell(cell, frame, frame.frame_id);
         }
       };
 
       cell.addEventListener('dblclick', (e) => {
         e.preventDefault();
-        if (isPrevCleaned) {
+        if (isPrevCleaned && !unwalkable) {
           siteCleanedFramesHistory.delete(frame.frame_id);
           selectedFrameIds.add(frame.frame_id);
           const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
@@ -1568,7 +1982,10 @@ document.getElementById('facadeGridWrapper').addEventListener('touchmove', (e) =
     const cell = targetElem.closest('.window-cell');
     if (cell) {
       const frameId = cell.getAttribute('data-frame-id');
-      if (frameId) toggleWindowCell(cell, frameId);
+      const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
+      const sec = buildingData?.sections[sectionIdx];
+      const frame = sec?.window_frames?.find(f => f.frame_id === frameId);
+      if (frameId && frame) toggleWindowCell(cell, frame, frameId);
     }
   }
 }, {passive: false});
