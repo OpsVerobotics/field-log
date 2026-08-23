@@ -114,6 +114,20 @@
     min-height: 40px;
   }
 
+  .main-reset-cycle-btn {
+    background: var(--orange-dim);
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    min-height: 40px;
+  }
+
   .datepick{margin-top:8px; display:flex; gap:8px; align-items:center;}
   .datepick input[type=date]{
     background:var(--panel); border:1.5px solid var(--line); color:var(--text);
@@ -426,7 +440,7 @@
     gap: 8px;
     margin-bottom: 12px;
   }
-  .reset-section-btn, .reset-history-btn {
+  .reset-section-btn {
     flex: 1;
     background: var(--orange-dim);
     color: var(--orange);
@@ -536,7 +550,7 @@
     </div>
     <h1>Daily Field Operations</h1>
     
-    <!-- Site Selection & Building JSON Upload -->
+    <!-- Site Selection & Header Actions -->
     <div class="site-pick">
       <label>Site:</label>
       <select id="siteSelect">
@@ -549,6 +563,8 @@
       
       <button type="button" class="json-upload-btn" id="uploadJsonBtn">📁 Upload Building JSON</button>
       <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
+
+      <button type="button" class="main-reset-cycle-btn" id="mainResetCycleBtn">🔄 Reset Building Cycle</button>
     </div>
 
     <div class="datepick">
@@ -762,7 +778,6 @@
 
     <div class="reset-options-row">
       <button type="button" class="reset-section-btn" id="resetSectionBtn">🧹 Clear Current Section</button>
-      <button type="button" class="reset-history-btn" id="resetHistoryBtn">🔄 Reset Entire Building Cycle</button>
     </div>
 
     <select class="facade-section-select" id="facadeSectionSelect"></select>
@@ -872,6 +887,28 @@ document.getElementById('jsonFileInput').addEventListener('change', (e) => {
     }
   };
   reader.readAsText(file);
+});
+
+// Main Reset Building Cycle Action (Header Button)
+document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
+  if (confirm(`Are you sure you want to reset ALL cleaned window history for building "${currentSite}" across ALL kits and days?`)) {
+    siteCleanedFramesHistory.clear();
+    selectedFrameIds.clear();
+    
+    // Clear in State Kits
+    if (state && state.kits) {
+      state.kits.forEach(k => {
+        k.selectedFrames = [];
+        k.sqmCleaned = 0;
+      });
+    }
+
+    const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set([]);
+    saveState();
+    render();
+    showToast('Entire Building Cycle Reset Successfully!');
+  }
 });
 
 // Render Drop Columns List in New Kit Form
@@ -1516,19 +1553,6 @@ document.getElementById('resetSectionBtn').addEventListener('click', () => {
     db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set(Array.from(siteCleanedFramesHistory));
     renderFacadeGrid(sectionIdx);
     showToast(`Section "${sec.name || sec.section_id}" history cleared!`);
-  }
-});
-
-document.getElementById('resetHistoryBtn').addEventListener('click', () => {
-  if (confirm(`Are you sure you want to reset ALL cleaned window history for project "${currentSite}"? All windows across all sections will become uncleaned.`)) {
-    siteCleanedFramesHistory.clear();
-    selectedFrameIds.clear();
-    const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set([]);
-    
-    const sectionSel = document.getElementById('facadeSectionSelect');
-    renderFacadeGrid(sectionSel.value || 0);
-    showToast('Project window history reset successfully!');
   }
 });
 
