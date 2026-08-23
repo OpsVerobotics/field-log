@@ -71,14 +71,10 @@
   html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:var(--body); min-height:100vh; transition: background 0.2s, color 0.2s;}
   body{padding-bottom:40px;}
 
-  .app-container {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
+  .app-container { max-width: 1000px; margin: 0 auto; }
 
   header{
-    padding:14px 16px;
-    border-bottom:2px solid var(--line);
+    padding:14px 16px; border-bottom:2px solid var(--line);
     position:sticky; top:0; background:var(--bg); z-index:20;
   }
   .header-top{display:flex; justify-content:space-between; align-items:center;}
@@ -100,60 +96,24 @@
     font-family:var(--body); font-size:14px; padding:6px 8px; border-radius:6px; flex:1; font-weight:bold;
   }
 
-  .dashboard-btn {
-    background: var(--amber-dim);
-    color: var(--amber);
-    border: 1.5px solid var(--amber);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    white-space: nowrap;
-    min-height: 40px;
+  .dashboard-btn, .json-upload-btn, .main-reset-cycle-btn {
+    border-radius: 6px; padding: 8px 12px; font-family: var(--mono);
+    font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; min-height: 40px;
   }
-
-  .json-upload-btn {
-    background: var(--blue-dim);
-    color: var(--blue);
-    border: 1px solid var(--blue);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    white-space: nowrap;
-    min-height: 40px;
-  }
-
-  .main-reset-cycle-btn {
-    background: var(--orange-dim);
-    color: var(--orange);
-    border: 1px solid var(--orange);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    white-space: nowrap;
-    min-height: 40px;
-  }
+  .dashboard-btn { background: var(--amber-dim); color: var(--amber); border: 1.5px solid var(--amber); }
+  .json-upload-btn { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
+  .main-reset-cycle-btn { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); }
 
   .weather-btn {
-    background: var(--green-dim);
-    color: var(--green);
-    border: 1px solid var(--green);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: bold;
-    cursor: pointer;
-    white-space: nowrap;
-    margin-bottom: 8px;
+    background: var(--green-dim); color: var(--green); border: 1px solid var(--green);
+    border-radius: 6px; padding: 6px 10px; font-family: var(--mono); font-size: 11px;
+    font-weight: bold; cursor: pointer; white-space: nowrap;
+  }
+
+  .wind-alert-box {
+    background: var(--orange-dim); color: var(--orange); border: 1.5px solid var(--orange);
+    padding: 8px 12px; border-radius: 8px; font-family: var(--mono); font-size: 12px;
+    font-weight: bold; margin-top: 8px; display: none;
   }
 
   .datepick{margin-top:8px; display:flex; gap:8px; align-items:center;}
@@ -172,6 +132,7 @@
 
   .field-row{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;}
   .field-row.three-col{grid-template-columns: 1fr 1fr 1fr;}
+  .field-row.four-col{grid-template-columns: repeat(4, 1fr);}
   .field{flex:1;}
   .field label{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); margin-bottom:5px; letter-spacing:.06em; font-weight:700;}
   .field input, .field select, .field textarea{
@@ -179,11 +140,7 @@
     font-family:var(--body); font-size:16px; padding:11px 10px; border-radius:8px; font-weight:500;
   }
 
-  #kitsList {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
+  #kitsList { display: grid; grid-template-columns: 1fr; gap: 14px; }
 
   .kit-card{
     background:var(--panel); border:2px solid var(--line); border-radius:12px;
@@ -216,75 +173,32 @@
   .kit-fields-grid .field.full-width{grid-column:span 2;}
 
   .drop-cols-container {
-    grid-column: span 2;
-    background: var(--panel3);
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--line);
-    margin-bottom: 4px;
+    grid-column: span 2; background: var(--panel3); padding: 10px;
+    border-radius: 8px; border: 1px solid var(--line); margin-bottom: 4px;
   }
   .drop-cols-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: bold;
-    color: var(--amber);
-    margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 11px; font-weight: bold; color: var(--amber); margin-bottom: 8px;
   }
   .drop-col-item {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr auto;
-    gap: 6px;
-    align-items: center;
-    margin-bottom: 8px;
-    background: var(--panel2);
-    padding: 6px;
-    border-radius: 6px;
-    border: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 6px;
+    align-items: center; margin-bottom: 8px; background: var(--panel2); padding: 6px;
+    border-radius: 6px; border: 1px solid var(--line);
   }
-  .drop-col-item input {
-    font-size: 14px !important;
-    padding: 8px !important;
-  }
+  .drop-col-item input { font-size: 14px !important; padding: 8px !important; }
   .btn-remove-drop {
-    background: var(--orange-dim);
-    color: var(--orange);
-    border: 1px solid var(--orange);
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 14px;
-    cursor: pointer;
-    font-weight: bold;
-    min-height: 38px;
+    background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange);
+    border-radius: 6px; padding: 8px 10px; font-size: 14px; cursor: pointer; font-weight: bold; min-height: 38px;
   }
   .btn-add-drop {
-    background: var(--amber-dim);
-    color: var(--amber);
-    border: 1px solid var(--amber);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 12px;
-    font-family: var(--mono);
-    font-weight: bold;
-    cursor: pointer;
+    background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber);
+    border-radius: 6px; padding: 8px 12px; font-size: 12px; font-family: var(--mono); font-weight: bold; cursor: pointer;
   }
 
   .map-select-btn {
-    width: 100%;
-    grid-column: span 2;
-    background: var(--green-dim);
-    color: var(--green);
-    border: 1.5px solid var(--green);
-    border-radius: 8px;
-    padding: 12px;
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-bottom: 8px;
-    min-height: 48px;
+    width: 100%; grid-column: span 2; background: var(--green-dim); color: var(--green);
+    border: 1.5px solid var(--green); border-radius: 8px; padding: 12px;
+    font-family: var(--mono); font-size: 14px; font-weight: bold; cursor: pointer; margin-bottom: 8px; min-height: 48px;
   }
 
   .stage-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:6px;}
@@ -296,12 +210,9 @@
   .stage-chip:active{transform:scale(0.96);}
   .stage-chip .lbl{font-family:var(--disp); font-size:11px; font-weight:700; color:var(--text); line-height:1.15;}
   .stage-chip .tm{font-family:var(--mono); font-size:10px; color:var(--dim); min-height:12px; font-weight:bold;}
-  .stage-chip .edit-tm-btn{
-    font-size:12px; opacity:0.8; cursor:pointer; margin-top:2px; padding: 2px 4px;
-  }
+  .stage-chip .edit-tm-btn{ font-size:12px; opacity:0.8; cursor:pointer; margin-top:2px; padding: 2px 4px; }
   .stage-chip.done{background:var(--amber-dim); border-color:var(--amber); border-width:2px;}
-  .stage-chip.done .lbl{color:var(--amber);}
-  .stage-chip.done .tm{color:var(--amber);}
+  .stage-chip.done .lbl, .stage-chip.done .tm{color:var(--amber);}
   .stage-chip.locked{opacity:.35; cursor:default;}
 
   .stops-block{margin-top:12px;}
@@ -316,47 +227,24 @@
   .stop-btn.start{color:var(--green); border-color:var(--green); background:var(--green-dim);}
   .stop-btn:disabled{opacity:.3; cursor:default; transform:none;}
   .stop-log{font-family:var(--mono); font-size:12px; color:var(--dim); margin-top:8px; line-height:1.7;}
-  .stop-item{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; background:var(--panel2); padding:6px; border-radius:6px;}
+  .stop-item{display:flex; flex-direction:column; gap:4px; margin-bottom:8px; background:var(--panel2); padding:8px; border-radius:6px; border:1px solid var(--line);}
+  .stop-item-top{display:flex; justify-content:space-between; align-items:flex-start;}
   .stop-log .reason{color:var(--text); font-family:var(--body); font-weight:bold;}
-  .edit-stop-btn{font-size:14px; opacity:0.9; cursor:pointer; padding:2px 6px;}
+  .stop-img-preview { max-width: 100%; max-height: 120px; border-radius: 6px; margin-top: 6px; border: 1px solid var(--line); }
 
-  .kit-report{
-    margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px;
-  }
+  .kit-report{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; }
   .kit-report .stat{background:var(--panel2); border-radius:8px; padding:10px 4px; text-align:center; border:1px solid var(--line);}
   .kit-report .stat .k{font-family:var(--mono); font-size:9px; color:var(--dim); text-transform:uppercase; letter-spacing:.02em; font-weight:bold;}
   .kit-report .stat .v{font-family:var(--mono); font-size:14px; font-weight:700; color:var(--amber); margin-top:3px;}
 
   .delete-kit-btn {
-    width: 100%;
-    margin-top: 14px;
-    padding: 12px;
-    background: var(--orange-dim);
-    color: var(--orange);
-    border: 1.5px solid var(--orange);
-    border-radius: 8px;
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    min-height: 44px;
+    width: 100%; margin-top: 14px; padding: 12px; background: var(--orange-dim); color: var(--orange);
+    border: 1.5px solid var(--orange); border-radius: 8px; font-family: var(--mono); font-size: 13px; font-weight: bold; cursor: pointer; min-height: 44px;
   }
-  .delete-kit-btn:active { transform: scale(0.98); }
 
   .add-kit{
     width:100%; padding:16px; border-radius:10px; border:2px dashed var(--amber);
-    background:var(--amber-dim); color:var(--amber); font-family:var(--disp); font-size:17px; font-weight:700; cursor:pointer;
-    margin-top: 10px; min-height: 52px;
-  }
-  .add-kit:active{transform:scale(0.99);}
-
-  .kit-new-box{
-    background:var(--panel2); border:2px solid var(--line); border-radius:10px; padding:14px; margin-top:10px;
-  }
-  .kit-new-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .kit-new-box .go{
-    width:100%; margin-top:12px; padding:14px; background:var(--amber-dim); color:var(--amber); 
-    border:2px solid var(--amber); border-radius:8px; font-family:var(--disp); font-size:17px; font-weight:700; cursor:pointer; min-height: 48px;
+    background:var(--amber-dim); color:var(--amber); font-family:var(--disp); font-size:17px; font-weight:700; cursor:pointer; margin-top: 10px; min-height: 52px;
   }
 
   .summary{background:var(--panel); border:2px solid var(--line); border-radius:12px; overflow:hidden;}
@@ -370,297 +258,113 @@
 
   .btn-group{display:flex; flex-direction:column; gap:10px; margin-top:14px;}
   
-  .copy-btn{
-    width:100%; padding:16px; border-radius:10px;
-    background:var(--blue-dim); border:2px solid var(--blue); color:var(--blue);
-    font-family:var(--disp); font-size:17px; font-weight:700; cursor:pointer;
+  .copy-btn, .export-btn, .pdf-btn {
+    width:100%; padding:16px; border-radius:10px; font-family:var(--disp); font-size:17px; font-weight:700; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 3px 6px rgba(0,0,0,0.15); min-height: 52px;
   }
-  .copy-btn:active{transform:scale(0.98);}
-
-  .export-btn{
-    width:100%; padding:16px; border-radius:10px;
-    background:var(--green-dim); border:2px solid var(--green); color:var(--green);
-    font-family:var(--disp); font-size:17px; font-weight:700; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 3px 6px rgba(0,0,0,0.15); min-height: 52px;
-  }
-  .export-btn:active{transform:scale(0.98);}
+  .copy-btn { background:var(--blue-dim); border:2px solid var(--blue); color:var(--blue); }
+  .export-btn { background:var(--green-dim); border:2px solid var(--green); color:var(--green); }
+  .pdf-btn { background:var(--amber-dim); border:2px solid var(--amber); color:var(--amber); }
 
   .reset-link{
-    display:block; text-align:center; margin:26px 16px 0; padding:14px;
-    font-family:var(--mono); font-size:13px; color:var(--orange); letter-spacing:.05em;
-    border:1.5px solid var(--orange); border-radius:8px; background:var(--orange-dim); width:calc(100% - 32px); cursor:pointer; font-weight:bold;
+    display:block; text-align:center; margin:26px 16px 0; padding:14px; font-family:var(--mono); font-size:13px; color:var(--orange);
+    letter-spacing:.05em; border:1.5px solid var(--orange); border-radius:8px; background:var(--orange-dim); width:calc(100% - 32px); cursor:pointer; font-weight:bold;
   }
   .toast{
-    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
-    background:var(--panel2); border:2px solid var(--amber); color:var(--amber);
-    font-family:var(--mono); font-size:13px; font-weight:bold; padding:12px 20px; border-radius:24px;
-    opacity:0; transition:opacity .2s; pointer-events:none; z-index:50; box-shadow:0 4px 12px rgba(0,0,0,0.3);
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--panel2); border:2px solid var(--amber); color:var(--amber);
+    font-family:var(--mono); font-size:13px; font-weight:bold; padding:12px 20px; border-radius:24px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:50; box-shadow:0 4px 12px rgba(0,0,0,0.3);
   }
   .toast.show{opacity:1;}
 
-  .modal-overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,.7);
-    display:none; align-items:flex-end; justify-content:center; z-index:60;
-  }
+  .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:flex-end; justify-content:center; z-index:60; }
   .modal-overlay.show{display:flex;}
-  .modal-box{
-    width:100%; max-width:500px; background:var(--panel); border:2px solid var(--line);
-    border-radius:16px 16px 0 0; padding:20px 16px 24px;
-  }
+  .modal-box{ width:100%; max-width:500px; background:var(--panel); border:2px solid var(--line); border-radius:16px 16px 0 0; padding:20px 16px 24px; }
   .modal-title{font-family:var(--disp); font-size:18px; font-weight:700; margin-bottom:4px;}
   .modal-sub{font-family:var(--mono); font-size:12px; color:var(--dim); margin-bottom:12px;}
-  .modal-box textarea, .modal-box input[type=time]{
-    width:100%; background:var(--panel2); border:1.5px solid var(--line); color:var(--text);
-    font-family:var(--body); font-size:16px; padding:12px; border-radius:8px; resize:none; font-weight:500;
-  }
+  .modal-box textarea, .modal-box input[type=time]{ width:100%; background:var(--panel2); border:1.5px solid var(--line); color:var(--text); font-family:var(--body); font-size:16px; padding:12px; border-radius:8px; resize:none; font-weight:500; }
   .modal-actions{display:flex; gap:10px; margin-top:14px;}
   .modal-actions button{flex:1; padding:12px 0; border-radius:8px; font-family:var(--mono); font-size:13px; font-weight:700; cursor:pointer; min-height:44px;}
   .modal-actions .cancel{background:transparent; border:1.5px solid var(--line); color:var(--dim);}
   .modal-actions .confirm{background:var(--amber-dim); border:2px solid var(--amber); color:var(--amber);}
   .modal-actions .danger{background:var(--orange-dim); border:2px solid var(--orange); color:var(--orange);}
 
-  /* Facade Grid Visualizer Modal */
-  .facade-grid-modal {
-    max-width: 900px !important;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .facade-section-select {
-    width: 100%;
-    margin-bottom: 8px;
-    padding: 10px;
-    background: var(--panel2);
-    border: 1px solid var(--line);
-    color: var(--text);
-    font-weight: bold;
-    border-radius: 8px;
-    font-size: 15px;
-  }
+  /* Facade Grid Modal */
+  .facade-grid-modal { max-width: 900px !important; max-height: 90vh; overflow-y: auto; }
+  .facade-section-select { width: 100%; margin-bottom: 8px; padding: 10px; background: var(--panel2); border: 1px solid var(--line); color: var(--text); font-weight: bold; border-radius: 8px; font-size: 15px; }
 
-  .map-mode-toggle {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .map-mode-btn {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1.5px solid var(--line);
-    background: var(--panel2);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-  }
-  .map-mode-btn.active {
-    background: var(--blue-dim);
-    border-color: var(--blue);
-    color: var(--blue);
-  }
+  .map-mode-toggle { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .map-mode-btn { flex: 1; min-width: 100px; padding: 10px 6px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--panel2); color: var(--text); font-family: var(--mono); font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; }
+  .map-mode-btn.active { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); }
+  .map-mode-btn.mode-def-report.active { background: #5C4416; border-color: #FFB020; color: #FFB020; }
+  .map-mode-btn.mode-def-block.active { background: var(--orange-dim); border-color: var(--orange); color: var(--orange); }
 
-  .reset-options-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .reset-section-btn {
-    flex: 1;
-    background: var(--orange-dim);
-    color: var(--orange);
-    border: 1px solid var(--orange);
-    border-radius: 6px;
-    padding: 8px 6px;
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: bold;
-    cursor: pointer;
-  }
+  .reset-options-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .reset-section-btn { flex: 1; background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); border-radius: 6px; padding: 8px 6px; font-family: var(--mono); font-size: 11px; font-weight: bold; cursor: pointer; }
 
-  .facade-grid-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    overflow-x: auto;
-    overflow-y: auto;
-    padding: 12px;
-    background: var(--bg);
-    border-radius: 8px;
-    border: 1px solid var(--line);
-    max-height: 55vh;
-  }
-  .facade-grid-wrapper.mode-select {
-    touch-action: none;
-  }
-  .facade-grid-wrapper.mode-scroll {
-    touch-action: pan-x pan-y;
-  }
+  .facade-grid-wrapper { display: flex; flex-direction: column; gap: 6px; overflow-x: auto; overflow-y: auto; padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--line); max-height: 55vh; }
+  .facade-grid-wrapper.mode-select, .facade-grid-wrapper.mode-deflect { touch-action: none; }
+  .facade-grid-wrapper.mode-scroll { touch-action: pan-x pan-y; }
 
-  .facade-row-container {
-    display: flex;
-    gap: 4px;
-    align-items: stretch;
-    justify-content: flex-start;
-  }
+  .facade-row-container { display: flex; gap: 6px; align-items: stretch; justify-content: flex-start; }
+
   .window-cell {
-    background: var(--panel2);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 4px 2px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    font-family: var(--mono);
-    font-size: 9px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.1s, border-color 0.1s;
-    box-sizing: border-box;
-  }
-  .window-cell.selected {
-    background: var(--amber) !important;
-    color: #000 !important;
-    font-weight: bold;
-  }
-  .window-cell.previously-cleaned {
-    background: #3A4452 !important;
-    color: #A0AAB8 !important;
-    border-color: #5A6678 !important;
-    opacity: 0.85;
-  }
-  .window-cell.unwalkable {
-    background: var(--orange-dim) !important;
-    color: var(--orange) !important;
-    border: 1.5px solid var(--orange) !important;
-    cursor: not-allowed !important;
-    opacity: 0.8;
+    background: var(--panel2); border: 1.5px solid var(--line); border-radius: 6px;
+    padding: 4px 6px; display: flex; flex-direction: column; justify-content: space-between;
+    align-items: center; text-align: center; font-family: var(--mono); cursor: pointer;
+    user-select: none; transition: background 0.1s, border-color 0.1s, transform 0.1s; box-sizing: border-box;
   }
 
-  /* Dashboard Analytics Overlay & Styles */
-  .dashboard-modal {
-    max-width: 950px !important;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  .dash-card {
-    background: var(--panel2);
-    border: 1.5px solid var(--line);
-    border-radius: 10px;
-    padding: 12px;
-  }
-  .dash-card.full-width {
-    grid-column: span 2;
-  }
-  .dash-title {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--dim);
-    text-transform: uppercase;
-    font-weight: bold;
-    margin-bottom: 6px;
-  }
-  .dash-val {
-    font-family: var(--mono);
-    font-size: 24px;
-    font-weight: bold;
-    color: var(--amber);
-  }
-  .dash-sub {
-    font-size: 12px;
-    color: var(--dim);
-    margin-top: 4px;
-  }
+  .cell-header { width: 100%; font-size: 10px; font-weight: 700; color: var(--text); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cell-body { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; }
+  .cell-sqm-val { font-size: 10px; font-weight: 600; color: var(--amber); }
+  .cell-tag { font-size: 7px; font-weight: 800; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.02em; }
 
-  .progress-bar-bg {
-    width: 100%;
-    height: 16px;
-    background: var(--panel3);
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 8px;
-    border: 1px solid var(--line);
-  }
-  .progress-bar-fill {
-    height: 100%;
-    background: var(--amber);
-    width: 0%;
-    transition: width 0.4s ease;
-  }
+  .window-cell.selected { background: var(--amber) !important; border-color: var(--amber) !important; }
+  .window-cell.selected .cell-header, .window-cell.selected .cell-sqm-val { color: #000 !important; }
+  .window-cell.previously-cleaned { background: #262D37 !important; border-color: #3A4452 !important; opacity: 0.85; }
+  .window-cell.previously-cleaned .cell-header { color: #A0AAB8 !important; }
+  .window-cell.previously-cleaned .cell-sqm-val { color: var(--amber) !important; }
 
-  .facade-progress-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 10px;
-  }
-  .facade-progress-item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .facade-progress-label {
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: bold;
-  }
+  .window-cell.unwalkable { background: var(--orange-dim) !important; color: var(--orange) !important; border: 1.5px solid var(--orange) !important; cursor: not-allowed !important; opacity: 0.8; }
+  .window-cell.defective-report { background: #5C4416 !important; color: #FFB020 !important; border: 1.5px dashed #FFB020 !important; font-weight: bold; }
+  .window-cell.defective-unwalkable { background: var(--orange-dim) !important; color: var(--orange) !important; border: 1.5px solid var(--orange) !important; cursor: not-allowed !important; font-weight: bold; }
 
-  .daily-logs-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 8px;
-    font-family: var(--mono);
-    font-size: 12px;
-  }
-  .daily-logs-table th, .daily-logs-table td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid var(--line);
-  }
-  .daily-logs-table th {
-    color: var(--amber);
-  }
+  /* Dashboard Modal */
+  .dashboard-modal { max-width: 950px !important; max-height: 90vh; overflow-y: auto; }
+  .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .dash-card { background: var(--panel2); border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; }
+  .dash-card.full-width { grid-column: span 2; }
+  .dash-title { font-family: var(--mono); font-size: 11px; color: var(--dim); text-transform: uppercase; font-weight: bold; margin-bottom: 6px; }
+  .dash-val { font-family: var(--mono); font-size: 24px; font-weight: bold; color: var(--amber); }
+  .dash-sub { font-size: 12px; color: var(--dim); margin-top: 4px; }
+
+  .progress-bar-bg { width: 100%; height: 16px; background: var(--panel3); border-radius: 8px; overflow: hidden; margin-top: 8px; border: 1px solid var(--line); }
+  .progress-bar-fill { height: 100%; background: var(--amber); width: 0%; transition: width 0.4s ease; }
+
+  .facade-progress-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .facade-progress-item { display: flex; flex-direction: column; gap: 2px; }
+  .facade-progress-label { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; font-weight: bold; }
+
+  .daily-logs-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-family: var(--mono); font-size: 12px; }
+  .daily-logs-table th, .daily-logs-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--line); }
+  .daily-logs-table th { color: var(--amber); }
 
   @media (min-width: 650px) {
-    #kitsList {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    .btn-group {
-      flex-direction: row;
-    }
-    .btn-group button {
-      flex: 1;
-    }
-    .kit-new-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    .kit-new-grid .field.full-width {
-      grid-column: span 3;
-    }
-    .modal-overlay {
-      align-items: center;
-    }
-    .modal-box {
-      border-radius: 16px;
-    }
-    .dashboard-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-    .dash-card.full-width {
-      grid-column: span 4;
-    }
+    #kitsList { grid-template-columns: repeat(2, 1fr); }
+    .btn-group { flex-direction: row; }
+    .btn-group button { flex: 1; }
+    .kit-new-grid { grid-template-columns: repeat(3, 1fr); }
+    .kit-new-grid .field.full-width { grid-column: span 3; }
+    .modal-overlay { align-items: center; }
+    .modal-box { border-radius: 16px; }
+    .dashboard-grid { grid-template-columns: repeat(4, 1fr); }
+    .dash-card.full-width { grid-column: span 4; }
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    header, .btn-group, .add-kit, .reset-link, .site-pick, .datepick { display: none !important; }
+    .kit-card { border: 1px solid #000; break-inside: avoid; margin-bottom: 20px; }
   }
 </style>
 
@@ -749,15 +453,25 @@
       <span>Environmental Data</span>
       <button type="button" class="weather-btn" id="fetchWeatherBtn">🌤️ Fetch Live Weather</button>
     </div>
-    <div class="field-row three-col">
+    <div class="field-row four-col">
       <div class="field">
-        <label>Temperature (°C)</label>
+        <label>Temp (°C)</label>
         <input type="number" id="tempInput" placeholder="°C">
       </div>
       <div class="field">
         <label>Humidity (%)</label>
         <input type="number" id="humidityInput" placeholder="%">
       </div>
+      <div class="field">
+        <label>Wind Speed</label>
+        <input type="number" id="windSpeedInput" placeholder="km/h">
+      </div>
+      <div class="field">
+        <label>Wind Gusts</label>
+        <input type="number" id="windGustsInput" placeholder="km/h">
+      </div>
+    </div>
+    <div class="field-row" style="margin-top: 8px;">
       <div class="field">
         <label>Rain / Precip.</label>
         <select id="rainInput">
@@ -767,6 +481,9 @@
           <option value="Heavy Rain">Heavy Rain</option>
         </select>
       </div>
+    </div>
+    <div class="wind-alert-box" id="windAlertBox">
+      ⚠️ High Wind Warning: Wind speed/gusts exceed 25 km/h limit! Exercise extreme caution on the wall.
     </div>
   </section>
 
@@ -841,6 +558,7 @@
     <div class="btn-group">
       <button class="copy-btn" id="copyRowsBtn">📋 Copy Rows for Google Sheets</button>
       <button class="export-btn" id="exportCsvBtn">📥 Export CSV Report</button>
+      <button class="pdf-btn" id="exportPdfBtn">📄 Export PDF Client Report</button>
     </div>
   </section>
 
@@ -855,6 +573,10 @@
     <div class="modal-title">Stop Reason</div>
     <div class="modal-sub" id="stopModalSub">What is causing the delay?</div>
     <textarea id="stopReasonInput" placeholder="e.g. Waiting for approval, technical issue, weather..."></textarea>
+    <div style="margin-top: 10px;">
+      <label style="font-size: 11px; font-weight: bold; color: var(--dim);">Attach Photo (Optional):</label>
+      <input type="file" id="stopPhotoInput" accept="image/*" style="font-size: 12px; margin-top: 4px;">
+    </div>
     <div class="modal-actions">
       <button class="cancel" id="stopReasonCancel">Cancel</button>
       <button class="confirm" id="stopReasonConfirm">Confirm Stop</button>
@@ -904,10 +626,12 @@
 <div class="modal-overlay" id="facadeMapModal">
   <div class="modal-box facade-grid-modal">
     <div class="modal-title">Building Map & Window Selection</div>
-    <div class="modal-sub" id="facadeMapSub">Select windows or toggle scroll mode for mobile panning. Double-click grey cells to unlock. Red cells are unwalkable.</div>
+    <div class="modal-sub" id="facadeMapSub">Select windows, report defects, or toggle scroll mode for mobile panning. Double-click grey cells to unlock. Red cells are unwalkable.</div>
     
     <div class="map-mode-toggle">
-      <button type="button" class="map-mode-btn active" id="modeSelectBtn">✏️ Select Mode</button>
+      <button type="button" class="map-mode-btn active" id="modeSelectBtn">✏️ Clean Windows</button>
+      <button type="button" class="map-mode-btn mode-def-report" id="modeDeflectReportBtn">🛠️ Defective (Report Only)</button>
+      <button type="button" class="map-mode-btn mode-def-block" id="modeDeflectBlockBtn">🚫 Defective (Unwalkable)</button>
       <button type="button" class="map-mode-btn" id="modeScrollBtn">🖐️ Scroll / Pan Mode</button>
     </div>
 
@@ -999,6 +723,38 @@
 </div>
 
 <script>
+// Crucial: State Variables Declared First Before Any Function Calls
+let state = null;
+let currentDate = null;
+let currentSite = 'Suzuki';
+let buildingData = null; 
+let siteCleanedFramesHistory = new Set(); 
+let siteDefectiveReportFrames = new Set();
+let siteDefectiveUnwalkableFrames = new Set();
+let siteAllDaysData = {}; 
+
+let activeMapKitId = null;
+let selectedFrameIds = new Set();
+let isDraggingSelection = false;
+let dragSelectState = true;
+let currentMapInteractionMode = 'select'; 
+
+let pendingStopKitId = null;
+let editingTimeInfo = null;
+let editingStopInfo = null;
+let collapsedMap = {};
+let dbRef = null;
+
+let newKitDrops = [{ facade: '', rows: '', cols: '' }];
+
+const STAGES = [
+  {key:'arrival',    label:'Arrival'},
+  {key:'deployment', label:'Deployment'},
+  {key:'onWall',     label:'On the Wall'},
+  {key:'dismantle',  label:'Dismantle'},
+  {key:'finish',     label:'Finish'}
+];
+
 // Theme Management
 const themeSelect = document.getElementById('themeSelect');
 const savedTheme = localStorage.getItem('app-theme') || 'dark';
@@ -1011,8 +767,25 @@ themeSelect.addEventListener('change', (e) => {
   localStorage.setItem('app-theme', selectedTheme);
 });
 
-// Helper for 1-50 Dropdowns
+function populateAvailableKitSelect(selectElem, currentKitId = '') {
+  if (!selectElem) return;
+  selectElem.innerHTML = '<option value="">— Select —</option>';
+  const usedKitIds = (state && state.kits) ? state.kits.map(k => String(k.id)) : [];
+
+  for (let i = 1; i <= 50; i++) {
+    const kitStr = String(i);
+    if (!usedKitIds.includes(kitStr) || kitStr === String(currentKitId)) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i;
+      if (kitStr === String(currentKitId)) opt.selected = true;
+      selectElem.appendChild(opt);
+    }
+  }
+}
+
 function populate1To50Select(selectElem, defaultVal = '') {
+  if (!selectElem) return;
   selectElem.innerHTML = '<option value="">— Select —</option>';
   for (let i = 1; i <= 50; i++) {
     const opt = document.createElement('option');
@@ -1023,7 +796,7 @@ function populate1To50Select(selectElem, defaultVal = '') {
   }
 }
 
-populate1To50Select(document.getElementById('newKitNum'), '1');
+populateAvailableKitSelect(document.getElementById('newKitNum'));
 populate1To50Select(document.getElementById('newRbu'));
 populate1To50Select(document.getElementById('newVru'));
 populate1To50Select(document.getElementById('newMcp'));
@@ -1038,57 +811,30 @@ const firebaseConfig = {
   appId: "1:781011410308:web:85c2805bd989c7851651d1"
 };
 
-firebase.initializeApp(firebaseConfig);
+try {
+  firebase.initializeApp(firebaseConfig);
+  firebase.database().goOnline();
+} catch(e) { console.error(e); }
+
 const db = firebase.database();
 
-const STAGES = [
-  {key:'arrival',    label:'Arrival'},
-  {key:'deployment', label:'Deployment'},
-  {key:'onWall',     label:'On the Wall'},
-  {key:'dismantle',  label:'Dismantle'},
-  {key:'finish',     label:'Finish'}
-];
-
-let state = null;
-let currentDate = null;
-let currentSite = 'Suzuki';
-let buildingData = null;
-let siteCleanedFramesHistory = new Set();
-let siteAllDaysData = {};
-
-let activeMapKitId = null;
-let selectedFrameIds = new Set();
-let isDraggingSelection = false;
-let dragSelectState = true;
-let currentMapInteractionMode = 'select';
-
-let pendingStopKitId = null;
-let editingTimeInfo = null;
-let editingStopInfo = null;
-let collapsedMap = {};
-let dbRef = null;
-
-let newKitDrops = [{ facade: '', rows: '', cols: '' }];
-
-// Live Weather Fetching Logic via Open-Meteo API
+// Weather Fetching
 document.getElementById('fetchWeatherBtn').addEventListener('click', fetchLiveWeather);
 
 function fetchLiveWeather() {
   showToast('Fetching weather forecast...');
-  
-  // Default coordinates (Tel Aviv region, can fallback or use browser Geolocation)
-  let lat = 32.0853;
-  let lon = 34.7818;
+  let lat = 32.0853, lon = 34.7818;
 
   function queryWeatherApi(latitude, longitude) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relativehumidity_2m`;
-    
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relativehumidity_2m,windgusts_10m`;
     fetch(url)
       .then(res => res.json())
       .then(data => {
         if (data && data.current_weather) {
           const temp = Math.round(data.current_weather.temperature);
           const humidity = data.hourly && data.hourly.relativehumidity_2m ? data.hourly.relativehumidity_2m[0] : 60;
+          const windSpeed = Math.round(data.current_weather.windspeed);
+          const windGusts = data.hourly && data.hourly.windgusts_10m ? Math.round(data.hourly.windgusts_10m[0]) : windSpeed + 5;
           const weatherCode = data.current_weather.weathercode;
           
           let rainVal = 'None';
@@ -1098,20 +844,20 @@ function fetchLiveWeather() {
 
           document.getElementById('tempInput').value = temp;
           document.getElementById('humidityInput').value = humidity;
+          document.getElementById('windSpeedInput').value = windSpeed;
+          document.getElementById('windGustsInput').value = windGusts;
           document.getElementById('rainInput').value = rainVal;
 
-          state.temp = temp;
-          state.humidity = humidity;
-          state.rain = rainVal;
-          saveState();
+          if (state) {
+            state.temp = temp; state.humidity = humidity;
+            state.windSpeed = windSpeed; state.windGusts = windGusts; state.rain = rainVal;
+            saveState();
+          }
 
-          showToast(`Weather Updated: ${temp}°C, ${humidity}% Humidity`);
+          checkWindAlert();
+          showToast(`Weather: ${temp}°C, Wind ${windSpeed} km/h`);
         }
-      })
-      .catch(err => {
-        console.error(err);
-        showToast('Error fetching live weather');
-      });
+      }).catch(err => { console.error(err); showToast('Error fetching weather'); });
   }
 
   if (navigator.geolocation) {
@@ -1119,17 +865,27 @@ function fetchLiveWeather() {
       (pos) => queryWeatherApi(pos.coords.latitude, pos.coords.longitude),
       () => queryWeatherApi(lat, lon)
     );
-  } else {
-    queryWeatherApi(lat, lon);
-  }
+  } else { queryWeatherApi(lat, lon); }
 }
+
+function checkWindAlert() {
+  const speed = parseFloat(document.getElementById('windSpeedInput').value) || 0;
+  const gusts = parseFloat(document.getElementById('windGustsInput').value) || 0;
+  const alertBox = document.getElementById('windAlertBox');
+  if (alertBox) alertBox.style.display = (speed > 25 || gusts > 25) ? 'block' : 'none';
+}
+
+document.getElementById('windSpeedInput').addEventListener('input', checkWindAlert);
+document.getElementById('windGustsInput').addEventListener('input', checkWindAlert);
 
 function isFrameUnwalkable(frame) {
   if (!frame) return false;
-  if (frame.walking_valid === false || frame.walkable === false || frame.unwalkable === true) {
-    return true;
-  }
-  return false;
+  return (frame.walking_valid === false || frame.walkable === false || frame.unwalkable === true || siteDefectiveUnwalkableFrames.has(frame.frame_id));
+}
+
+function checkWindowOverlap(kitId, frameId) {
+  if (!state || !state.kits) return false;
+  return state.kits.some(k => k.id !== kitId && (k.selectedFrames || []).includes(frameId));
 }
 
 // JSON Building File Upload Handling
@@ -1156,28 +912,31 @@ document.getElementById('jsonFileInput').addEventListener('change', (e) => {
   reader.readAsText(file);
 });
 
-// Main Reset Building Cycle Action (Header Button)
+// Reset Building Cycle
 document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
-  if (confirm(`Are you sure you want to reset ALL cleaned window history for building "${currentSite}" across ALL kits and days?`)) {
+  if (confirm(`Are you sure you want to reset ALL cleaned window history AND delete ALL recorded daily sessions for building "${currentSite}"?`)) {
     siteCleanedFramesHistory.clear();
+    siteDefectiveReportFrames.clear();
+    siteDefectiveUnwalkableFrames.clear();
     selectedFrameIds.clear();
+    siteAllDaysData = {};
     
-    if (state && state.kits) {
-      state.kits.forEach(k => {
-        k.selectedFrames = [];
-        k.sqmCleaned = 0;
-      });
-    }
+    state = blankDay(currentDate);
 
     const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set([]);
-    saveState();
-    render();
-    showToast('Entire Building Cycle Reset Successfully!');
+    
+    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).remove();
+    db.ref(`sites/${cleanSite}/defectiveReportFrames`).remove();
+    db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).remove();
+    db.ref(`sites/${cleanSite}/days`).remove().then(() => {
+      saveState();
+      render();
+      showToast('Entire Building Cycle Reset!');
+    });
   }
 });
 
-// Dashboard Calculation & Open Logic
+// Dashboard Modal
 document.getElementById('openDashboardBtn').addEventListener('click', () => {
   calculateAndRenderDashboard();
   document.getElementById('dashboardModal').classList.add('show');
@@ -1196,14 +955,11 @@ function calculateAndRenderDashboard() {
 
   if (buildingData && buildingData.sections) {
     buildingData.sections.forEach(sec => {
-      let secTotal = 0;
-      let secCleaned = 0;
+      let secTotal = 0, secCleaned = 0;
       (sec.window_frames || []).forEach(f => {
         const sqm = (f.width || 0) * (f.height || 0);
         secTotal += sqm;
-        if (siteCleanedFramesHistory.has(f.frame_id)) {
-          secCleaned += sqm;
-        }
+        if (siteCleanedFramesHistory.has(f.frame_id)) secCleaned += sqm;
       });
       const name = sec.name || sec.section_id;
       sectionSqmMap[name] = secTotal;
@@ -1216,9 +972,7 @@ function calculateAndRenderDashboard() {
   if (buildingData && buildingData.sections) {
     buildingData.sections.forEach(sec => {
       (sec.window_frames || []).forEach(f => {
-        if (siteCleanedFramesHistory.has(f.frame_id)) {
-          cleanedBuildingSqm += (f.width || 0) * (f.height || 0);
-        }
+        if (siteCleanedFramesHistory.has(f.frame_id)) cleanedBuildingSqm += (f.width || 0) * (f.height || 0);
       });
     });
   }
@@ -1231,9 +985,7 @@ function calculateAndRenderDashboard() {
   document.getElementById('dashStatSqm').textContent = cleanedBuildingSqm.toFixed(2);
   document.getElementById('dashProgressBarFill').style.width = `${Math.min(100, progressPercent)}%`;
 
-  let totalShiftMs = 0;
-  let totalUptimeMs = 0;
-  let totalDowntimeMs = 0;
+  let totalShiftMs = 0, totalUptimeMs = 0, totalDowntimeMs = 0;
 
   const dailyTableBody = document.getElementById('dashDailyLogsTableBody');
   dailyTableBody.innerHTML = '';
@@ -1241,8 +993,7 @@ function calculateAndRenderDashboard() {
   Object.keys(siteAllDaysData).forEach(dateKey => {
     const dayObj = siteAllDaysData[dateKey];
     if (dayObj && dayObj.kits && dayObj.kits.length > 0) {
-      let earliestArrival = null, latestFinish = null;
-      let daySqm = 0;
+      let earliestArrival = null, latestFinish = null, daySqm = 0;
 
       dayObj.kits.forEach(kit => {
         const e = kit.events || {};
@@ -1306,9 +1057,9 @@ function calculateAndRenderDashboard() {
   });
 }
 
-// Render Drop Columns List in New Kit Form
 function renderNewKitDrops() {
   const container = document.getElementById('newKitDropList');
+  if (!container) return;
   container.innerHTML = '';
   newKitDrops.forEach((item, idx) => {
     const row = document.createElement('div');
@@ -1346,7 +1097,6 @@ document.getElementById('newKitAddDropBtn').addEventListener('click', () => {
 
 renderNewKitDrops();
 
-// Site Selection Handling
 const siteSelect = document.getElementById('siteSelect');
 const customSiteInput = document.getElementById('customSiteInput');
 
@@ -1385,6 +1135,8 @@ function blankDay(dateISO){
     expertCount: '',
     temp: '',
     humidity: '',
+    windSpeed: '',
+    windGusts: '',
     rain: 'None',
     kits: [] 
   };
@@ -1421,6 +1173,7 @@ function fmtDur(ms){
 
 function showToast(msg){
   const t = document.getElementById('toast');
+  if (!t) return;
   t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 1600);
 }
@@ -1433,11 +1186,12 @@ function saveState(){
     (k.selectedFrames || []).forEach(fId => siteCleanedFramesHistory.add(fId));
   });
   
-  db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set(Array.from(siteCleanedFramesHistory));
-  db.ref(`sites/${cleanSite}/days/${currentDate}`).set(state).catch(e => {
-    console.error(e);
-    showToast('Error syncing with server');
-  });
+  try {
+    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).set(Array.from(siteCleanedFramesHistory));
+    db.ref(`sites/${cleanSite}/defectiveReportFrames`).set(Array.from(siteDefectiveReportFrames));
+    db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).set(Array.from(siteDefectiveUnwalkableFrames));
+    db.ref(`sites/${cleanSite}/days/${currentDate}`).set(state);
+  } catch(e) { console.error(e); }
 }
 
 function loadDay(dateISO){
@@ -1451,8 +1205,15 @@ function loadDay(dateISO){
   });
 
   db.ref(`sites/${cleanSite}/cleanedFramesHistory`).on('value', (snap) => {
-    const arr = snap.val() || [];
-    siteCleanedFramesHistory = new Set(arr);
+    siteCleanedFramesHistory = new Set(snap.val() || []);
+  });
+
+  db.ref(`sites/${cleanSite}/defectiveReportFrames`).on('value', (snap) => {
+    siteDefectiveReportFrames = new Set(snap.val() || []);
+  });
+
+  db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).on('value', (snap) => {
+    siteDefectiveUnwalkableFrames = new Set(snap.val() || []);
   });
 
   db.ref(`sites/${cleanSite}/days`).on('value', (snap) => {
@@ -1468,9 +1229,7 @@ function loadDay(dateISO){
       state.kits.forEach(k => {
         if(!k.stops) k.stops = [];
         if(!k.events) k.events = {};
-        if(!k.drops) {
-          k.drops = [{ facade: k.facade||'', rows: k.rows||'', cols: k.cols||'' }];
-        }
+        if(!k.drops) k.drops = [{ facade: k.facade||'', rows: k.rows||'', cols: k.cols||'' }];
         if(!k.selectedFrames) k.selectedFrames = [];
       });
     } else {
@@ -1605,7 +1364,7 @@ function renderKitCard(kit){
     </div>
   `;
 
-  populate1To50Select(card.querySelector('.kit-id-sel'), kit.id);
+  populateAvailableKitSelect(card.querySelector('.kit-id-sel'), kit.id);
   populate1To50Select(card.querySelector('.rbu-sel'), kit.rbu);
   populate1To50Select(card.querySelector('.vru-sel'), kit.vru);
   populate1To50Select(card.querySelector('.mcp-sel'), kit.mcp);
@@ -1677,7 +1436,21 @@ function renderKitCard(kit){
     render();
   });
 
-  card.querySelectorAll('.kit-fields-grid > .field input, .kit-fields-grid > .field select').forEach(elem => {
+  card.querySelectorAll('.kit-fields-grid > .field select[data-field="id"]').forEach(elem => {
+    elem.addEventListener('change', (ev) => {
+      const newVal = ev.target.value;
+      const isTaken = state.kits.some(k => k.id !== kit.id && String(k.id) === String(newVal));
+      if (isTaken) {
+        showToast(`Kit #${newVal} is already in use today!`);
+        ev.target.value = kit.id;
+        return;
+      }
+      kit.id = newVal;
+      saveState();
+    });
+  });
+
+  card.querySelectorAll('.kit-fields-grid > .field input, .kit-fields-grid > .field select:not([data-field="id"])').forEach(elem => {
     elem.addEventListener('change', (ev) => {
       const fieldName = ev.target.getAttribute('data-field');
       if(fieldName) {
@@ -1736,6 +1509,7 @@ function renderKitCard(kit){
     pendingStopKitId = kit.id;
     document.getElementById('stopModalSub').textContent = `Kit #${kit.id} — Reason for stop?`;
     document.getElementById('stopReasonInput').value = '';
+    document.getElementById('stopPhotoInput').value = '';
     document.getElementById('stopModal').classList.add('show');
     setTimeout(()=>document.getElementById('stopReasonInput').focus(), 50);
   });
@@ -1756,8 +1530,11 @@ function renderKitCard(kit){
       const dur = p.end ? fmtDur(new Date(p.end)-new Date(p.start)) : 'Active...';
       return `
         <div class="stop-item">
-          <div>Stop ${i+1}: ${fmtTime(p.start)} → ${p.end?fmtTime(p.end):'—'} (${dur})<br><span class="reason">↳ ${p.reason||''}</span></div>
-          <span class="edit-stop-btn" data-stop-idx="${i}" title="Edit stop">✏️</span>
+          <div class="stop-item-top">
+            <div>Stop ${i+1}: ${fmtTime(p.start)} → ${p.end?fmtTime(p.end):'—'} (${dur})<br><span class="reason">↳ ${p.reason||''}</span></div>
+            <span class="edit-stop-btn" data-stop-idx="${i}" title="Edit stop">✏️</span>
+          </div>
+          ${p.photoUrl ? `<img src="${p.photoUrl}" class="stop-img-preview">` : ''}
         </div>
       `;
     }).join('');
@@ -1824,7 +1601,38 @@ function calculateSelectedSqm() {
 
 function toggleWindowCell(cell, frame, frameId) {
   if (currentMapInteractionMode === 'scroll') return;
+
+  if (currentMapInteractionMode === 'deflect-report') {
+    if (siteDefectiveReportFrames.has(frameId)) {
+      siteDefectiveReportFrames.delete(frameId);
+    } else {
+      siteDefectiveReportFrames.add(frameId);
+    }
+    const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
+    saveState();
+    renderFacadeGrid(sectionIdx);
+    return;
+  }
+
+  if (currentMapInteractionMode === 'deflect-block') {
+    if (siteDefectiveUnwalkableFrames.has(frameId)) {
+      siteDefectiveUnwalkableFrames.delete(frameId);
+      selectedFrameIds.delete(frameId);
+    } else {
+      siteDefectiveUnwalkableFrames.add(frameId);
+      selectedFrameIds.delete(frameId);
+    }
+    const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
+    saveState();
+    renderFacadeGrid(sectionIdx);
+    return;
+  }
+
   if (isFrameUnwalkable(frame)) return;
+
+  if (checkWindowOverlap(activeMapKitId, frameId)) {
+    showToast(`Warning: Frame ${frameId} is already selected by another kit today!`);
+  }
 
   if (siteCleanedFramesHistory.has(frameId) && !selectedFrameIds.has(frameId)) {
     return;
@@ -1854,7 +1662,6 @@ function renderFacadeGrid(sectionIdx) {
     rowMap[y].push(frame);
   });
 
-  // CRITICAL FIX: Sorted in DESCENDING order so high Y (top floors) are rendered FIRST at top of visual grid, and low Y (bottom floors/ground) are rendered LAST at bottom
   const sortedRowKeys = Object.keys(rowMap).map(Number).sort((a,b) => b - a);
 
   sortedRowKeys.forEach(yKey => {
@@ -1862,17 +1669,22 @@ function renderFacadeGrid(sectionIdx) {
     const rowContainer = document.createElement('div');
     rowContainer.className = 'facade-row-container';
 
-    const rowHeight = rowFrames[0]?.height || 1.5;
-    rowContainer.style.height = `${Math.max(32, Math.min(80, rowHeight * 12))}px`;
+    const maxRowFrameHeight = Math.max(...rowFrames.map(f => f.height || 1.5));
+    const calculatedRowHeight = Math.max(45, Math.min(120, maxRowFrameHeight * 22));
+    rowContainer.style.height = `${calculatedRowHeight}px`;
 
     rowFrames.forEach(frame => {
       const cell = document.createElement('div');
       const unwalkable = isFrameUnwalkable(frame);
+      const isDefectReport = siteDefectiveReportFrames.has(frame.frame_id);
+      const isDefectUnwalkable = siteDefectiveUnwalkableFrames.has(frame.frame_id);
       const isSelected = selectedFrameIds.has(frame.frame_id) && !unwalkable;
       const isPrevCleaned = siteCleanedFramesHistory.has(frame.frame_id) && !isSelected && !unwalkable;
 
       cell.className = 'window-cell' + 
                      (unwalkable ? ' unwalkable' : '') + 
+                     (isDefectReport ? ' defective-report' : '') +
+                     (isDefectUnwalkable ? ' defective-unwalkable' : '') +
                      (isSelected ? ' selected' : '') + 
                      (isPrevCleaned ? ' previously-cleaned' : '');
 
@@ -1880,23 +1692,28 @@ function renderFacadeGrid(sectionIdx) {
 
       const frameWidth = frame.width || 1.0;
       cell.style.flex = `${frameWidth} 0 auto`;
-      cell.style.minWidth = `${Math.max(45, frameWidth * 40)}px`;
+      cell.style.minWidth = `${Math.max(55, frameWidth * 45)}px`;
 
       const sqm = ((frame.width || 0) * (frame.height || 0)).toFixed(2);
       
-      let labelText = `<div>${frame.frame_id}</div><div style="opacity:0.75">${sqm}m²</div>`;
-      if (unwalkable) {
-        labelText += `<div style="font-size:7px; font-weight:bold;">(Unwalkable)</div>`;
-      } else if (isPrevCleaned) {
-        labelText += `<div style="font-size:7px; opacity:0.8;">(Cleaned)</div>`;
-      }
+      let statusTag = '';
+      if (isDefectUnwalkable) statusTag = `<div class="cell-tag" style="color:var(--orange);">(Defect/Block)</div>`;
+      else if (isDefectReport) statusTag = `<div class="cell-tag" style="color:var(--amber);">(Defect/Report)</div>`;
+      else if (unwalkable) statusTag = `<div class="cell-tag" style="color:var(--orange);">(Unwalkable)</div>`;
+      else if (isPrevCleaned) statusTag = `<div class="cell-tag" style="opacity:0.8;">(Cleaned)</div>`;
 
-      cell.innerHTML = labelText;
+      cell.innerHTML = `
+        <div class="cell-header">Frame: ${frame.frame_id}</div>
+        <div class="cell-body">
+          <div class="cell-sqm-val">${sqm} m²</div>
+          ${statusTag}
+        </div>
+      `;
 
       const handleStart = (e) => {
-        if (currentMapInteractionMode === 'scroll' || unwalkable) return;
+        if (currentMapInteractionMode === 'scroll') return;
         e.preventDefault();
-        if (isPrevCleaned) return;
+        if (currentMapInteractionMode === 'select' && (isPrevCleaned || unwalkable)) return;
         isDraggingSelection = true;
         dragSelectState = !selectedFrameIds.has(frame.frame_id);
         toggleWindowCell(cell, frame, frame.frame_id);
@@ -1934,23 +1751,41 @@ function renderFacadeGrid(sectionIdx) {
 }
 
 const modeSelectBtn = document.getElementById('modeSelectBtn');
+const modeDeflectReportBtn = document.getElementById('modeDeflectReportBtn');
+const modeDeflectBlockBtn = document.getElementById('modeDeflectBlockBtn');
 const modeScrollBtn = document.getElementById('modeScrollBtn');
 const gridWrapper = document.getElementById('facadeGridWrapper');
 
+function clearMapModeButtons() {
+  [modeSelectBtn, modeDeflectReportBtn, modeDeflectBlockBtn, modeScrollBtn].forEach(b => b.classList.remove('active'));
+}
+
 modeSelectBtn.addEventListener('click', () => {
   currentMapInteractionMode = 'select';
+  clearMapModeButtons();
   modeSelectBtn.classList.add('active');
-  modeScrollBtn.classList.remove('active');
-  gridWrapper.classList.add('mode-select');
-  gridWrapper.classList.remove('mode-scroll');
+  gridWrapper.className = 'facade-grid-wrapper mode-select';
+});
+
+modeDeflectReportBtn.addEventListener('click', () => {
+  currentMapInteractionMode = 'deflect-report';
+  clearMapModeButtons();
+  modeDeflectReportBtn.classList.add('active');
+  gridWrapper.className = 'facade-grid-wrapper mode-deflect';
+});
+
+modeDeflectBlockBtn.addEventListener('click', () => {
+  currentMapInteractionMode = 'deflect-block';
+  clearMapModeButtons();
+  modeDeflectBlockBtn.classList.add('active');
+  gridWrapper.className = 'facade-grid-wrapper mode-deflect';
 });
 
 modeScrollBtn.addEventListener('click', () => {
   currentMapInteractionMode = 'scroll';
+  clearMapModeButtons();
   modeScrollBtn.classList.add('active');
-  modeSelectBtn.classList.remove('active');
-  gridWrapper.classList.add('mode-scroll');
-  gridWrapper.classList.remove('mode-select');
+  gridWrapper.className = 'facade-grid-wrapper mode-scroll';
 });
 
 document.getElementById('resetSectionBtn').addEventListener('click', () => {
@@ -2009,6 +1844,7 @@ document.getElementById('facadeMapConfirm').addEventListener('click', () => {
 
 function renderKits(){
   const wrap = document.getElementById('kitsList');
+  if (!wrap) return;
   wrap.innerHTML = '';
   if(!state.kits || state.kits.length === 0){
     const empty = document.createElement('div');
@@ -2021,15 +1857,28 @@ function renderKits(){
 }
 
 document.getElementById('addKitToggle').addEventListener('click', ()=>{
+  populateAvailableKitSelect(document.getElementById('newKitNum'));
   const row = document.getElementById('kitNewRow');
   row.style.display = row.style.display === 'none' ? 'block' : 'none';
 });
+
 document.getElementById('newKitTypeSelect').addEventListener('change', (e)=>{
   document.getElementById('customTypeWrap').style.display = e.target.value === 'custom' ? 'block' : 'none';
 });
 
 document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
   const kitNum = document.getElementById('newKitNum').value;
+  if (!kitNum) {
+    showToast('Please select an available Kit #');
+    return;
+  }
+
+  const isTaken = state.kits && state.kits.some(k => String(k.id) === String(kitNum));
+  if (isTaken) {
+    showToast(`Kit #${kitNum} is already active today!`);
+    return;
+  }
+
   const sel = document.getElementById('newKitTypeSelect');
   let type = sel.value;
   if(type === 'custom'){
@@ -2056,27 +1905,44 @@ document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
   renderNewKitDrops();
 });
 
-// Stop Modal Action
 document.getElementById('stopReasonCancel').addEventListener('click', ()=>{
   document.getElementById('stopModal').classList.remove('show');
   pendingStopKitId = null;
 });
+
 document.getElementById('stopReasonConfirm').addEventListener('click', ()=>{
   const kit = state.kits.find(k=>k.id === pendingStopKitId);
   if(!kit){ document.getElementById('stopModal').classList.remove('show'); return; }
   const reason = document.getElementById('stopReasonInput').value.trim();
-  if(!kit.stops) kit.stops = [];
-  kit.stops.push({start: new Date().toISOString(), end:null, reason: reason || '(No reason specified)'});
-  document.getElementById('stopModal').classList.remove('show');
-  pendingStopKitId = null;
-  saveState();
+  const fileInput = document.getElementById('stopPhotoInput');
+
+  function saveStopObj(photoUrl = null) {
+    if(!kit.stops) kit.stops = [];
+    kit.stops.push({
+      start: new Date().toISOString(), 
+      end: null, 
+      reason: reason || '(No reason specified)',
+      photoUrl: photoUrl
+    });
+    document.getElementById('stopModal').classList.remove('show');
+    pendingStopKitId = null;
+    saveState();
+  }
+
+  if (fileInput.files && fileInput.files[0]) {
+    const reader = new FileReader();
+    reader.onload = (e) => saveStopObj(e.target.result);
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    saveStopObj(null);
+  }
 });
 
-// Edit Stop Action
 document.getElementById('stopEditCancel').addEventListener('click', ()=>{
   document.getElementById('stopEditModal').classList.remove('show');
   editingStopInfo = null;
 });
+
 document.getElementById('stopEditDelete').addEventListener('click', ()=>{
   if(!editingStopInfo) return;
   const kit = state.kits.find(k=>k.id === editingStopInfo.kitId);
@@ -2088,6 +1954,7 @@ document.getElementById('stopEditDelete').addEventListener('click', ()=>{
   document.getElementById('stopEditModal').classList.remove('show');
   editingStopInfo = null;
 });
+
 document.getElementById('stopEditConfirm').addEventListener('click', ()=>{
   if(!editingStopInfo) return;
   const kit = state.kits.find(k=>k.id === editingStopInfo.kitId);
@@ -2119,7 +1986,6 @@ document.getElementById('stopEditConfirm').addEventListener('click', ()=>{
   editingStopInfo = null;
 });
 
-// Time Edit Actions
 document.getElementById('timeEditCancel').addEventListener('click', ()=>{
   document.getElementById('timeEditModal').classList.remove('show');
   editingTimeInfo = null;
@@ -2156,18 +2022,21 @@ document.getElementById('timeEditReset').addEventListener('click', ()=>{
   editingTimeInfo = null;
 });
 
-document.getElementById('workTypeInput').addEventListener('change', (e)=>{ state.workType = e.target.value; saveState(); });
-document.getElementById('qualityRatingInput').addEventListener('change', (e)=>{ state.qualityRating = e.target.value; saveState(); });
-document.getElementById('peopleInput').addEventListener('change', (e)=>{ state.people = e.target.value; saveState(); });
-document.getElementById('juniorCountInput').addEventListener('change', (e)=>{ state.juniorCount = e.target.value; saveState(); });
-document.getElementById('expertCountInput').addEventListener('change', (e)=>{ state.expertCount = e.target.value; saveState(); });
+document.getElementById('workTypeInput').addEventListener('change', (e)=>{ if(state) { state.workType = e.target.value; saveState(); } });
+document.getElementById('qualityRatingInput').addEventListener('change', (e)=>{ if(state) { state.qualityRating = e.target.value; saveState(); } });
+document.getElementById('peopleInput').addEventListener('change', (e)=>{ if(state) { state.people = e.target.value; saveState(); } });
+document.getElementById('juniorCountInput').addEventListener('change', (e)=>{ if(state) { state.juniorCount = e.target.value; saveState(); } });
+document.getElementById('expertCountInput').addEventListener('change', (e)=>{ if(state) { state.expertCount = e.target.value; saveState(); } });
 
-document.getElementById('tempInput').addEventListener('change', (e)=>{ state.temp = e.target.value; saveState(); });
-document.getElementById('humidityInput').addEventListener('change', (e)=>{ state.humidity = e.target.value; saveState(); });
-document.getElementById('rainInput').addEventListener('change', (e)=>{ state.rain = e.target.value; saveState(); });
+document.getElementById('tempInput').addEventListener('change', (e)=>{ if(state) { state.temp = e.target.value; saveState(); } });
+document.getElementById('humidityInput').addEventListener('change', (e)=>{ if(state) { state.humidity = e.target.value; saveState(); } });
+document.getElementById('windSpeedInput').addEventListener('change', (e)=>{ if(state) { state.windSpeed = e.target.value; saveState(); checkWindAlert(); } });
+document.getElementById('windGustsInput').addEventListener('change', (e)=>{ if(state) { state.windGusts = e.target.value; saveState(); checkWindAlert(); } });
+document.getElementById('rainInput').addEventListener('change', (e)=>{ if(state) { state.rain = e.target.value; saveState(); } });
 
 function renderSummary(){
   const box = document.getElementById('summaryBox');
+  if(!box) return;
   if(!state.kits || state.kits.length === 0){
     box.innerHTML = '<div class="empty-note">No data available to summarize</div>';
     return;
@@ -2229,7 +2098,11 @@ function render(){
   
   document.getElementById('tempInput').value = state ? (state.temp || '') : '';
   document.getElementById('humidityInput').value = state ? (state.humidity || '') : '';
+  document.getElementById('windSpeedInput').value = state ? (state.windSpeed || '') : '';
+  document.getElementById('windGustsInput').value = state ? (state.windGusts || '') : '';
   document.getElementById('rainInput').value = state ? (state.rain || 'None') : 'None';
+
+  checkWindAlert();
 
   if(state) {
     renderKits();
@@ -2255,7 +2128,6 @@ function formatDropColumns(kit) {
   return parts.join(', ');
 }
 
-// Copy Rows for Google Sheets with Separated Category Columns
 function copyRowsForSheets(){
   if(!state || !state.kits || state.kits.length === 0){
     showToast('No data available to copy');
@@ -2293,10 +2165,10 @@ function copyRowsForSheets(){
     const row = [
       state.date,                           // 1. Date
       currentSite,                          // 2. Site
-      fmtDur(totalDayMs),                   // 3. Day length (Arrival -> Finish)
+      fmtDur(totalDayMs),                   // 3. Day length
       e.arrival ? fmtTime(e.arrival) : '',  // 4. Arrive at site
       e.finish ? fmtTime(e.finish) : '',    // 5. End of operation
-      sqmRawNumber,                         // 6. TOTAL Throughput (SQM Number)
+      sqmRawNumber,                         // 6. TOTAL Throughput
       kit.rbu || '',                        // 7. RBU
       kit.vru || '',                        // 8. VRU
       kit.mcp || '',                        // 9. MCP
@@ -2317,9 +2189,11 @@ function copyRowsForSheets(){
       state.expertCount || '0',             // 24. Expert Count
       state.temp || '—',                    // 25. Temperature (°C)
       state.humidity || '—',                // 26. Humidity (%)
-      state.rain || 'None',                 // 27. Rain
-      `[Mode: ${locLabel}] ${kit.deployNotes||''}`.trim(), // 28. Deployment Notes
-      stopsDetail                           // 29. Stops & Reasons
+      state.windSpeed || '—',               // 27. Wind Speed (km/h)
+      state.windGusts || '—',               // 28. Wind Gusts (km/h)
+      state.rain || 'None',                 // 29. Rain
+      `[Mode: ${locLabel}] ${kit.deployNotes||''}`.trim(), // 30. Deployment Notes
+      stopsDetail                           // 31. Stops & Reasons
     ];
 
     rows.push(row.join('\t'));
@@ -2350,8 +2224,8 @@ function exportToCSV(){
     "Date", "Site", "Day length", "Arrive at site", "End of operation", "TOTAL Throughput (SQM)", 
     "RBU", "VRU", "MCP", "Drop Columns", "Deployment", "On the wall", "Dismantle", 
     "System Time", "Downtime", "Uptime", "TOTAL Throughput (SQM)", "ParaDevice", "KIT", "Team Size",
-    "Work Type", "Quality Rating", "Junior Count", "Expert Count", "Temperature (°C)", "Humidity (%)", "Rain",
-    "Deployment Notes", "Stops & Reasons"
+    "Work Type", "Quality Rating", "Junior Count", "Expert Count", "Temperature (°C)", "Humidity (%)", 
+    "Wind Speed (km/h)", "Wind Gusts (km/h)", "Rain", "Deployment Notes", "Stops & Reasons"
   ];
 
   const rows = [headers];
@@ -2410,6 +2284,8 @@ function exportToCSV(){
       state.expertCount || '0',
       state.temp || '—',
       state.humidity || '—',
+      state.windSpeed || '—',
+      state.windGusts || '—',
       state.rain || 'None',
       `[Mode: ${locLabel}] ${kit.deployNotes||''}`.trim(),
       stopsDetail
@@ -2432,6 +2308,7 @@ function exportToCSV(){
   showToast('CSV report downloaded!');
 }
 
+document.getElementById('exportPdfBtn').addEventListener('click', () => { window.print(); });
 document.getElementById('copyRowsBtn').addEventListener('click', copyRowsForSheets);
 document.getElementById('exportCsvBtn').addEventListener('click', exportToCSV);
 
