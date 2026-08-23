@@ -81,9 +81,31 @@
   .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--amber); text-transform:uppercase; font-weight:700;}
   h1{font-family:var(--disp); font-size:22px; margin:2px 0 0; font-weight:700; letter-spacing:.01em;}
   
+  .header-right-actions { display: flex; gap: 6px; align-items: center; }
+
   .theme-selector{
     background:var(--panel2); border:1.5px solid var(--line); color:var(--text);
     font-family:var(--mono); font-size:12px; padding:6px 10px; border-radius:8px; font-weight:700; cursor:pointer;
+  }
+
+  .toggle-header-btn {
+    background: var(--amber-dim); border: 1.5px solid var(--amber); color: var(--amber);
+    font-family: var(--mono); font-size: 11px; padding: 6px 10px; border-radius: 8px; font-weight: 700; cursor: pointer;
+  }
+
+  .header-collapsible {
+    transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out;
+    overflow: hidden;
+    max-height: 500px;
+    opacity: 1;
+  }
+
+  .header-collapsible.collapsed {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none;
   }
 
   .site-pick{
@@ -378,35 +400,41 @@
   <header>
     <div class="header-top">
       <div class="eyebrow">FIELD LOG · KIT TRACKER</div>
-      <select class="theme-selector" id="themeSelect">
-        <option value="dark">🌙 Dark</option>
-        <option value="light">☀️ Light</option>
-        <option value="high-contrast">⚡ High Contrast</option>
-      </select>
+      <div class="header-right-actions">
+        <button type="button" class="toggle-header-btn" id="toggleHeaderBtn">▲ Collapse Menu</button>
+        <select class="theme-selector" id="themeSelect">
+          <option value="dark">🌙 Dark</option>
+          <option value="light">☀️ Light</option>
+          <option value="high-contrast">⚡ High Contrast</option>
+        </select>
+      </div>
     </div>
     <h1>Daily Field Operations</h1>
     
-    <!-- Site Selection & Header Actions -->
-    <div class="site-pick">
-      <label>Site:</label>
-      <select id="siteSelect">
-        <option value="Suzuki">Suzuki</option>
-        <option value="Vica Park">Vica Park</option>
-        <option value="Herzliya Quarters">Herzliya Quarters</option>
-        <option value="custom">+ New Site...</option>
-      </select>
-      <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
-      
-      <button type="button" class="dashboard-btn" id="openDashboardBtn">📊 Open Dashboard</button>
-      <button type="button" class="json-upload-btn" id="uploadJsonBtn">📁 Upload Building JSON</button>
-      <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
+    <!-- Collapsible Header Section for Mobile Workspace Maximization -->
+    <div class="header-collapsible" id="headerCollapsible">
+      <!-- Site Selection & Header Actions -->
+      <div class="site-pick">
+        <label>Site:</label>
+        <select id="siteSelect">
+          <option value="Suzuki">Suzuki</option>
+          <option value="Vica Park">Vica Park</option>
+          <option value="Herzliya Quarters">Herzliya Quarters</option>
+          <option value="custom">+ New Site...</option>
+        </select>
+        <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
+        
+        <button type="button" class="dashboard-btn" id="openDashboardBtn">📊 Open Dashboard</button>
+        <button type="button" class="json-upload-btn" id="uploadJsonBtn">📁 Upload Building JSON</button>
+        <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
 
-      <button type="button" class="main-reset-cycle-btn" id="mainResetCycleBtn">🔄 Reset Building Cycle</button>
-    </div>
+        <button type="button" class="main-reset-cycle-btn" id="mainResetCycleBtn">🔄 Reset Building Cycle</button>
+      </div>
 
-    <div class="datepick">
-      <input type="date" id="dateInput">
-      <button id="loadBtn">Load Date</button>
+      <div class="datepick">
+        <input type="date" id="dateInput">
+        <button id="loadBtn">Load Date</button>
+      </div>
     </div>
   </header>
 
@@ -723,7 +751,7 @@
 </div>
 
 <script>
-// Crucial: State Variables Declared First Before Any Function Calls
+// State Variables Initialization
 let state = null;
 let currentDate = null;
 let currentSite = 'Suzuki';
@@ -754,6 +782,22 @@ const STAGES = [
   {key:'dismantle',  label:'Dismantle'},
   {key:'finish',     label:'Finish'}
 ];
+
+// Header Collapse / Expand Logic
+const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
+const headerCollapsible = document.getElementById('headerCollapsible');
+
+toggleHeaderBtn.addEventListener('click', () => {
+  const isCollapsed = headerCollapsible.classList.toggle('collapsed');
+  toggleHeaderBtn.textContent = isCollapsed ? '▼ Expand Menu' : '▲ Collapse Menu';
+  localStorage.setItem('header-collapsed', isCollapsed ? 'true' : 'false');
+});
+
+// Restore Header Collapsed State if previously set
+if (localStorage.getItem('header-collapsed') === 'true') {
+  headerCollapsible.classList.add('collapsed');
+  toggleHeaderBtn.textContent = '▼ Expand Menu';
+}
 
 // Theme Management
 const themeSelect = document.getElementById('themeSelect');
