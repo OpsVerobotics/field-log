@@ -269,6 +269,20 @@
     background:var(--amber-dim); color:var(--amber); font-family:var(--disp); font-size:17px; font-weight:700; cursor:pointer; margin-top: 10px; min-height: 52px;
   }
 
+  .kit-new-box{
+    background:var(--panel2); border:2px solid var(--line); border-radius:10px; padding:14px; margin-top:10px;
+  }
+  .kit-new-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  
+  /* Prominent & Large Create Kit Button Styling */
+  .kit-new-box .go{
+    width:100%; margin-top:14px; padding:14px 20px; background:var(--amber-dim); color:var(--amber); 
+    border:2px solid var(--amber); border-radius:10px; font-family:var(--disp); font-size:18px; font-weight:700; 
+    cursor:pointer; min-height: 52px; text-transform: uppercase; letter-spacing: 0.05em;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.15s, background 0.2s;
+  }
+  .kit-new-box .go:active { transform: scale(0.98); }
+
   .summary{background:var(--panel); border:2px solid var(--line); border-radius:12px; overflow:hidden;}
   .summary-row{display:flex; justify-content:space-between; align-items:baseline; padding:14px 16px; border-bottom:1px solid var(--line);}
   .summary-row:last-child{border-bottom:none; background:var(--panel2);}
@@ -793,7 +807,6 @@ toggleHeaderBtn.addEventListener('click', () => {
   localStorage.setItem('header-collapsed', isCollapsed ? 'true' : 'false');
 });
 
-// Restore Header Collapsed State if previously set
 if (localStorage.getItem('header-collapsed') === 'true') {
   headerCollapsible.classList.add('collapsed');
   toggleHeaderBtn.textContent = '▼ Expand Menu';
