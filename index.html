@@ -355,12 +355,11 @@
 
   .btn-group{display:flex; flex-direction:column; gap:10px; margin-top:14px;}
   
-  .copy-btn, .export-btn, .pdf-btn, .email-btn {
+  .copy-btn, .pdf-btn, .email-btn {
     width:100%; padding:16px; border-radius:10px; font-family:var(--disp); font-size:17px; font-weight:700; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 3px 6px rgba(0,0,0,0.15); min-height: 52px;
   }
   .copy-btn { background:var(--blue-dim); border:2px solid var(--blue); color:var(--blue); }
-  .export-btn { background:var(--green-dim); border:2px solid var(--green); color:var(--green); }
   .pdf-btn { background:var(--amber-dim); border:2px solid var(--amber); color:var(--amber); }
   .email-btn { background:var(--amber-dim); border:2.5px solid var(--amber); color:var(--amber); }
 
@@ -476,8 +475,7 @@
 
   @media print {
     body { background: #fff; color: #000; }
-    header, .btn-group, .add-kit, .reset-link, .site-pick, .datepick { display: none !important; }
-    .kit-card { border: 1px solid #000; break-inside: avoid; margin-bottom: 20px; }
+    header, .btn-group, .add-kit, .reset-link, .site-pick, .datepick, section { display: none !important; }
   }
 </style>
 
@@ -508,10 +506,7 @@
       <div class="site-pick">
         <label>Site:</label>
         <select id="siteSelect">
-          <option value="Suzuki">Suzuki</option>
-          <option value="Vica Park">Vica Park</option>
-          <option value="Herzliya Quarters">Herzliya Quarters</option>
-          <option value="custom">+ New Site...</option>
+          <!-- Populated dynamically from Firebase -->
         </select>
         <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
         
@@ -694,7 +689,6 @@
     <div class="btn-group">
       <button class="email-btn" id="generateEmailBtn">📧 Generate Daily Email Summary</button>
       <button class="copy-btn" id="copyRowsBtn">📋 Copy Rows for Google Sheets</button>
-      <button class="export-btn" id="exportCsvBtn">📥 Export CSV Report</button>
       <button class="pdf-btn" id="exportPdfBtn">📄 Export PDF Client Report</button>
     </div>
   </section>
@@ -884,6 +878,7 @@
 let state = null;
 let currentDate = null;
 let currentSite = localStorage.getItem('app-last-site') || 'Suzuki';
+let globalSitesList = ['Suzuki', 'Vica Park', 'Herzliya Quarters'];
 let siteLinksData = { opReportLink: '', projectAlbumLink: '' };
 let globalOperatorsList = ['Yuval']; 
 let buildingData = null; 
@@ -1155,6 +1150,36 @@ try {
 
 const db = firebase.database();
 
+// Dynamic Global Sites List from Firebase
+function renderSitesDropdown() {
+  const sel = document.getElementById('siteSelect');
+  if (!sel) return;
+  sel.innerHTML = '';
+
+  globalSitesList.forEach(sName => {
+    const opt = document.createElement('option');
+    opt.value = sName;
+    opt.textContent = sName;
+    if (sName === currentSite) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  const customOpt = document.createElement('option');
+  customOpt.value = 'custom';
+  customOpt.textContent = '+ New Site...';
+  sel.appendChild(customOpt);
+}
+
+db.ref('globalSitesList').on('value', (snap) => {
+  const val = snap.val();
+  if (val && Array.isArray(val) && val.length > 0) {
+    globalSitesList = val;
+  } else {
+    db.ref('globalSitesList').set(globalSitesList);
+  }
+  renderSitesDropdown();
+});
+
 // Load Global Operators List from Firebase
 db.ref('globalOperatorsList').on('value', (snap) => {
   const val = snap.val();
@@ -1243,7 +1268,7 @@ document.getElementById('jsonFileInput').addEventListener('change', (e) => {
       buildingData = parsed;
       const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
       db.ref(`sites/${cleanSite}/buildingJson`).set(parsed);
-      showToast(`Building JSON "${parsed.name || 'Building'}" loaded!`);
+      showToast(`Building JSON "${parsed.name || 'Building'}" loaded for site "${currentSite}"!`);
     } catch(err) {
       alert('Invalid JSON file format');
     }
@@ -1458,8 +1483,6 @@ renderNewKitDrops();
 const siteSelect = document.getElementById('siteSelect');
 const customSiteInput = document.getElementById('customSiteInput');
 
-if (siteSelect) siteSelect.value = currentSite;
-
 siteSelect.addEventListener('change', (e) => {
   if (e.target.value === 'custom') {
     customSiteInput.style.display = 'block';
@@ -1476,8 +1499,16 @@ customSiteInput.addEventListener('change', () => {
   const val = customSiteInput.value.trim();
   if (val) {
     currentSite = val;
+    if (!globalSitesList.includes(val)) {
+      globalSitesList.push(val);
+      db.ref('globalSitesList').set(globalSitesList);
+    }
     localStorage.setItem('app-last-site', currentSite);
+    customSiteInput.style.display = 'none';
+    customSiteInput.value = '';
+    renderSitesDropdown();
     loadDay(currentDate);
+    showToast(`New site "${val}" added! Please upload its JSON file.`);
   }
 });
 
@@ -1573,7 +1604,7 @@ function loadDay(dateISO){
 
   const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
 
-  db.ref(`sites/${cleanSite}/buildingJson`).once('value', (snap) => {
+  db.ref(`sites/${cleanSite}/buildingJson`).on('value', (snap) => {
     buildingData = snap.val() || null;
   });
 
@@ -1768,7 +1799,6 @@ function renderKitCard(kit){
   populate1To50Select(card.querySelector('.vru-sel'), kit.vru);
   populate1To50Select(card.querySelector('.mcp-sel'), kit.mcp);
 
-  // Existing Kit Custom ParaDevice Handler
   const pdSelect = card.querySelector('.paradevice-sel');
   const customWrap = card.querySelector('.card-custom-type-wrap');
   const customInp = card.querySelector('.card-custom-type-input');
@@ -2025,7 +2055,6 @@ function openFacadeMapModal(kit) {
     sectionSel.appendChild(opt);
   });
 
-  // Default to scroll/pan mode when modal opens
   currentMapInteractionMode = 'scroll';
   clearMapModeButtons();
   document.getElementById('facadeGridWrapper').className = 'facade-grid-wrapper mode-scroll';
@@ -2144,11 +2173,11 @@ function renderFacadeGrid(sectionIdx) {
       const isPrevCleaned = siteCleanedFramesHistory.has(frame.frame_id) && !isSelected && !unwalkable;
 
       cell.className = 'window-cell' + 
-                     (unwalkable ? ' unwalkable' : '') + 
-                     (isDefectReport ? ' defective-report' : '') +
-                     (isDefectUnwalkable ? ' defective-unwalkable' : '') +
-                     (isSelected ? ' selected' : '') + 
-                     (isPrevCleaned ? ' previously-cleaned' : '');
+                       (unwalkable ? ' unwalkable' : '') + 
+                       (isDefectReport ? ' defective-report' : '') +
+                       (isDefectUnwalkable ? ' defective-unwalkable' : '') +
+                       (isSelected ? ' selected' : '') + 
+                       (isPrevCleaned ? ' previously-cleaned' : '');
 
       cell.setAttribute('data-frame-id', frame.frame_id);
 
@@ -2220,7 +2249,6 @@ function clearMapModeButtons() {
   [modeSelectBtn, modeDeflectReportBtn, modeDeflectBlockBtn].forEach(b => b.classList.remove('active'));
 }
 
-// Toggle Mode: Clicking active button returns to scroll/pan mode
 modeSelectBtn.addEventListener('click', () => {
   if (currentMapInteractionMode === 'select') {
     currentMapInteractionMode = 'scroll';
@@ -2789,7 +2817,7 @@ function formatDropColumns(kit) {
   return parts.join(', ');
 }
 
-// Sheets Export Alignment (KIT column placed BEFORE RBU, Rain and Wind Speed fields excluded)
+// Sheets Export Alignment
 function copyRowsForSheets(){
   if(!state || !state.kits || state.kits.length === 0){
     showToast('No data available to copy');
@@ -2874,101 +2902,180 @@ function copyRowsForSheets(){
   });
 }
 
-function exportToCSV(){
-  if(!state || !state.kits || state.kits.length === 0){
-    showToast('No data available to export');
-    return;
+// Generate Full Cycle Progress PDF Report for Client
+function exportFullCyclePdfReport() {
+  let totalBuildingSqm = 0;
+  const sectionSqmMap = {};
+  const sectionCleanedMap = {};
+
+  if (buildingData && buildingData.sections) {
+    buildingData.sections.forEach(sec => {
+      let secTotal = 0, secCleaned = 0;
+      (sec.window_frames || []).forEach(f => {
+        const sqm = (f.width || 0) * (f.height || 0);
+        secTotal += sqm;
+        if (siteCleanedFramesHistory.has(f.frame_id)) secCleaned += sqm;
+      });
+      const name = sec.name || sec.section_id;
+      sectionSqmMap[name] = secTotal;
+      sectionCleanedMap[name] = secCleaned;
+      totalBuildingSqm += secTotal;
+    });
   }
 
-  const headers = [
-    "Date", "Site", "Day length", "Arrive at site", "End of operation", "TOTAL Throughput (SQM)", 
-    "KIT", "RBU", "VRU", "MCP", "Drop Columns", "Deployment", "On the wall", "Dismantle", 
-    "System Time", "Downtime", "Uptime", "TOTAL Throughput (SQM)", "ParaDevice", "Team Size",
-    "Work Type", "Quality Rating", "Junior Count", "Expert Count", "Temperature (°C)", "Humidity (%)", 
-    "Wind Gusts (km/h)", "Deployment Notes", "Stops & Reasons"
-  ];
+  let cleanedBuildingSqm = 0;
+  if (buildingData && buildingData.sections) {
+    buildingData.sections.forEach(sec => {
+      (sec.window_frames || []).forEach(f => {
+        if (siteCleanedFramesHistory.has(f.frame_id)) cleanedBuildingSqm += (f.width || 0) * (f.height || 0);
+      });
+    });
+  }
 
-  const rows = [headers];
+  const progressPercent = totalBuildingSqm > 0 ? (cleanedBuildingSqm / totalBuildingSqm * 100) : 0;
 
-  let earliestArrival = null, latestFinish = null;
-  state.kits.forEach(kit=>{
-    const e = kit.events || {};
-    if(e.arrival){
-      const t = new Date(e.arrival);
-      if(!earliestArrival || t < earliestArrival) earliestArrival = t;
-    }
-    if(e.finish){
-      const t = new Date(e.finish);
-      if(!latestFinish || t > latestFinish) latestFinish = t;
+  let totalUptimeMs = 0;
+  let dailyLogsRowsHTML = '';
+
+  const sortedDates = Object.keys(siteAllDaysData).sort();
+  sortedDates.forEach(dKey => {
+    const dayObj = siteAllDaysData[dKey];
+    if (dayObj && dayObj.kits && dayObj.kits.length > 0) {
+      let daySqm = 0, dayShiftMs = 0;
+      let earliestArrival = null, latestFinish = null;
+
+      dayObj.kits.forEach(kit => {
+        const e = kit.events || {};
+        if (e.arrival) {
+          const t = new Date(e.arrival);
+          if (!earliestArrival || t < earliestArrival) earliestArrival = t;
+        }
+        if (e.finish) {
+          const t = new Date(e.finish);
+          if (!latestFinish || t > latestFinish) latestFinish = t;
+        }
+        const { netMs } = kitDurations(kit);
+        if (netMs) totalUptimeMs += netMs;
+        if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
+      });
+
+      if (earliestArrival && latestFinish) dayShiftMs = latestFinish - earliestArrival;
+
+      dailyLogsRowsHTML += `
+        <tr>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${formatDateDisplay(dKey)}</td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-weight: bold;">${daySqm.toFixed(2)} m²</td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${fmtDur(dayShiftMs)}</td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; text-align: center;">${dayObj.kits.length} Systems</td>
+        </tr>
+      `;
     }
   });
-  const totalDayMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
 
-  state.kits.forEach(kit => {
-    const e = kit.events || {};
-    const { totalMs, wallMs, netMs, stopsMs } = kitDurations(kit);
-    
-    const stopsDetail = (kit.stops || []).map((s, idx) => {
-      const dur = s.end ? fmtDur(new Date(s.end) - new Date(s.start)) : 'Active';
-      return `Stop ${idx+1}: ${fmtTime(s.start)}-${s.end ? fmtTime(s.end) : '—'} (${dur}) [Reason: ${s.reason || 'None'}]`;
-    }).join(' | ');
+  let facadeRowsHTML = '';
+  Object.keys(sectionSqmMap).forEach(secName => {
+    const totalSec = sectionSqmMap[secName] || 1;
+    const cleanedSec = sectionCleanedMap[secName] || 0;
+    const secPercent = (cleanedSec / totalSec * 100).toFixed(1);
 
-    let locLabel = kit.deployLoc || 'Roof';
-    const dropColsStr = formatDropColumns(kit);
-    const sqmRawNumber = kit.sqmCleaned ? kit.sqmCleaned.toFixed(2) : '0';
-
-    const row = [
-      state.date,
-      currentSite,
-      fmtDur(totalDayMs),
-      e.arrival ? fmtTime(e.arrival) : '',
-      e.finish ? fmtTime(e.finish) : '',
-      sqmRawNumber,
-      kit.id || '',
-      kit.rbu || '',
-      kit.vru || '',
-      kit.mcp || '',
-      dropColsStr,
-      e.deployment ? fmtTime(e.deployment) : '',
-      e.onWall ? fmtTime(e.onWall) : '',
-      e.dismantle ? fmtTime(e.dismantle) : '',
-      fmtDur(wallMs),
-      fmtDur(stopsMs),
-      fmtDur(netMs),
-      sqmRawNumber,
-      kit.type || '',
-      state.people || '0',
-      state.workType || 'Cleaning',
-      state.qualityRating || '5 ⭐',
-      state.juniorCount || '0',
-      state.expertCount || '0',
-      state.temp || '—',
-      state.humidity || '—',
-      state.windGusts || '—',
-      `[Mode: ${locLabel}] ${kit.deployNotes||''}`.trim(),
-      stopsDetail
-    ];
-
-    rows.push(row.map(val => `"${String(val).replace(/"/g, '""')}"`));
+    facadeRowsHTML += `
+      <tr>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-weight: bold;">${secName}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${cleanedSec.toFixed(2)} m²</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${totalSec.toFixed(2)} m²</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-weight: bold; color: #2563EB;">${secPercent}%</td>
+      </tr>
+    `;
   });
 
-  const csvContent = rows.map(r => r.join(",")).join("\n");
-  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `field_log_${currentSite}_${state.date}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  showToast('CSV report downloaded!');
+  const printWin = window.open('', '_blank');
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Cleaning Cycle Progress Report - ${currentSite}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 25px; color: #0F172A; max-width: 800px; margin: 0 auto; }
+        .header { border-bottom: 3px solid #0072E5; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .title { font-size: 22px; font-weight: bold; color: #0F172A; }
+        .subtitle { font-size: 13px; color: #64748B; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .metric-card { background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; padding: 12px; text-align: center; }
+        .metric-title { font-size: 11px; color: #64748B; text-transform: uppercase; font-weight: bold; }
+        .metric-val { font-size: 20px; font-weight: bold; color: #0072E5; margin-top: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; margin-bottom: 25px; }
+        th { background: #0F172A; color: #FFFFFF; padding: 8px 10px; text-align: left; }
+        .section-title { font-size: 15px; font-weight: bold; margin-top: 20px; border-bottom: 2px solid #E2E8F0; padding-bottom: 4px; color: #1E293B; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div>
+          <div class="title">Cleaning Cycle Progress Report</div>
+          <div class="subtitle">Building: <strong>${currentSite}</strong> | Date: ${formatDateDisplay(todayISO())}</div>
+        </div>
+        <div style="font-size: 12px; font-weight: bold; color: #0072E5;">IsraOps Field Report</div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-title">Overall Completion</div>
+          <div class="metric-val" style="color: #16A34A;">${progressPercent.toFixed(1)}%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Cleaned Area / Total</div>
+          <div class="metric-val">${cleanedBuildingSqm.toFixed(0)} / ${totalBuildingSqm.toFixed(0)} m²</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Active Work Sessions</div>
+          <div class="metric-val">${sortedDates.length} Days</div>
+        </div>
+      </div>
+
+      <div class="section-title">📊 Progress by Building Facades / Sections</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Facade / Section</th>
+            <th>Cleaned SQM</th>
+            <th>Total SQM</th>
+            <th>Completion</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${facadeRowsHTML || '<tr><td colspan="4">No sections recorded</td></tr>'}
+        </tbody>
+      </table>
+
+      <div class="section-title">📅 Daily Operational Log History</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Cleaned SQM</th>
+            <th>Shift Time</th>
+            <th>Active Systems</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dailyLogsRowsHTML || '<tr><td colspan="4">No daily logs recorded</td></tr>'}
+        </tbody>
+      </table>
+
+      <div style="margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 10px; font-size: 11px; color: #94A3B8; text-align: center;">
+        Generated automatically by Field Operations System · IsraOps
+      </div>
+      <script>
+        window.onload = function() { window.print(); }
+      <\/script>
+    </body>
+    </html>
+  `);
+  printWin.document.close();
 }
 
-document.getElementById('exportPdfBtn').addEventListener('click', () => { window.print(); });
+document.getElementById('exportPdfBtn').addEventListener('click', exportFullCyclePdfReport);
 document.getElementById('copyRowsBtn').addEventListener('click', copyRowsForSheets);
-document.getElementById('exportCsvBtn').addEventListener('click', exportToCSV);
 
 document.getElementById('loadBtn').addEventListener('click', ()=>{
   const inputDate = document.getElementById('dateInput').value;
