@@ -408,10 +408,11 @@
     padding: 4px 6px; display: flex; flex-direction: column; justify-content: space-between;
     align-items: center; text-align: center; font-family: var(--mono); cursor: pointer;
     user-select: none; transition: background 0.1s, border-color 0.1s, transform 0.1s; box-sizing: border-box;
+    width: 65px !important; min-width: 65px !important; flex: 0 0 65px !important; height: 60px !important; overflow: hidden;
   }
 
   .cell-header { width: 100%; font-size: 10px; font-weight: 700; color: var(--text); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .cell-body { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; }
+  .cell-body { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; width: 100%; }
   .cell-sqm-val { font-size: 10px; font-weight: 600; color: var(--amber); }
   .cell-tag { font-size: 7px; font-weight: 800; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.02em; }
 
@@ -891,7 +892,7 @@ let activeMapKitId = null;
 let selectedFrameIds = new Set();
 let isDraggingSelection = false;
 let dragSelectState = true;
-let currentMapInteractionMode = 'scroll'; // Default mode is panning/scrolling
+let currentMapInteractionMode = 'scroll';
 
 let pendingStopKitId = null;
 let pendingStopPhotoData = null;
@@ -964,8 +965,8 @@ function deriveDropAreasFromFrames(frameIds) {
         if (!sectionMap[secName]) {
           sectionMap[secName] = { rows: new Set(), cols: new Set() };
         }
-        const rowVal = f.frame_pos && f.frame_pos.y !== undefined ? (f.frame_pos.y + 1) : null;
-        const colVal = f.frame_pos && f.frame_pos.x !== undefined ? (f.frame_pos.x + 1) : null;
+        const rowVal = f.frame_pos && f.frame_pos.y !== undefined ? (parseInt(f.frame_pos.y, 10) + 1) : null;
+        const colVal = f.frame_pos && f.frame_pos.x !== undefined ? (parseInt(f.frame_pos.x, 10) + 1) : null;
         if (rowVal !== null) sectionMap[secName].rows.add(rowVal);
         if (colVal !== null) sectionMap[secName].cols.add(colVal);
       }
@@ -2139,6 +2140,7 @@ function toggleWindowCell(cell, frame, frameId) {
   document.getElementById('facadeSqmTotal').textContent = calculateSelectedSqm().toFixed(2);
 }
 
+// Render Facade Grid With Strict Square Alignment
 function renderFacadeGrid(sectionIdx) {
   const wrapper = document.getElementById('facadeGridWrapper');
   wrapper.innerHTML = '';
@@ -2148,21 +2150,17 @@ function renderFacadeGrid(sectionIdx) {
 
   const rowMap = {};
   sec.window_frames.forEach(frame => {
-    const y = (frame.frame_pos && frame.frame_pos.y !== undefined) ? frame.frame_pos.y : 0;
-    if (!rowMap[y]) rowMap[y] = [];
-    rowMap[y].push(frame);
+    const yVal = frame.frame_pos && frame.frame_pos.y !== undefined ? parseInt(frame.frame_pos.y, 10) : 0;
+    if (!rowMap[yVal]) rowMap[yVal] = [];
+    rowMap[yVal].push(frame);
   });
 
   const sortedRowKeys = Object.keys(rowMap).map(Number).sort((a,b) => b - a);
 
   sortedRowKeys.forEach(yKey => {
-    const rowFrames = rowMap[yKey].sort((a,b) => (a.frame_pos.x || 0) - (b.frame_pos.x || 0));
+    const rowFrames = rowMap[yKey].sort((a,b) => parseInt(a.frame_pos.x || 0, 10) - parseInt(b.frame_pos.x || 0, 10));
     const rowContainer = document.createElement('div');
     rowContainer.className = 'facade-row-container';
-
-    const maxRowFrameHeight = Math.max(...rowFrames.map(f => f.height || 1.5));
-    const calculatedRowHeight = Math.max(45, Math.min(120, maxRowFrameHeight * 22));
-    rowContainer.style.height = `${calculatedRowHeight}px`;
 
     rowFrames.forEach(frame => {
       const cell = document.createElement('div');
@@ -2181,22 +2179,18 @@ function renderFacadeGrid(sectionIdx) {
 
       cell.setAttribute('data-frame-id', frame.frame_id);
 
-      const frameWidth = frame.width || 1.0;
-      cell.style.flex = `${frameWidth} 0 auto`;
-      cell.style.minWidth = `${Math.max(55, frameWidth * 45)}px`;
-
       const sqm = ((frame.width || 0) * (frame.height || 0)).toFixed(2);
       
       let statusTag = '';
-      if (isDefectUnwalkable) statusTag = `<div class="cell-tag" style="color:var(--orange);">(Defect/Block)</div>`;
-      else if (isDefectReport) statusTag = `<div class="cell-tag" style="color:var(--amber);">(Defect/Report)</div>`;
-      else if (unwalkable) statusTag = `<div class="cell-tag" style="color:var(--orange);">(Unwalkable)</div>`;
-      else if (isPrevCleaned) statusTag = `<div class="cell-tag" style="opacity:0.9; font-weight:bold;">(Cleaned)</div>`;
+      if (isDefectUnwalkable) statusTag = `<div class="cell-tag" style="color:var(--orange);">(Defect)</div>`;
+      else if (isDefectReport) statusTag = `<div class="cell-tag" style="color:var(--amber);">(Defect)</div>`;
+      else if (unwalkable) statusTag = `<div class="cell-tag" style="color:var(--orange);">(Blocked)</div>`;
+      else if (isPrevCleaned) statusTag = `<div class="cell-tag" style="opacity:0.9; font-weight:bold;">(Clean)</div>`;
 
       cell.innerHTML = `
-        <div class="cell-header">Frame: ${frame.frame_id}</div>
+        <div class="cell-header">${frame.frame_id}</div>
         <div class="cell-body">
-          <div class="cell-sqm-val">${sqm} m²</div>
+          <div class="cell-sqm-val">${sqm}m²</div>
           ${statusTag}
         </div>
       `;
