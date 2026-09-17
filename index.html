@@ -93,7 +93,14 @@
     position:sticky; top:0; background:var(--bg); z-index:20;
   }
   .header-top{display:flex; justify-content:space-between; align-items:center;}
-  .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--amber); text-transform:uppercase; font-weight:700;}
+  .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--amber); text-transform:uppercase; font-weight:700; display:flex; align-items:center; gap:8px;}
+  
+  .network-status-tag {
+    font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold;
+  }
+  .network-status-tag.online { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+  .network-status-tag.offline { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); }
+
   h1{font-family:var(--disp); font-size:22px; margin:2px 0 0; font-weight:700; letter-spacing:.01em;}
   
   .header-right-actions { display: flex; gap: 6px; align-items: center; }
@@ -133,6 +140,8 @@
     font-family:var(--body); font-size:14px; padding:6px 8px; border-radius:6px; flex:1; font-weight:bold;
   }
 
+  .site-search-input { min-width: 120px; font-size: 12px !important; }
+
   .dashboard-btn, .json-upload-btn, .main-reset-cycle-btn {
     border-radius: 6px; padding: 8px 12px; font-family: var(--mono);
     font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; min-height: 40px;
@@ -151,6 +160,11 @@
     background: var(--orange-dim); color: var(--orange); border: 1.5px solid var(--orange);
     padding: 8px 12px; border-radius: 8px; font-family: var(--mono); font-size: 12px;
     font-weight: bold; margin-top: 8px; display: none;
+  }
+
+  .team-mismatch-alert {
+    background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange);
+    padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 4px; display: none;
   }
 
   .datepick{margin-top:8px; display:flex; gap:8px; align-items:center;}
@@ -182,7 +196,6 @@
   }
   .field textarea{ resize: vertical; min-height: 70px; }
 
-  /* Multiple Operators Selector UI */
   .operators-wrapper {
     background: var(--panel2); border: 1.5px solid var(--line); border-radius: 8px;
     padding: 10px; display: flex; flex-direction: column; gap: 8px;
@@ -366,8 +379,12 @@
   .toast{
     position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--panel2); border:2px solid var(--amber); color:var(--amber);
     font-family:var(--mono); font-size:13px; font-weight:bold; padding:12px 20px; border-radius:24px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:50; box-shadow:0 4px 12px rgba(0,0,0,0.3);
+    display: flex; align-items: center; gap: 10px;
   }
-  .toast.show{opacity:1;}
+  .toast.show{opacity:1; pointer-events:auto;}
+  .toast-undo-btn {
+    background: var(--amber); color: #000; border: none; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;
+  }
 
   .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:flex-end; justify-content:center; z-index:60; }
   .modal-overlay.show{display:flex;}
@@ -459,8 +476,15 @@
   .facade-progress-label { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; font-weight: bold; }
 
   .daily-logs-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-family: var(--mono); font-size: 12px; }
-  .daily-logs-table th, .daily-logs-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--line); }
+  .daily-logs-table th, .daily-logs-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
   .daily-logs-table th { color: var(--amber); }
+
+  .copy-dash-btn, .backup-dash-btn {
+    border-radius: 8px; padding: 10px 14px; font-family: var(--mono); font-size: 13px;
+    font-weight: bold; cursor: pointer; flex: 1;
+  }
+  .copy-dash-btn { background: var(--blue-dim); color: var(--blue); border: 1.5px solid var(--blue); }
+  .backup-dash-btn { background: var(--green-dim); color: var(--green); border: 1.5px solid var(--green); }
 
   @media (min-width: 650px) {
     #kitsList { grid-template-columns: repeat(2, 1fr); }
@@ -470,8 +494,8 @@
     .kit-new-grid .field.full-width { grid-column: span 3; }
     .modal-overlay { align-items: center; }
     .modal-box { border-radius: 16px; }
-    .dashboard-grid { grid-template-columns: repeat(4, 1fr); }
-    .dash-card.full-width { grid-column: span 4; }
+    .dashboard-grid { grid-template-columns: repeat(3, 1fr); }
+    .dash-card.full-width { grid-column: span 3; }
   }
 
   @media print {
@@ -483,13 +507,20 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<!-- Auth + Storage removed: they required Firebase Console configuration (rules/bucket)
+     that wasn't set up, which was silently blocking reads/writes and causing the
+     "need to re-enter everything" symptom. Photos are stored as compressed base64
+     directly in the Database, exactly like every other field. -->
 </head>
 <body>
 
 <div class="app-container">
   <header>
     <div class="header-top">
-      <div class="eyebrow">FIELD LOG · KIT TRACKER</div>
+      <div class="eyebrow">
+        <span>FIELD LOG · KIT TRACKER</span>
+        <span class="network-status-tag online" id="netStatusTag">🟢 Online</span>
+      </div>
       <div class="header-right-actions">
         <button type="button" class="toggle-header-btn" id="toggleHeaderBtn">▲ Collapse Menu</button>
         <select class="theme-selector" id="themeSelect">
@@ -501,14 +532,11 @@
     </div>
     <h1>Daily Field Operations</h1>
     
-    <!-- Collapsible Header Section for Mobile Workspace Maximization -->
     <div class="header-collapsible" id="headerCollapsible">
-      <!-- Site Selection & Header Actions -->
       <div class="site-pick">
         <label>Site:</label>
-        <select id="siteSelect">
-          <!-- Populated dynamically from Firebase -->
-        </select>
+        <input type="text" id="siteFilterInput" class="site-search-input" placeholder="🔍 Search site...">
+        <select id="siteSelect"></select>
         <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
         
         <button type="button" class="dashboard-btn" id="openDashboardBtn">📊 Open Dashboard</button>
@@ -572,6 +600,9 @@
         <label>Expert Count</label>
         <input type="number" id="expertCountInput" min="0" placeholder="Expert">
       </div>
+    </div>
+    <div class="team-mismatch-alert" id="teamMismatchAlert">
+      ⚠️ Warning: Junior + Expert count does not equal Total Team Size!
     </div>
   </section>
 
@@ -808,7 +839,7 @@
 <!-- Cycle Dashboard Modal -->
 <div class="modal-overlay" id="dashboardModal">
   <div class="modal-box dashboard-modal">
-    <div class="modal-title">📊 Cycle Analytics & Dashboard</div>
+    <div class="modal-title">📊 Cycle Analytics & Downtime Summary</div>
     <div class="modal-sub" id="dashboardSiteSub">Site: Suzuki</div>
 
     <div class="dashboard-grid">
@@ -825,6 +856,18 @@
         <div class="dash-title">Cleaned Area</div>
         <div class="dash-val"><span id="dashStatSqm">0</span> m²</div>
         <div class="dash-sub">Total Project Output</div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Total System Days</div>
+        <div class="dash-val"><span id="dashStatSystemDays">0</span></div>
+        <div class="dash-sub">Cumulative Active Kits</div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Total Operator Days</div>
+        <div class="dash-val"><span id="dashStatOperatorDays">0</span></div>
+        <div class="dash-sub">Cumulative On-Site Crew</div>
       </div>
 
       <div class="dash-card">
@@ -851,38 +894,43 @@
       </div>
 
       <div class="dash-card full-width">
-        <div class="dash-title">Recorded Daily Logs Summary</div>
+        <div class="dash-title">Downtime & Delay Analysis by Reason</div>
         <div style="overflow-x: auto;">
           <table class="daily-logs-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Shift Time</th>
-                <th>SQM Cleaned</th>
-                <th>Active Kits</th>
+                <th>Reason / Issue</th>
+                <th>Occurrences</th>
+                <th>Total Time Lost</th>
+                <th>% of Downtime</th>
               </tr>
             </thead>
-            <tbody id="dashDailyLogsTableBody"></tbody>
+            <tbody id="dashDelaysTableBody"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <div class="modal-actions">
+    <div class="modal-actions" style="flex-wrap: wrap;">
+      <button class="copy-dash-btn" id="copyDashboardSummaryBtn">📋 Copy Table for Google Sheets</button>
+      <button class="backup-dash-btn" id="exportSiteBackupBtn">💾 Export Site Backup (JSON)</button>
+      <button class="backup-dash-btn" id="importSiteBackupBtn" style="background:var(--blue-dim); color:var(--blue); border-color:var(--blue);">📂 Import Site Backup</button>
+      <input type="file" id="siteBackupFileInput" accept=".json" style="display:none;">
       <button class="cancel" id="closeDashboardBtn">Close Dashboard</button>
     </div>
   </div>
 </div>
 
 <script>
-// State Variables Initialization & Last Site Memory
+// State Variables Initialization
+const DEFAULT_SITES = ['Suzuki', 'Vica Park', 'Herzliya Quarters'];
 let state = null;
 let currentDate = null;
 let currentSite = localStorage.getItem('app-last-site') || 'Suzuki';
-let globalSitesList = ['Suzuki', 'Vica Park', 'Herzliya Quarters'];
+let globalSitesList = JSON.parse(localStorage.getItem('app-cached-sites')) || DEFAULT_SITES;
 let siteLinksData = { opReportLink: '', projectAlbumLink: '' };
-let globalOperatorsList = ['Yuval']; 
-let buildingData = null; 
+let globalOperatorsList = JSON.parse(localStorage.getItem('app-cached-operators')) || ['Yuval'];
+let buildingData = JSON.parse(localStorage.getItem(`app-cached-building_${currentSite.replace(/[.#$/\[\]]/g, "_")}`) || 'null');
 let siteCleanedFramesHistory = new Set(); 
 let siteDefectiveReportFrames = new Set();
 let siteDefectiveUnwalkableFrames = new Set();
@@ -902,6 +950,9 @@ let collapsedMap = {};
 let dbRef = null;
 
 let newKitDrops = [{ facade: '', rows: '', cols: '' }];
+let lastDeletedKit = null;
+let lastDeletedOperator = null;
+let offlineSyncQueue = [];
 
 const STAGES = [
   {key:'arrival',    label:'Arrival'},
@@ -913,7 +964,49 @@ const STAGES = [
 
 const STANDARD_PARADEVICES = ["Parapod", "Paraslide", "ParaSlide Top row", "Paraclamp", "Paraline", "Paradavit"];
 
-// Helper: Compress Base64 Image via Canvas
+// Firebase Initialization
+const firebaseConfig = {
+  apiKey: "AIzaSyCoq-GXRGkJLJ3jDeYo_KiZ04oqMyENFpY",
+  authDomain: "workday-kits-operations-9de4d.firebaseapp.com",
+  databaseURL: "https://workday-kits-operations-9de4d-default-rtdb.firebaseio.com",
+  projectId: "workday-kits-operations-9de4d",
+  storageBucket: "workday-kits-operations-9de4d.firebasestorage.app",
+  messagingSenderId: "781011410308",
+  appId: "1:781011410308:web:85c2805bd989c7851651d1"
+};
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  firebase.database().goOnline();
+} catch(e) { console.error(e); }
+
+const db = firebase.database();
+
+// True connection state, reported by Firebase itself. Far more reliable than
+// navigator.onLine, which only reflects whether the device has *a* network
+// interface — not whether the database is actually reachable.
+let isFirebaseConnected = true;
+db.ref('.info/connected').on('value', (snap) => {
+  isFirebaseConnected = snap.val() === true;
+  updateNetworkStatus();
+  if (isFirebaseConnected) processOfflineSyncQueue();
+});
+
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+
+function updateNetworkStatus() {
+  const tag = document.getElementById('netStatusTag');
+  const online = isFirebaseConnected && navigator.onLine;
+  if (online) {
+    tag.textContent = '🟢 Online';
+    tag.className = 'network-status-tag online';
+  } else {
+    tag.textContent = '🔴 Offline';
+    tag.className = 'network-status-tag offline';
+  }
+}
+
 function compressImage(file, maxWidth = 800, maxHeight = 600, quality = 0.7) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -950,7 +1043,6 @@ function compressImage(file, maxWidth = 800, maxHeight = 600, quality = 0.7) {
   });
 }
 
-// Auto-calculate Drop Columns/Areas from selected map frames
 function deriveDropAreasFromFrames(frameIds) {
   if (!buildingData || !buildingData.sections || !frameIds || !frameIds.length) {
     return [{ facade: '', rows: '', cols: '' }];
@@ -999,7 +1091,6 @@ function deriveDropAreasFromFrames(frameIds) {
   return results.length ? results : [{ facade: '', rows: '', cols: '' }];
 }
 
-// Render Multiple Operators Checkboxes UI with Delete Button
 function renderOperatorsList() {
   const container = document.getElementById('operatorsListContainer');
   if (!container) return;
@@ -1007,6 +1098,7 @@ function renderOperatorsList() {
 
   const selectedOperators = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
 
+  const frag = document.createDocumentFragment();
   globalOperatorsList.forEach(opName => {
     const isChecked = selectedOperators.includes(opName);
     const label = document.createElement('label');
@@ -1025,44 +1117,55 @@ function renderOperatorsList() {
         currentArr = currentArr.filter(name => name !== opName);
       }
       state.operators = currentArr.join(', ');
-      saveState();
+      saveFieldUpdate('operators', state.operators);
       renderOperatorsList();
     });
 
     label.querySelector('.delete-operator-btn').addEventListener('click', (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
-      if (confirm(`Remove operator "${opName}" permanently from global list?`)) {
-        globalOperatorsList = globalOperatorsList.filter(name => name !== opName);
-        db.ref('globalOperatorsList').set(globalOperatorsList);
+      lastDeletedOperator = opName;
+      globalOperatorsList = globalOperatorsList.filter(name => name !== opName);
+      db.ref('globalOperatorsList').set(globalOperatorsList).catch(err => console.error(err));
 
-        let currentArr = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
-        currentArr = currentArr.filter(name => name !== opName);
-        state.operators = currentArr.join(', ');
-        saveState();
+      let currentArr = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
+      currentArr = currentArr.filter(name => name !== opName);
+      state.operators = currentArr.join(', ');
+      saveFieldUpdate('operators', state.operators);
 
-        renderOperatorsList();
-        showToast(`Operator "${opName}" removed`);
-      }
+      renderOperatorsList();
+      showToastWithUndo(`Operator "${opName}" removed`, undoDeleteOperator);
     });
 
-    container.appendChild(label);
+    frag.appendChild(label);
   });
+  container.appendChild(frag);
 }
 
-// Add New Operator Handler
+function undoDeleteOperator() {
+  if (lastDeletedOperator) {
+    if (!globalOperatorsList.includes(lastDeletedOperator)) {
+      globalOperatorsList.push(lastDeletedOperator);
+      db.ref('globalOperatorsList').set(globalOperatorsList).catch(err => console.error(err));
+      renderOperatorsList();
+      showToast(`Operator "${lastDeletedOperator}" restored!`);
+      lastDeletedOperator = null;
+    }
+  }
+}
+
 document.getElementById('addNewOperatorBtn').addEventListener('click', () => {
   const input = document.getElementById('newOperatorNameInput');
   const val = input.value.trim();
   if (val) {
     if (!globalOperatorsList.includes(val)) {
       globalOperatorsList.push(val);
-      db.ref('globalOperatorsList').set(globalOperatorsList);
+      db.ref('globalOperatorsList').set(globalOperatorsList).catch(err => console.error(err));
       
       let currentArr = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
       if (!currentArr.includes(val)) currentArr.push(val);
       state.operators = currentArr.join(', ');
-      saveState();
+      saveFieldUpdate('operators', state.operators);
 
       input.value = '';
       renderOperatorsList();
@@ -1073,7 +1176,6 @@ document.getElementById('addNewOperatorBtn').addEventListener('click', () => {
   }
 });
 
-// Header Collapse / Expand Logic
 const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
 const headerCollapsible = document.getElementById('headerCollapsible');
 
@@ -1088,7 +1190,6 @@ if (localStorage.getItem('header-collapsed') === 'true') {
   toggleHeaderBtn.textContent = '▼ Expand Menu';
 }
 
-// Theme Management
 const themeSelect = document.getElementById('themeSelect');
 const savedTheme = localStorage.getItem('app-theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -1105,6 +1206,7 @@ function populateAvailableKitSelect(selectElem, currentKitId = '') {
   selectElem.innerHTML = '<option value="">— Select —</option>';
   const usedKitIds = (state && state.kits) ? state.kits.map(k => String(k.id)) : [];
 
+  const frag = document.createDocumentFragment();
   for (let i = 1; i <= 50; i++) {
     const kitStr = String(i);
     if (!usedKitIds.includes(kitStr) || kitStr === String(currentKitId)) {
@@ -1112,21 +1214,24 @@ function populateAvailableKitSelect(selectElem, currentKitId = '') {
       opt.value = i;
       opt.textContent = i;
       if (kitStr === String(currentKitId)) opt.selected = true;
-      selectElem.appendChild(opt);
+      frag.appendChild(opt);
     }
   }
+  selectElem.appendChild(frag);
 }
 
 function populate1To50Select(selectElem, defaultVal = '') {
   if (!selectElem) return;
   selectElem.innerHTML = '<option value="">— Select —</option>';
+  const frag = document.createDocumentFragment();
   for (let i = 1; i <= 50; i++) {
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = i;
     if (String(i) === String(defaultVal)) opt.selected = true;
-    selectElem.appendChild(opt);
+    frag.appendChild(opt);
   }
+  selectElem.appendChild(frag);
 }
 
 populateAvailableKitSelect(document.getElementById('newKitNum'));
@@ -1134,63 +1239,93 @@ populate1To50Select(document.getElementById('newRbu'));
 populate1To50Select(document.getElementById('newVru'));
 populate1To50Select(document.getElementById('newMcp'));
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCoq-GXRGkJLJ3jDeYo_KiZ04oqMyENFpY",
-  authDomain: "workday-kits-operations-9de4d.firebaseapp.com",
-  databaseURL: "https://workday-kits-operations-9de4d-default-rtdb.firebaseio.com",
-  projectId: "workday-kits-operations-9de4d",
-  storageBucket: "workday-kits-operations-9de4d.firebasestorage.app",
-  messagingSenderId: "781011410308",
-  appId: "1:781011410308:web:85c2805bd989c7851651d1"
-};
-
-try {
-  firebase.initializeApp(firebaseConfig);
-  firebase.database().goOnline();
-} catch(e) { console.error(e); }
-
-const db = firebase.database();
-
-// Dynamic Global Sites List from Firebase
-function renderSitesDropdown() {
+function renderSitesDropdown(filterQuery = '') {
   const sel = document.getElementById('siteSelect');
   if (!sel) return;
   sel.innerHTML = '';
 
-  globalSitesList.forEach(sName => {
+  const filtered = globalSitesList.filter(s => s.toLowerCase().includes(filterQuery.toLowerCase()));
+
+  const frag = document.createDocumentFragment();
+  filtered.forEach(sName => {
     const opt = document.createElement('option');
     opt.value = sName;
     opt.textContent = sName;
     if (sName === currentSite) opt.selected = true;
-    sel.appendChild(opt);
+    frag.appendChild(opt);
   });
 
   const customOpt = document.createElement('option');
   customOpt.value = 'custom';
   customOpt.textContent = '+ New Site...';
-  sel.appendChild(customOpt);
+  frag.appendChild(customOpt);
+
+  sel.appendChild(frag);
+}
+
+document.getElementById('siteFilterInput').addEventListener('focus', () => {
+  discoverSiteKeysFromDatabase();
+});
+document.getElementById('siteFilterInput').addEventListener('input', (e) => {
+  renderSitesDropdown(e.target.value);
+});
+
+// Sync Sites & Operators from Firebase Realtime — this is what makes every
+// building/operator that already exists in the cloud show up automatically,
+// with no re-entry needed.
+// Auto-discover every real site under sites/ in the database, even ones that
+// were never added to the separate globalSitesList array (e.g. created by
+// importing data directly in the Firebase console). Uses a "shallow" REST
+// read so it only fetches the site NAMES, not each site's full building
+// JSON/history — fast and light regardless of how much data each site has.
+function discoverSiteKeysFromDatabase() {
+  const url = `${firebaseConfig.databaseURL}/sites.json?shallow=true`;
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || typeof data !== 'object') return;
+      const realKeys = Object.keys(data);
+      const merged = Array.from(new Set([...globalSitesList, ...realKeys]));
+      const isNew = merged.length !== globalSitesList.length;
+      if (isNew) {
+        globalSitesList = merged;
+        localStorage.setItem('app-cached-sites', JSON.stringify(merged));
+        renderSitesDropdown(document.getElementById('siteFilterInput') ? document.getElementById('siteFilterInput').value : '');
+        // Heal the official list so this scan isn't needed every time
+        db.ref('globalSitesList').set(merged).catch(err => console.error('Could not heal sites list:', err));
+      }
+    })
+    .catch(err => console.error('Site auto-discovery failed:', err));
 }
 
 db.ref('globalSitesList').on('value', (snap) => {
   const val = snap.val();
   if (val && Array.isArray(val) && val.length > 0) {
     globalSitesList = val;
+    localStorage.setItem('app-cached-sites', JSON.stringify(val));
   } else {
-    db.ref('globalSitesList').set(globalSitesList);
+    db.ref('globalSitesList').set(globalSitesList).catch(err => console.error('Seed sites list failed:', err));
   }
-  renderSitesDropdown();
+  renderSitesDropdown(document.getElementById('siteFilterInput') ? document.getElementById('siteFilterInput').value : '');
+}, (err) => {
+  console.error('Sites list read failed:', err);
+  showToast('לא הצלחתי לטעון רשימת אתרים מהענן — בודק שוב...');
 });
 
-// Load Global Operators List from Firebase
 db.ref('globalOperatorsList').on('value', (snap) => {
   const val = snap.val();
   if (val && Array.isArray(val)) {
     globalOperatorsList = val;
+    localStorage.setItem('app-cached-operators', JSON.stringify(val));
     renderOperatorsList();
+  } else {
+    db.ref('globalOperatorsList').set(globalOperatorsList).catch(err => console.error('Seed operators list failed:', err));
   }
+}, (err) => {
+  console.error('Operators list read failed:', err);
+  showToast('לא הצלחתי לטעון רשימת אופרטורים מהענן — בודק שוב...');
 });
 
-// Weather Fetching
 document.getElementById('fetchWeatherBtn').addEventListener('click', fetchLiveWeather);
 
 function fetchLiveWeather() {
@@ -1215,7 +1350,9 @@ function fetchLiveWeather() {
           if (state) {
             state.temp = temp; state.humidity = humidity;
             state.windGusts = windGusts;
-            saveState();
+            saveFieldUpdate('temp', temp);
+            saveFieldUpdate('humidity', humidity);
+            saveFieldUpdate('windGusts', windGusts);
           }
 
           checkWindAlert();
@@ -1238,6 +1375,23 @@ function checkWindAlert() {
   if (alertBox) alertBox.style.display = (gusts > 25) ? 'block' : 'none';
 }
 
+function checkTeamSizeValidation() {
+  const total = parseInt(document.getElementById('peopleInput').value || 0, 10);
+  const junior = parseInt(document.getElementById('juniorCountInput').value || 0, 10);
+  const expert = parseInt(document.getElementById('expertCountInput').value || 0, 10);
+  const alertBox = document.getElementById('teamMismatchAlert');
+
+  if (total > 0 && (junior + expert !== total)) {
+    alertBox.style.display = 'block';
+  } else {
+    alertBox.style.display = 'none';
+  }
+}
+
+document.getElementById('peopleInput').addEventListener('input', checkTeamSizeValidation);
+document.getElementById('juniorCountInput').addEventListener('input', checkTeamSizeValidation);
+document.getElementById('expertCountInput').addEventListener('input', checkTeamSizeValidation);
+
 document.getElementById('windGustsInput').addEventListener('input', checkWindAlert);
 
 function isFrameUnwalkable(frame) {
@@ -1253,7 +1407,6 @@ function checkWindowOverlap(kitId, frameId) {
   return state.kits.some(k => k.id !== kitId && (k.selectedFrames || []).includes(frameId));
 }
 
-// JSON Building File Upload Handling
 document.getElementById('uploadJsonBtn').addEventListener('click', () => {
   document.getElementById('jsonFileInput').click();
 });
@@ -1268,8 +1421,11 @@ document.getElementById('jsonFileInput').addEventListener('change', (e) => {
       const parsed = JSON.parse(evt.target.result);
       buildingData = parsed;
       const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-      db.ref(`sites/${cleanSite}/buildingJson`).set(parsed);
-      showToast(`Building JSON "${parsed.name || 'Building'}" loaded for site "${currentSite}"!`);
+      try { localStorage.setItem(`app-cached-building_${cleanSite}`, JSON.stringify(parsed)); } catch(e){}
+      render();
+      db.ref(`sites/${cleanSite}/buildingJson`).set(parsed)
+        .then(() => showToast(`Building JSON "${parsed.name || 'Building'}" saved to cloud for "${currentSite}"!`))
+        .catch(err => { console.error(err); showToast('נשמר מקומית, אך השמירה בענן נכשלה — בדוק חיבור לאינטרנט'); });
     } catch(err) {
       alert('Invalid JSON file format');
     }
@@ -1277,7 +1433,6 @@ document.getElementById('jsonFileInput').addEventListener('change', (e) => {
   reader.readAsText(file);
 });
 
-// Dynamic Cleaned Windows Calculation
 function recalculateSiteCleanedHistory() {
   siteCleanedFramesHistory.clear();
   if (!siteAllDaysData) return;
@@ -1294,7 +1449,6 @@ function recalculateSiteCleanedHistory() {
   });
 }
 
-// Reset Building Cycle
 document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
   if (confirm(`Are you sure you want to reset ALL cleaned window history AND delete ALL recorded daily sessions for building "${currentSite}"?`)) {
     siteCleanedFramesHistory.clear();
@@ -1307,18 +1461,20 @@ document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
 
     const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
     
-    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).remove();
-    db.ref(`sites/${cleanSite}/defectiveReportFrames`).remove();
-    db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).remove();
+    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).remove().catch(err => console.error(err));
+    db.ref(`sites/${cleanSite}/defectiveReportFrames`).remove().catch(err => console.error(err));
+    db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).remove().catch(err => console.error(err));
     db.ref(`sites/${cleanSite}/days`).remove().then(() => {
       saveState();
       render();
       showToast('Entire Building Cycle Reset!');
+    }).catch(err => {
+      console.error(err);
+      showToast('שגיאה באיפוס — בדוק חיבור לאינטרנט ונסה שוב');
     });
   }
 });
 
-// Dashboard Modal
 document.getElementById('openDashboardBtn').addEventListener('click', () => {
   calculateAndRenderDashboard();
   document.getElementById('dashboardModal').classList.add('show');
@@ -1368,14 +1524,22 @@ function calculateAndRenderDashboard() {
   document.getElementById('dashProgressBarFill').style.width = `${Math.min(100, progressPercent)}%`;
 
   let totalShiftMs = 0, totalUptimeMs = 0, totalDowntimeMs = 0;
+  let totalSystemDays = 0;
+  let totalOperatorDays = 0;
 
-  const dailyTableBody = document.getElementById('dashDailyLogsTableBody');
-  dailyTableBody.innerHTML = '';
+  const delaySummaryMap = {};
 
-  Object.keys(siteAllDaysData).forEach(dateKey => {
+  const sortedDateKeys = Object.keys(siteAllDaysData).sort();
+
+  sortedDateKeys.forEach(dateKey => {
     const dayObj = siteAllDaysData[dateKey];
     if (dayObj && dayObj.kits && dayObj.kits.length > 0) {
-      let earliestArrival = null, latestFinish = null, daySqm = 0;
+      let earliestArrival = null, latestFinish = null;
+
+      totalSystemDays += dayObj.kits.length;
+
+      const opCount = dayObj.operators ? dayObj.operators.split(',').filter(s => s.trim().length > 0).length : 0;
+      totalOperatorDays += opCount;
 
       dayObj.kits.forEach(kit => {
         const e = kit.events || {};
@@ -1392,21 +1556,25 @@ function calculateAndRenderDashboard() {
         if (wallMs) totalShiftMs += wallMs;
         if (netMs) totalUptimeMs += netMs;
         if (stopsMs) totalDowntimeMs += stopsMs;
-        if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
+
+        if (kit.stops && kit.stops.length > 0) {
+          kit.stops.forEach((st) => {
+            const reason = (st.reason && st.reason.trim()) ? st.reason.trim() : 'Unspecified Delay';
+            const durMs = (st.start && st.end) ? (new Date(st.end) - new Date(st.start)) : 0;
+
+            if (!delaySummaryMap[reason]) {
+              delaySummaryMap[reason] = { count: 0, totalMs: 0 };
+            }
+            delaySummaryMap[reason].count++;
+            delaySummaryMap[reason].totalMs += durMs;
+          });
+        }
       });
-
-      const dayShiftMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${dateKey}</td>
-        <td>${fmtDur(dayShiftMs)}</td>
-        <td>${daySqm.toFixed(2)} m²</td>
-        <td>${dayObj.kits.length} Kits</td>
-      `;
-      dailyTableBody.appendChild(tr);
     }
   });
+
+  document.getElementById('dashStatSystemDays').textContent = totalSystemDays;
+  document.getElementById('dashStatOperatorDays').textContent = totalOperatorDays;
 
   const uptimeHours = totalUptimeMs / (1000 * 3600);
   const speedSqmPerHour = uptimeHours > 0 ? (cleanedBuildingSqm / uptimeHours) : 0;
@@ -1416,9 +1584,35 @@ function calculateAndRenderDashboard() {
   document.getElementById('dashStatTotalTime').textContent = fmtDur(totalShiftMs);
   document.getElementById('dashStatDowntimePercent').textContent = downtimePercent.toFixed(1);
 
+  const delaysTableBody = document.getElementById('dashDelaysTableBody');
+  delaysTableBody.innerHTML = '';
+
+  const delayKeys = Object.keys(delaySummaryMap).sort((a,b) => delaySummaryMap[b].totalMs - delaySummaryMap[a].totalMs);
+
+  if (delayKeys.length === 0) {
+    delaysTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--dim);">No downtime or stops recorded in this cycle</td></tr>';
+  } else {
+    const frag = document.createDocumentFragment();
+    delayKeys.forEach(reason => {
+      const item = delaySummaryMap[reason];
+      const pct = totalDowntimeMs > 0 ? ((item.totalMs / totalDowntimeMs) * 100).toFixed(1) : '0.0';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:bold; color:var(--text);">${reason}</td>
+        <td style="text-align:center;">${item.count}</td>
+        <td style="font-weight:bold; color:var(--amber);">${fmtDur(item.totalMs)}</td>
+        <td style="font-weight:bold; color:var(--orange);">${pct}%</td>
+      `;
+      frag.appendChild(tr);
+    });
+    delaysTableBody.appendChild(frag);
+  }
+
   const facadeListContainer = document.getElementById('dashFacadeProgressList');
   facadeListContainer.innerHTML = '';
 
+  const fragFacade = document.createDocumentFragment();
   Object.keys(sectionSqmMap).forEach(secName => {
     const totalSec = sectionSqmMap[secName] || 1;
     const cleanedSec = sectionCleanedMap[secName] || 0;
@@ -1435,14 +1629,96 @@ function calculateAndRenderDashboard() {
         <div class="progress-bar-fill" style="width: ${Math.min(100, secPercent)}%;"></div>
       </div>
     `;
-    facadeListContainer.appendChild(item);
+    fragFacade.appendChild(item);
   });
+  facadeListContainer.appendChild(fragFacade);
 }
+
+document.getElementById('exportSiteBackupBtn').addEventListener('click', () => {
+  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+  db.ref(`sites/${cleanSite}`).once('value', (snap) => {
+    const data = snap.val();
+    if (!data) { showToast('No data to export'); return; }
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_${cleanSite}_${todayISO()}.json`;
+    a.click();
+    showToast(`Site backup downloaded for ${currentSite}`);
+  }, (err) => {
+    console.error(err);
+    showToast('שגיאה בייצוא הגיבוי — בדוק חיבור לאינטרנט');
+  });
+});
+
+document.getElementById('importSiteBackupBtn').addEventListener('click', () => {
+  document.getElementById('siteBackupFileInput').click();
+});
+
+document.getElementById('siteBackupFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const parsed = JSON.parse(evt.target.result);
+      if (confirm(`Overwrite all current data for site "${currentSite}" with imported backup?`)) {
+        const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+        db.ref(`sites/${cleanSite}`).set(parsed).then(() => {
+          showToast('Site backup restored successfully!');
+          loadDay(currentDate);
+        }).catch(err => {
+          console.error(err);
+          showToast('שגיאה בשחזור הגיבוי — בדוק חיבור לאינטרנט');
+        });
+      }
+    } catch(err) {
+      alert('Invalid backup JSON format');
+    }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('copyDashboardSummaryBtn').addEventListener('click', () => {
+  const table = document.querySelector('#dashDelaysTableBody');
+  if (!table || table.children.length === 0) {
+    showToast('No delay table data to copy');
+    return;
+  }
+
+  const rows = [];
+  rows.push(["Reason / Issue", "Occurrences", "Total Time Lost", "% of Downtime"].join('\t'));
+
+  Array.from(table.children).forEach(tr => {
+    const cells = Array.from(tr.children).map(td => td.innerText.trim());
+    if (cells.length === 4) {
+      rows.push(cells.join('\t'));
+    }
+  });
+
+  const textToCopy = rows.join('\n');
+
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    showToast('Table copied! Paste into Google Sheets');
+  }).catch(() => {
+    const textArea = document.createElement('textarea');
+    textArea.value = textToCopy;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showToast('Table copied! Paste into Google Sheets');
+  });
+});
 
 function renderNewKitDrops() {
   const container = document.getElementById('newKitDropList');
   if (!container) return;
   container.innerHTML = '';
+  const frag = document.createDocumentFragment();
   newKitDrops.forEach((item, idx) => {
     const row = document.createElement('div');
     row.className = 'drop-col-item';
@@ -1454,8 +1730,9 @@ function renderNewKitDrops() {
       </div>
       ${newKitDrops.length > 1 ? `<button type="button" class="btn-remove-drop" data-idx="${idx}">🗑️ Remove Drop Area</button>` : ''}
     `;
-    container.appendChild(row);
+    frag.appendChild(row);
   });
+  container.appendChild(frag);
 
   container.querySelectorAll('input').forEach(inp => {
     inp.addEventListener('input', (e) => {
@@ -1502,7 +1779,8 @@ customSiteInput.addEventListener('change', () => {
     currentSite = val;
     if (!globalSitesList.includes(val)) {
       globalSitesList.push(val);
-      db.ref('globalSitesList').set(globalSitesList);
+      db.ref('globalSitesList').set(globalSitesList).catch(err => console.error(err));
+      localStorage.setItem('app-cached-sites', JSON.stringify(globalSitesList));
     }
     localStorage.setItem('app-last-site', currentSite);
     customSiteInput.style.display = 'none';
@@ -1578,11 +1856,64 @@ function fmtDur(ms){
 function showToast(msg){
   const t = document.getElementById('toast');
   if (!t) return;
-  t.textContent = msg; t.classList.add('show');
+  t.innerHTML = `<span>${msg}</span>`;
+  t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 1600);
 }
 
-// Dual Save: Firebase + Offline LocalStorage Protection
+function showToastWithUndo(msg, undoCallback) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.innerHTML = `<span>${msg}</span><button class="toast-undo-btn" id="toastUndoBtn">Undo</button>`;
+  t.classList.add('show');
+  
+  document.getElementById('toastUndoBtn').onclick = () => {
+    undoCallback();
+    t.classList.remove('show');
+  };
+  setTimeout(()=>t.classList.remove('show'), 5000);
+}
+
+function saveFieldUpdate(pathKey, val) {
+  if (!currentDate || !currentSite) return;
+  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+  const path = `sites/${cleanSite}/days/${currentDate}/${pathKey}`;
+
+  // Always keep a local copy of the latest pending value for this path so a
+  // page reload before the write reaches the cloud never loses data.
+  offlineSyncQueue = offlineSyncQueue.filter(item => item.path !== path);
+  offlineSyncQueue.push({ path, val });
+  try { localStorage.setItem('offline_sync_queue', JSON.stringify(offlineSyncQueue)); } catch(e){}
+
+  // Always attempt the write — Firebase's own SDK queues it internally while
+  // offline and flushes automatically on reconnect. The catch below is only
+  // for genuine failures (e.g. permission errors), which we log and leave in
+  // the local queue so the periodic retry can pick it up.
+  db.ref(path).set(val)
+    .then(() => {
+      offlineSyncQueue = offlineSyncQueue.filter(item => item.path !== path);
+      try { localStorage.setItem('offline_sync_queue', JSON.stringify(offlineSyncQueue)); } catch(e){}
+    })
+    .catch(err => console.error('Save failed, will retry:', path, err));
+}
+
+function processOfflineSyncQueue() {
+  const savedQueue = localStorage.getItem('offline_sync_queue');
+  if (!savedQueue) return;
+  try {
+    const q = JSON.parse(savedQueue);
+    if (!q.length) return;
+    q.forEach(item => {
+      db.ref(item.path).set(item.val)
+        .then(() => {
+          offlineSyncQueue = offlineSyncQueue.filter(r => r.path !== item.path);
+          try { localStorage.setItem('offline_sync_queue', JSON.stringify(offlineSyncQueue)); } catch(e){}
+        })
+        .catch(err => console.error('Retry failed for', item.path, err));
+    });
+  } catch(e) { console.error(e); }
+}
+
 function saveState(){
   if(!state || !currentDate || !currentSite) return;
   const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
@@ -1591,12 +1922,14 @@ function saveState(){
     localStorage.setItem(`offline_${cleanSite}_${currentDate}`, JSON.stringify(state));
   } catch(e) { console.error(e); }
 
-  try {
-    db.ref(`sites/${cleanSite}/defectiveReportFrames`).set(Array.from(siteDefectiveReportFrames));
-    db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).set(Array.from(siteDefectiveUnwalkableFrames));
-    db.ref(`sites/${cleanSite}/siteLinks`).set(siteLinksData);
-    db.ref(`sites/${cleanSite}/days/${currentDate}`).set(state);
-  } catch(e) { console.error(e); }
+  db.ref(`sites/${cleanSite}/defectiveReportFrames`).set(Array.from(siteDefectiveReportFrames)).catch(err => console.error(err));
+  db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).set(Array.from(siteDefectiveUnwalkableFrames)).catch(err => console.error(err));
+  db.ref(`sites/${cleanSite}/siteLinks`).set(siteLinksData).catch(err => console.error(err));
+  db.ref(`sites/${cleanSite}/days/${currentDate}`).update(state).catch(err => {
+    console.error(err);
+    // Fall back to the durable per-field retry queue so this isn't lost
+    saveFieldUpdate('kits', state.kits);
+  });
 }
 
 function loadDay(dateISO){
@@ -1605,28 +1938,54 @@ function loadDay(dateISO){
 
   const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
 
-  db.ref(`sites/${cleanSite}/buildingJson`).on('value', (snap) => {
-    buildingData = snap.val() || null;
+  // 1) Paint immediately from whatever is already cached locally, so the
+  //    screen is never blank/stuck waiting on a network round trip — this is
+  //    what makes the app feel instant even on a slow or flaky connection.
+  const cachedBuilding = localStorage.getItem(`app-cached-building_${cleanSite}`);
+  buildingData = cachedBuilding ? JSON.parse(cachedBuilding) : null;
+
+  const localFallback = localStorage.getItem(`offline_${cleanSite}_${dateISO}`);
+  state = localFallback ? JSON.parse(localFallback) : blankDay(dateISO);
+  if(!state.kits) state.kits = [];
+  state.kits.forEach(k => {
+    if(!k.stops) k.stops = [];
+    if(!k.events) k.events = {};
+    if(!k.drops) k.drops = [{ facade: k.facade||'', rows: k.rows||'', cols: k.cols||'' }];
+    if(!k.selectedFrames) k.selectedFrames = [];
   });
+  if (state.workType === 'Inspection') document.body.classList.add('inspection-mode');
+  else document.body.classList.remove('inspection-mode');
+  render();
+
+  // 2) Layer in live data from Firebase as it arrives — this is what makes a
+  //    building JSON / operators / history uploaded once show up on every
+  //    device and every future session automatically.
+  db.ref(`sites/${cleanSite}/buildingJson`).on('value', (snap) => {
+    const val = snap.val();
+    if (val) {
+      buildingData = val;
+      try { localStorage.setItem(`app-cached-building_${cleanSite}`, JSON.stringify(val)); } catch(e){}
+    }
+  }, (err) => console.error('Building JSON read failed:', err));
 
   db.ref(`sites/${cleanSite}/siteLinks`).on('value', (snap) => {
     siteLinksData = snap.val() || { opReportLink: '', projectAlbumLink: '' };
     document.getElementById('opReportLinkInput').value = siteLinksData.opReportLink || '';
     document.getElementById('projectAlbumLinkInput').value = siteLinksData.projectAlbumLink || '';
-  });
+  }, (err) => console.error('Site links read failed:', err));
 
   db.ref(`sites/${cleanSite}/defectiveReportFrames`).on('value', (snap) => {
     siteDefectiveReportFrames = new Set(snap.val() || []);
-  });
+  }, (err) => console.error('Defective (report) read failed:', err));
 
   db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).on('value', (snap) => {
     siteDefectiveUnwalkableFrames = new Set(snap.val() || []);
-  });
+  }, (err) => console.error('Defective (unwalkable) read failed:', err));
 
   db.ref(`sites/${cleanSite}/days`).on('value', (snap) => {
     siteAllDaysData = snap.val() || {};
     recalculateSiteCleanedHistory();
-  });
+  }, (err) => console.error('Days history read failed:', err));
 
   dbRef = db.ref(`sites/${cleanSite}/days/${dateISO}`);
   dbRef.on('value', (snapshot) => {
@@ -1640,21 +1999,19 @@ function loadDay(dateISO){
         if(!k.drops) k.drops = [{ facade: k.facade||'', rows: k.rows||'', cols: k.cols||'' }];
         if(!k.selectedFrames) k.selectedFrames = [];
       });
-    } else {
-      const localFallback = localStorage.getItem(`offline_${cleanSite}_${dateISO}`);
-      if (localFallback) {
-        state = JSON.parse(localFallback);
-      } else {
-        state = blankDay(dateISO);
-      }
     }
-    
+    // If data is null (nothing saved yet for this day), keep the local
+    // fallback/blank state that was already painted in step 1 above.
+
     if (state.workType === 'Inspection') {
       document.body.classList.add('inspection-mode');
     } else {
       document.body.classList.remove('inspection-mode');
     }
     render();
+  }, (err) => {
+    console.error('Day data read failed:', err);
+    showToast('שגיאת חיבור לענן — עובד זמנית על נתונים מקומיים');
   });
 }
 
@@ -1836,17 +2193,17 @@ function renderKitCard(kit){
 
   card.querySelector('.delete-kit-btn').addEventListener('click', (ev) => {
     ev.stopPropagation();
-    if(confirm(`Are you sure you want to delete Kit #${kit.id}?`)){
-      state.kits = state.kits.filter(k => k.id !== kit.id);
-      saveState();
-      showToast(`Kit #${kit.id} deleted`);
-    }
+    lastDeletedKit = JSON.parse(JSON.stringify(kit));
+    state.kits = state.kits.filter(k => k.id !== kit.id);
+    saveState();
+    showToastWithUndo(`Kit #${kit.id} deleted`, undoDeleteKit);
   });
 
   const dropsContainer = card.querySelector('.card-drop-list');
   function renderCardDrops() {
     dropsContainer.innerHTML = '';
     if(!kit.drops || !kit.drops.length) kit.drops = [{ facade: '', rows: '', cols: '' }];
+    const frag = document.createDocumentFragment();
     kit.drops.forEach((dItem, dIdx) => {
       const row = document.createElement('div');
       row.className = 'drop-col-item';
@@ -1858,8 +2215,9 @@ function renderKitCard(kit){
         </div>
         ${kit.drops.length > 1 ? `<button type="button" class="btn-remove-drop" data-didx="${dIdx}">🗑️ Remove Drop Area</button>` : ''}
       `;
-      dropsContainer.appendChild(row);
+      frag.appendChild(row);
     });
+    dropsContainer.appendChild(frag);
 
     dropsContainer.querySelectorAll('input').forEach(inp => {
       inp.addEventListener('change', (ev) => {
@@ -1919,6 +2277,7 @@ function renderKitCard(kit){
   });
 
   const grid = card.querySelector('.stage-grid');
+  const fragStage = document.createDocumentFragment();
   STAGES.forEach((s,i)=>{
     const done = !!(kit.events && kit.events[s.key]);
     const locked = i > nextIdx;
@@ -1952,8 +2311,9 @@ function renderKitCard(kit){
       });
     }
 
-    grid.appendChild(chip);
+    fragStage.appendChild(chip);
   });
+  grid.appendChild(fragStage);
 
   const stopBtn = card.querySelector('[data-act="stop"]');
   const startBtn = card.querySelector('[data-act="start"]');
@@ -2042,6 +2402,18 @@ function renderKitCard(kit){
   return card;
 }
 
+function undoDeleteKit() {
+  if (lastDeletedKit) {
+    if (!state.kits.some(k => String(k.id) === String(lastDeletedKit.id))) {
+      state.kits.push(lastDeletedKit);
+      saveState();
+      renderKits();
+      showToast(`Kit #${lastDeletedKit.id} restored!`);
+      lastDeletedKit = null;
+    }
+  }
+}
+
 function openFacadeMapModal(kit) {
   activeMapKitId = kit.id;
   selectedFrameIds = new Set(kit.selectedFrames || []);
@@ -2049,12 +2421,14 @@ function openFacadeMapModal(kit) {
   const sectionSel = document.getElementById('facadeSectionSelect');
   sectionSel.innerHTML = '';
   
+  const frag = document.createDocumentFragment();
   (buildingData.sections || []).forEach((sec, idx) => {
     const opt = document.createElement('option');
     opt.value = idx;
     opt.textContent = `${sec.name || sec.section_id} (${sec.n_cols} cols x ${sec.n_rows} rows)`;
-    sectionSel.appendChild(opt);
+    frag.appendChild(opt);
   });
+  sectionSel.appendChild(frag);
 
   currentMapInteractionMode = 'scroll';
   clearMapModeButtons();
@@ -2066,7 +2440,6 @@ function openFacadeMapModal(kit) {
   document.getElementById('facadeMapModal').classList.add('show');
 }
 
-// Clear Today's Selection Handler
 document.getElementById('clearTodaySelectionBtn').addEventListener('click', () => {
   if (confirm("Are you sure you want to clear all selected windows for this Kit today?")) {
     selectedFrameIds.clear();
@@ -2140,7 +2513,6 @@ function toggleWindowCell(cell, frame, frameId) {
   document.getElementById('facadeSqmTotal').textContent = calculateSelectedSqm().toFixed(2);
 }
 
-// Render Facade Grid With Strict Square Alignment
 function renderFacadeGrid(sectionIdx) {
   const wrapper = document.getElementById('facadeGridWrapper');
   wrapper.innerHTML = '';
@@ -2156,6 +2528,7 @@ function renderFacadeGrid(sectionIdx) {
   });
 
   const sortedRowKeys = Object.keys(rowMap).map(Number).sort((a,b) => b - a);
+  const fragGrid = document.createDocumentFragment();
 
   sortedRowKeys.forEach(yKey => {
     const rowFrames = rowMap[yKey].sort((a,b) => parseInt(a.frame_pos.x || 0, 10) - parseInt(b.frame_pos.x || 0, 10));
@@ -2228,9 +2601,10 @@ function renderFacadeGrid(sectionIdx) {
       rowContainer.appendChild(cell);
     });
 
-    wrapper.appendChild(rowContainer);
+    fragGrid.appendChild(rowContainer);
   });
 
+  wrapper.appendChild(fragGrid);
   document.getElementById('facadeSqmTotal').textContent = calculateSelectedSqm().toFixed(2);
 }
 
@@ -2307,7 +2681,6 @@ document.getElementById('facadeMapCancel').addEventListener('click', () => {
   activeMapKitId = null;
 });
 
-// Save Map Selection + Auto derive Drop Columns/Areas
 document.getElementById('facadeMapConfirm').addEventListener('click', () => {
   const kit = state.kits.find(k => k.id === activeMapKitId);
   if (kit) {
@@ -2334,7 +2707,9 @@ function renderKits(){
     wrap.appendChild(empty);
     return;
   }
-  state.kits.forEach(kit => wrap.appendChild(renderKitCard(kit)));
+  const frag = document.createDocumentFragment();
+  state.kits.forEach(kit => frag.appendChild(renderKitCard(kit)));
+  wrap.appendChild(frag);
 }
 
 document.getElementById('addKitToggle').addEventListener('click', ()=>{
@@ -2386,7 +2761,6 @@ document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
   renderNewKitDrops();
 });
 
-// Compressed Stop Photo Upload Handlers
 document.getElementById('stopPhotoInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (file) {
@@ -2525,20 +2899,20 @@ document.getElementById('workTypeInput').addEventListener('change', (e)=>{
     } else {
       document.body.classList.remove('inspection-mode');
     }
-    saveState(); 
+    saveFieldUpdate('workType', state.workType);
   } 
 });
 
-document.getElementById('qualityRatingInput').addEventListener('change', (e)=>{ if(state) { state.qualityRating = e.target.value; saveState(); } });
-document.getElementById('peopleInput').addEventListener('change', (e)=>{ if(state) { state.people = e.target.value; saveState(); } });
-document.getElementById('juniorCountInput').addEventListener('change', (e)=>{ if(state) { state.juniorCount = e.target.value; saveState(); } });
-document.getElementById('expertCountInput').addEventListener('change', (e)=>{ if(state) { state.expertCount = e.target.value; saveState(); } });
+document.getElementById('qualityRatingInput').addEventListener('change', (e)=>{ if(state) { state.qualityRating = e.target.value; saveFieldUpdate('qualityRating', state.qualityRating); } });
+document.getElementById('peopleInput').addEventListener('change', (e)=>{ if(state) { state.people = e.target.value; saveFieldUpdate('people', state.people); checkTeamSizeValidation(); } });
+document.getElementById('juniorCountInput').addEventListener('change', (e)=>{ if(state) { state.juniorCount = e.target.value; saveFieldUpdate('juniorCount', state.juniorCount); checkTeamSizeValidation(); } });
+document.getElementById('expertCountInput').addEventListener('change', (e)=>{ if(state) { state.expertCount = e.target.value; saveFieldUpdate('expertCount', state.expertCount); checkTeamSizeValidation(); } });
 
-document.getElementById('tempInput').addEventListener('change', (e)=>{ if(state) { state.temp = e.target.value; saveState(); } });
-document.getElementById('humidityInput').addEventListener('change', (e)=>{ if(state) { state.humidity = e.target.value; saveState(); } });
-document.getElementById('windGustsInput').addEventListener('change', (e)=>{ if(state) { state.windGusts = e.target.value; saveState(); checkWindAlert(); } });
+document.getElementById('tempInput').addEventListener('change', (e)=>{ if(state) { state.temp = e.target.value; saveFieldUpdate('temp', state.temp); } });
+document.getElementById('humidityInput').addEventListener('change', (e)=>{ if(state) { state.humidity = e.target.value; saveFieldUpdate('humidity', state.humidity); } });
+document.getElementById('windGustsInput').addEventListener('change', (e)=>{ if(state) { state.windGusts = e.target.value; saveFieldUpdate('windGusts', state.windGusts); checkWindAlert(); } });
 
-document.getElementById('generalIssuesInput').addEventListener('change', (e)=>{ if(state) { state.generalIssues = e.target.value; saveState(); } });
+document.getElementById('generalIssuesInput').addEventListener('change', (e)=>{ if(state) { state.generalIssues = e.target.value; saveFieldUpdate('generalIssues', state.generalIssues); } });
 document.getElementById('opReportLinkInput').addEventListener('change', (e)=>{ 
   siteLinksData.opReportLink = e.target.value; 
   saveState(); 
@@ -2548,7 +2922,6 @@ document.getElementById('projectAlbumLinkInput').addEventListener('change', (e)=
   saveState(); 
 });
 
-// Render Daily Summary
 function renderSummary(){
   const box = document.getElementById('summaryBox');
   if(!box) return;
@@ -2620,6 +2993,7 @@ function render(){
   }
 
   checkWindAlert();
+  checkTeamSizeValidation();
 
   if(state) {
     renderKits();
@@ -2627,7 +3001,6 @@ function render(){
   }
 }
 
-// Rich HTML Email Generator Function
 function generateRichHTMLEmail() {
   if (!state) return '';
 
@@ -2732,7 +3105,6 @@ function generateRichHTMLEmail() {
   return fullHTML;
 }
 
-// Generate Email Summary Action
 document.getElementById('generateEmailBtn').addEventListener('click', () => {
   const emailHTML = generateRichHTMLEmail();
   document.getElementById('emailTextPreview').innerHTML = emailHTML;
@@ -2743,7 +3115,6 @@ document.getElementById('emailModalCancel').addEventListener('click', () => {
   document.getElementById('emailModal').classList.remove('show');
 });
 
-// Rich Text Copying
 document.getElementById('copyEmailTextBtn').addEventListener('click', () => {
   const htmlContent = generateRichHTMLEmail();
   
@@ -2811,7 +3182,6 @@ function formatDropColumns(kit) {
   return parts.join(', ');
 }
 
-// Sheets Export Alignment
 function copyRowsForSheets(){
   if(!state || !state.kits || state.kits.length === 0){
     showToast('No data available to copy');
@@ -2896,7 +3266,6 @@ function copyRowsForSheets(){
   });
 }
 
-// Generate Full Cycle Progress PDF Report for Client
 function exportFullCyclePdfReport() {
   let totalBuildingSqm = 0;
   const sectionSqmMap = {};
@@ -3079,7 +3448,11 @@ document.getElementById('loadBtn').addEventListener('click', ()=>{
 (function init(){
   const today = todayISO();
   document.getElementById('dateInput').value = today;
+  renderSitesDropdown();
   loadDay(today);
+  discoverSiteKeysFromDatabase();
+  updateNetworkStatus();
+  processOfflineSyncQueue();
   
   setInterval(()=>{
     if(!state || !state.kits) return;
