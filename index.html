@@ -459,14 +459,8 @@
   .facade-progress-label { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; font-weight: bold; }
 
   .daily-logs-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-family: var(--mono); font-size: 12px; }
-  .daily-logs-table th, .daily-logs-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .daily-logs-table th, .daily-logs-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--line); }
   .daily-logs-table th { color: var(--amber); }
-
-  .copy-dash-btn {
-    background: var(--blue-dim); color: var(--blue); border: 1.5px solid var(--blue);
-    border-radius: 8px; padding: 10px 14px; font-family: var(--mono); font-size: 13px;
-    font-weight: bold; cursor: pointer; flex: 1;
-  }
 
   @media (min-width: 650px) {
     #kitsList { grid-template-columns: repeat(2, 1fr); }
@@ -476,8 +470,8 @@
     .kit-new-grid .field.full-width { grid-column: span 3; }
     .modal-overlay { align-items: center; }
     .modal-box { border-radius: 16px; }
-    .dashboard-grid { grid-template-columns: repeat(3, 1fr); }
-    .dash-card.full-width { grid-column: span 3; }
+    .dashboard-grid { grid-template-columns: repeat(4, 1fr); }
+    .dash-card.full-width { grid-column: span 4; }
   }
 
   @media print {
@@ -814,7 +808,7 @@
 <!-- Cycle Dashboard Modal -->
 <div class="modal-overlay" id="dashboardModal">
   <div class="modal-box dashboard-modal">
-    <div class="modal-title">📊 Cycle Analytics & Downtime Summary</div>
+    <div class="modal-title">📊 Cycle Analytics & Dashboard</div>
     <div class="modal-sub" id="dashboardSiteSub">Site: Suzuki</div>
 
     <div class="dashboard-grid">
@@ -831,18 +825,6 @@
         <div class="dash-title">Cleaned Area</div>
         <div class="dash-val"><span id="dashStatSqm">0</span> m²</div>
         <div class="dash-sub">Total Project Output</div>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-title">Total System Days</div>
-        <div class="dash-val"><span id="dashStatSystemDays">0</span></div>
-        <div class="dash-sub">Cumulative Active Kits</div>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-title">Total Operator Days</div>
-        <div class="dash-val"><span id="dashStatOperatorDays">0</span></div>
-        <div class="dash-sub">Cumulative On-Site Crew</div>
       </div>
 
       <div class="dash-card">
@@ -869,25 +851,24 @@
       </div>
 
       <div class="dash-card full-width">
-        <div class="dash-title">Downtime & Delay Analysis by Reason</div>
+        <div class="dash-title">Recorded Daily Logs Summary</div>
         <div style="overflow-x: auto;">
           <table class="daily-logs-table">
             <thead>
               <tr>
-                <th>Reason / Issue</th>
-                <th>Occurrences</th>
-                <th>Total Time Lost</th>
-                <th>% of Downtime</th>
+                <th>Date</th>
+                <th>Shift Time</th>
+                <th>SQM Cleaned</th>
+                <th>Active Kits</th>
               </tr>
             </thead>
-            <tbody id="dashDelaysTableBody"></tbody>
+            <tbody id="dashDailyLogsTableBody"></tbody>
           </table>
         </div>
       </div>
     </div>
 
     <div class="modal-actions">
-      <button class="copy-dash-btn" id="copyDashboardSummaryBtn">📋 Copy Table for Google Sheets</button>
       <button class="cancel" id="closeDashboardBtn">Close Dashboard</button>
     </div>
   </div>
@@ -1387,22 +1368,14 @@ function calculateAndRenderDashboard() {
   document.getElementById('dashProgressBarFill').style.width = `${Math.min(100, progressPercent)}%`;
 
   let totalShiftMs = 0, totalUptimeMs = 0, totalDowntimeMs = 0;
-  let totalSystemDays = 0;
-  let totalOperatorDays = 0;
 
-  const delaySummaryMap = {};
+  const dailyTableBody = document.getElementById('dashDailyLogsTableBody');
+  dailyTableBody.innerHTML = '';
 
-  const sortedDateKeys = Object.keys(siteAllDaysData).sort();
-
-  sortedDateKeys.forEach(dateKey => {
+  Object.keys(siteAllDaysData).forEach(dateKey => {
     const dayObj = siteAllDaysData[dateKey];
     if (dayObj && dayObj.kits && dayObj.kits.length > 0) {
-      let earliestArrival = null, latestFinish = null;
-
-      totalSystemDays += dayObj.kits.length;
-
-      const opCount = dayObj.operators ? dayObj.operators.split(',').filter(s => s.trim().length > 0).length : 0;
-      totalOperatorDays += opCount;
+      let earliestArrival = null, latestFinish = null, daySqm = 0;
 
       dayObj.kits.forEach(kit => {
         const e = kit.events || {};
@@ -1419,25 +1392,21 @@ function calculateAndRenderDashboard() {
         if (wallMs) totalShiftMs += wallMs;
         if (netMs) totalUptimeMs += netMs;
         if (stopsMs) totalDowntimeMs += stopsMs;
-
-        if (kit.stops && kit.stops.length > 0) {
-          kit.stops.forEach((st) => {
-            const reason = (st.reason && st.reason.trim()) ? st.reason.trim() : 'Unspecified Delay';
-            const durMs = (st.start && st.end) ? (new Date(st.end) - new Date(st.start)) : 0;
-
-            if (!delaySummaryMap[reason]) {
-              delaySummaryMap[reason] = { count: 0, totalMs: 0 };
-            }
-            delaySummaryMap[reason].count++;
-            delaySummaryMap[reason].totalMs += durMs;
-          });
-        }
+        if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
       });
+
+      const dayShiftMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${dateKey}</td>
+        <td>${fmtDur(dayShiftMs)}</td>
+        <td>${daySqm.toFixed(2)} m²</td>
+        <td>${dayObj.kits.length} Kits</td>
+      `;
+      dailyTableBody.appendChild(tr);
     }
   });
-
-  document.getElementById('dashStatSystemDays').textContent = totalSystemDays;
-  document.getElementById('dashStatOperatorDays').textContent = totalOperatorDays;
 
   const uptimeHours = totalUptimeMs / (1000 * 3600);
   const speedSqmPerHour = uptimeHours > 0 ? (cleanedBuildingSqm / uptimeHours) : 0;
@@ -1446,29 +1415,6 @@ function calculateAndRenderDashboard() {
   document.getElementById('dashStatSpeed').textContent = speedSqmPerHour.toFixed(1);
   document.getElementById('dashStatTotalTime').textContent = fmtDur(totalShiftMs);
   document.getElementById('dashStatDowntimePercent').textContent = downtimePercent.toFixed(1);
-
-  const delaysTableBody = document.getElementById('dashDelaysTableBody');
-  delaysTableBody.innerHTML = '';
-
-  const delayKeys = Object.keys(delaySummaryMap).sort((a,b) => delaySummaryMap[b].totalMs - delaySummaryMap[a].totalMs);
-
-  if (delayKeys.length === 0) {
-    delaysTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--dim);">No downtime or stops recorded in this cycle</td></tr>';
-  } else {
-    delayKeys.forEach(reason => {
-      const item = delaySummaryMap[reason];
-      const pct = totalDowntimeMs > 0 ? ((item.totalMs / totalDowntimeMs) * 100).toFixed(1) : '0.0';
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td style="font-weight:bold; color:var(--text);">${reason}</td>
-        <td style="text-align:center;">${item.count}</td>
-        <td style="font-weight:bold; color:var(--amber);">${fmtDur(item.totalMs)}</td>
-        <td style="font-weight:bold; color:var(--orange);">${pct}%</td>
-      `;
-      delaysTableBody.appendChild(tr);
-    });
-  }
 
   const facadeListContainer = document.getElementById('dashFacadeProgressList');
   facadeListContainer.innerHTML = '';
@@ -1492,39 +1438,6 @@ function calculateAndRenderDashboard() {
     facadeListContainer.appendChild(item);
   });
 }
-
-// Copy ONLY Delays Table for Google Sheets (Strict Column Alignment)
-document.getElementById('copyDashboardSummaryBtn').addEventListener('click', () => {
-  const table = document.querySelector('#dashDelaysTableBody');
-  if (!table || table.children.length === 0) {
-    showToast('No delay table data to copy');
-    return;
-  }
-
-  const rows = [];
-  rows.push(["Reason / Issue", "Occurrences", "Total Time Lost", "% of Downtime"].join('\t'));
-
-  Array.from(table.children).forEach(tr => {
-    const cells = Array.from(tr.children).map(td => td.innerText.trim());
-    if (cells.length === 4) {
-      rows.push(cells.join('\t'));
-    }
-  });
-
-  const textToCopy = rows.join('\n');
-
-  navigator.clipboard.writeText(textToCopy).then(() => {
-    showToast('Table copied! Paste into Google Sheets');
-  }).catch(() => {
-    const textArea = document.createElement('textarea');
-    textArea.value = textToCopy;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    showToast('Table copied! Paste into Google Sheets');
-  });
-});
 
 function renderNewKitDrops() {
   const container = document.getElementById('newKitDropList');
