@@ -118,7 +118,7 @@
   .header-collapsible {
     transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out;
     overflow: hidden;
-    max-height: 500px;
+    max-height: 800px;
     opacity: 1;
   }
 
@@ -131,27 +131,27 @@
   }
 
   .site-pick{
-    margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap: wrap;
+    margin-top:10px; display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; align-items:center;
     background:var(--panel2); padding:10px; border-radius:10px; border:1.5px solid var(--amber);
   }
+  .site-pick .row-full { grid-column: span 2; display: flex; gap: 8px; align-items: center; }
   .site-pick label{font-family:var(--mono); font-size:12px; font-weight:bold; color:var(--amber); white-space:nowrap;}
   .site-pick select, .site-pick input{
     background:var(--panel); border:1px solid var(--line); color:var(--text);
-    font-family:var(--body); font-size:14px; padding:6px 8px; border-radius:6px; flex:1; font-weight:bold;
+    font-family:var(--body); font-size:14px; padding:6px 8px; border-radius:6px; flex:1; font-weight:bold; width: 100%;
   }
 
-  .site-search-input { min-width: 120px; font-size: 12px !important; }
-
   .dashboard-btn, .history-logs-btn, .json-upload-btn, .main-reset-cycle-btn, .new-cycle-btn, .cycle-action-btn, .site-action-btn {
-    border-radius: 6px; padding: 8px 12px; font-family: var(--mono);
-    font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; min-height: 40px;
+    border-radius: 6px; padding: 8px; font-family: var(--mono);
+    font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; min-height: 38px;
+    display: flex; align-items: center; justify-content: center; text-align: center; width: 100%;
   }
   .dashboard-btn { background: var(--amber-dim); color: var(--amber); border: 1.5px solid var(--amber); }
   .history-logs-btn { background: var(--blue-dim); color: var(--blue); border: 1.5px solid var(--blue); }
   .new-cycle-btn { background: var(--green-dim); color: var(--green); border: 1.5px solid var(--green); }
-  .cycle-action-btn, .site-action-btn { background: var(--panel); color: var(--text); border: 1px solid var(--line); padding: 6px 8px; min-height: 36px; }
+  .cycle-action-btn, .site-action-btn { background: var(--panel); color: var(--text); border: 1px solid var(--line); }
   .json-upload-btn { background: var(--panel3); color: var(--text); border: 1px solid var(--line); }
-  .main-reset-cycle-btn { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); }
+  .main-reset-cycle-btn { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); grid-column: span 2; }
 
   .weather-btn {
     background: var(--green-dim); color: var(--green); border: 1px solid var(--green);
@@ -165,12 +165,7 @@
     font-weight: bold; margin-top: 8px; display: none;
   }
 
-  .team-mismatch-alert {
-    background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange);
-    padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 4px; display: none;
-  }
-
-  .datepick{margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap: wrap;}
+  .datepick{margin-top:8px; display:flex; gap:8px; align-items:center;}
   .datepick input[type=date]{
     background:var(--panel); border:1.5px solid var(--line); color:var(--text);
     font-family:var(--mono); font-size:14px; padding:10px; border-radius:8px; flex:1; font-weight:bold;
@@ -198,7 +193,6 @@
 
   .field-row{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;}
   .field-row.three-col{grid-template-columns: 1fr 1fr 1fr;}
-  .field-row.four-col{grid-template-columns: repeat(4, 1fr);}
   .field{flex:1;}
 
   .field label{
@@ -211,7 +205,7 @@
   }
   .field textarea{ resize: vertical; min-height: 70px; }
 
-  /* Multiple Operators Selector UI */
+  /* Operators UI */
   .operators-wrapper {
     background: var(--panel2); border: 1.5px solid var(--line); border-radius: 8px;
     padding: 10px; display: flex; flex-direction: column; gap: 8px;
@@ -232,11 +226,8 @@
     color: var(--orange); font-size: 12px; margin-left: 4px; padding: 0 2px;
     font-weight: bold; cursor: pointer; border: none; background: transparent;
   }
-  .delete-operator-btn:hover { color: #FF0000; }
 
-  .add-operator-row {
-    display: flex; gap: 6px; margin-top: 4px;
-  }
+  .add-operator-row { display: flex; gap: 6px; margin-top: 4px; }
   .add-operator-row input { font-size: 13px; padding: 6px 8px; }
   .add-operator-btn {
     background: var(--green-dim); color: var(--green); border: 1px solid var(--green);
@@ -288,9 +279,7 @@
     margin-bottom: 10px; background: var(--panel2); padding: 8px;
     border-radius: 8px; border: 1px solid var(--line); position: relative;
   }
-  .drop-col-fields-grid {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
-  }
+  .drop-col-fields-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
   .drop-col-item input { font-size: 13px !important; padding: 8px !important; width: 100%; }
   .btn-remove-drop {
     background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange);
@@ -360,9 +349,7 @@
     background:var(--amber-dim); color:var(--amber); font-family:var(--disp); font-size:17px; font-weight:700; cursor:pointer; margin-top: 10px; min-height: 52px;
   }
 
-  .kit-new-box{
-    background:var(--panel2); border:2px solid var(--line); border-radius:10px; padding:14px; margin-top:10px;
-  }
+  .kit-new-box{ background:var(--panel2); border:2px solid var(--line); border-radius:10px; padding:14px; margin-top:10px; }
   .kit-new-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   
   .kit-new-box .go{
@@ -398,9 +385,6 @@
     display: flex; align-items: center; gap: 10px;
   }
   .toast.show{opacity:1; pointer-events:auto;}
-  .toast-undo-btn {
-    background: var(--amber); color: #000; border: none; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;
-  }
 
   .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:flex-end; justify-content:center; z-index:60; }
   .modal-overlay.show{display:flex;}
@@ -466,7 +450,6 @@
 
   body.inspection-mode .window-cell.unwalkable { cursor: pointer !important; opacity: 1 !important; }
 
-  /* Email Generator Modal Rich Styling */
   .email-modal-box { max-width: 800px !important; }
   .email-preview-container {
     width: 100%; max-height: 380px; background: #FFFFFF; color: #1E293B;
@@ -475,7 +458,6 @@
     line-height: 1.5; margin-bottom: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
   }
 
-  /* Dashboard & History Modals */
   .dashboard-modal, .history-modal { max-width: 950px !important; max-height: 90vh; overflow-y: auto; }
   .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
   .dash-card { background: var(--panel2); border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; }
@@ -501,7 +483,14 @@
   }
   .history-log-card:hover { border-color: var(--amber); }
 
+  /* Desktop Responsive Adjustments */
   @media (min-width: 650px) {
+    .site-pick { display: flex; flex-wrap: wrap; }
+    .site-pick .row-full { width: auto; flex: none; }
+    .site-pick select, .site-pick input { width: auto; }
+    .dashboard-btn, .history-logs-btn, .json-upload-btn, .main-reset-cycle-btn, .new-cycle-btn, .cycle-action-btn, .site-action-btn { width: auto; }
+    .main-reset-cycle-btn { grid-column: auto; }
+
     #kitsList { grid-template-columns: repeat(2, 1fr); }
     .btn-group { flex-direction: row; }
     .btn-group button { flex: 1; }
@@ -542,21 +531,25 @@
     
     <div class="header-collapsible" id="headerCollapsible">
       <div class="site-pick">
-        <label>Site:</label>
-        <select id="siteSelect"></select>
-        <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
+        <div class="row-full">
+          <label>Site:</label>
+          <select id="siteSelect"></select>
+          <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
+        </div>
         <button type="button" class="site-action-btn" id="renameSiteBtn" title="Rename current site">✏️ Rename Site</button>
         <button type="button" class="site-action-btn" id="deleteSiteBtn" title="Delete current site" style="color:var(--orange);">🗑️ Delete Site</button>
 
-        <label style="margin-left: 8px;">Cycle:</label>
-        <select id="cycleSelect" style="min-width: 120px;"></select>
+        <div class="row-full" style="margin-top: 4px;">
+          <label>Cycle:</label>
+          <select id="cycleSelect"></select>
+        </div>
         <button type="button" class="new-cycle-btn" id="createNewCycleBtn">➕ New Cycle</button>
         <button type="button" class="cycle-action-btn" id="renameCycleBtn" title="Rename current cycle">✏️ Rename</button>
         <button type="button" class="cycle-action-btn" id="deleteCycleBtn" title="Delete current cycle" style="color:var(--orange);">🗑️ Delete Cycle</button>
         
         <button type="button" class="dashboard-btn" id="openDashboardBtn">📊 Open Dashboard</button>
         <button type="button" class="history-logs-btn" id="openHistoryModalBtn">📜 View Logs History</button>
-        <button type="button" class="json-upload-btn" id="uploadJsonBtn">📁 Upload Building JSON</button>
+        <button type="button" class="json-upload-btn" id="uploadJsonBtn" style="grid-column: span 2;">📁 Upload Building JSON</button>
         <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
 
         <button type="button" class="main-reset-cycle-btn" id="mainResetCycleBtn">🔄 Reset Current Cycle</button>
