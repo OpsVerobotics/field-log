@@ -142,12 +142,15 @@
 
   .site-search-input { min-width: 120px; font-size: 12px !important; }
 
-  .dashboard-btn, .json-upload-btn, .main-reset-cycle-btn {
+  .dashboard-btn, .history-logs-btn, .json-upload-btn, .main-reset-cycle-btn, .new-cycle-btn, .cycle-action-btn, .site-action-btn {
     border-radius: 6px; padding: 8px 12px; font-family: var(--mono);
     font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; min-height: 40px;
   }
   .dashboard-btn { background: var(--amber-dim); color: var(--amber); border: 1.5px solid var(--amber); }
-  .json-upload-btn { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
+  .history-logs-btn { background: var(--blue-dim); color: var(--blue); border: 1.5px solid var(--blue); }
+  .new-cycle-btn { background: var(--green-dim); color: var(--green); border: 1.5px solid var(--green); }
+  .cycle-action-btn, .site-action-btn { background: var(--panel); color: var(--text); border: 1px solid var(--line); padding: 6px 8px; min-height: 36px; }
+  .json-upload-btn { background: var(--panel3); color: var(--text); border: 1px solid var(--line); }
   .main-reset-cycle-btn { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); }
 
   .weather-btn {
@@ -167,7 +170,7 @@
     padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 4px; display: none;
   }
 
-  .datepick{margin-top:8px; display:flex; gap:8px; align-items:center;}
+  .datepick{margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap: wrap;}
   .datepick input[type=date]{
     background:var(--panel); border:1.5px solid var(--line); color:var(--text);
     font-family:var(--mono); font-size:14px; padding:10px; border-radius:8px; flex:1; font-weight:bold;
@@ -175,6 +178,18 @@
   .datepick button{
     background:var(--panel2); border:1.5px solid var(--line); color:var(--text);
     font-family:var(--mono); font-size:13px; padding:10px 14px; border-radius:8px; font-weight:700; cursor:pointer; min-height:44px;
+  }
+
+  .active-days-bar {
+    width: 100%; display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; margin-top: 4px;
+  }
+  .active-day-chip {
+    background: var(--panel); border: 1px solid var(--amber); color: var(--amber);
+    padding: 4px 10px; border-radius: 12px; font-family: var(--mono); font-size: 11px;
+    font-weight: bold; cursor: pointer; white-space: nowrap;
+  }
+  .active-day-chip.current {
+    background: var(--amber); color: #000;
   }
 
   section{margin:20px 16px 0;}
@@ -196,6 +211,7 @@
   }
   .field textarea{ resize: vertical; min-height: 70px; }
 
+  /* Multiple Operators Selector UI */
   .operators-wrapper {
     background: var(--panel2); border: 1.5px solid var(--line); border-radius: 8px;
     padding: 10px; display: flex; flex-direction: column; gap: 8px;
@@ -459,8 +475,8 @@
     line-height: 1.5; margin-bottom: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
   }
 
-  /* Dashboard Modal */
-  .dashboard-modal { max-width: 950px !important; max-height: 90vh; overflow-y: auto; }
+  /* Dashboard & History Modals */
+  .dashboard-modal, .history-modal { max-width: 950px !important; max-height: 90vh; overflow-y: auto; }
   .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
   .dash-card { background: var(--panel2); border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; }
   .dash-card.full-width { grid-column: span 2; }
@@ -479,12 +495,11 @@
   .daily-logs-table th, .daily-logs-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
   .daily-logs-table th { color: var(--amber); }
 
-  .copy-dash-btn, .backup-dash-btn {
-    border-radius: 8px; padding: 10px 14px; font-family: var(--mono); font-size: 13px;
-    font-weight: bold; cursor: pointer; flex: 1;
+  .history-log-card {
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.2s;
   }
-  .copy-dash-btn { background: var(--blue-dim); color: var(--blue); border: 1.5px solid var(--blue); }
-  .backup-dash-btn { background: var(--green-dim); color: var(--green); border: 1.5px solid var(--green); }
+  .history-log-card:hover { border-color: var(--amber); }
 
   @media (min-width: 650px) {
     #kitsList { grid-template-columns: repeat(2, 1fr); }
@@ -494,8 +509,8 @@
     .kit-new-grid .field.full-width { grid-column: span 3; }
     .modal-overlay { align-items: center; }
     .modal-box { border-radius: 16px; }
-    .dashboard-grid { grid-template-columns: repeat(3, 1fr); }
-    .dash-card.full-width { grid-column: span 3; }
+    .dashboard-grid { grid-template-columns: repeat(4, 1fr); }
+    .dash-card.full-width { grid-column: span 4; }
   }
 
   @media print {
@@ -507,20 +522,13 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<!-- Auth + Storage removed: they required Firebase Console configuration (rules/bucket)
-     that wasn't set up, which was silently blocking reads/writes and causing the
-     "need to re-enter everything" symptom. Photos are stored as compressed base64
-     directly in the Database, exactly like every other field. -->
 </head>
 <body>
 
 <div class="app-container">
   <header>
     <div class="header-top">
-      <div class="eyebrow">
-        <span>FIELD LOG · KIT TRACKER</span>
-        <span class="network-status-tag online" id="netStatusTag">🟢 Online</span>
-      </div>
+      <div class="eyebrow">FIELD LOG · KIT TRACKER</div>
       <div class="header-right-actions">
         <button type="button" class="toggle-header-btn" id="toggleHeaderBtn">▲ Collapse Menu</button>
         <select class="theme-selector" id="themeSelect">
@@ -535,21 +543,30 @@
     <div class="header-collapsible" id="headerCollapsible">
       <div class="site-pick">
         <label>Site:</label>
-        <input type="text" id="siteFilterInput" class="site-search-input" placeholder="🔍 Search site...">
         <select id="siteSelect"></select>
         <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
+        <button type="button" class="site-action-btn" id="renameSiteBtn" title="Rename current site">✏️ Rename Site</button>
+        <button type="button" class="site-action-btn" id="deleteSiteBtn" title="Delete current site" style="color:var(--orange);">🗑️ Delete Site</button>
+
+        <label style="margin-left: 8px;">Cycle:</label>
+        <select id="cycleSelect" style="min-width: 120px;"></select>
+        <button type="button" class="new-cycle-btn" id="createNewCycleBtn">➕ New Cycle</button>
+        <button type="button" class="cycle-action-btn" id="renameCycleBtn" title="Rename current cycle">✏️ Rename</button>
+        <button type="button" class="cycle-action-btn" id="deleteCycleBtn" title="Delete current cycle" style="color:var(--orange);">🗑️ Delete Cycle</button>
         
         <button type="button" class="dashboard-btn" id="openDashboardBtn">📊 Open Dashboard</button>
+        <button type="button" class="history-logs-btn" id="openHistoryModalBtn">📜 View Logs History</button>
         <button type="button" class="json-upload-btn" id="uploadJsonBtn">📁 Upload Building JSON</button>
         <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
 
-        <button type="button" class="main-reset-cycle-btn" id="mainResetCycleBtn">🔄 Reset Building Cycle</button>
+        <button type="button" class="main-reset-cycle-btn" id="mainResetCycleBtn">🔄 Reset Current Cycle</button>
       </div>
 
       <div class="datepick">
         <input type="date" id="dateInput">
         <button id="loadBtn">Load Date</button>
       </div>
+      <div id="activeDaysBar" class="active-days-bar"></div>
     </div>
   </header>
 
@@ -600,9 +617,6 @@
         <label>Expert Count</label>
         <input type="number" id="expertCountInput" min="0" placeholder="Expert">
       </div>
-    </div>
-    <div class="team-mismatch-alert" id="teamMismatchAlert">
-      ⚠️ Warning: Junior + Expert count does not equal Total Team Size!
     </div>
   </section>
 
@@ -742,6 +756,19 @@
   </div>
 </div>
 
+<!-- History & Logs Modal -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal-box history-modal">
+    <div class="modal-title">📜 Recorded Daily Operational Logs</div>
+    <div class="modal-sub" id="historySiteSub">Site Logs Explorer</div>
+    <input type="text" id="historySearchInput" placeholder="🔍 Search logs by date, operator, or notes..." style="width: 100%; padding: 10px; margin-bottom: 12px; background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 8px;">
+    <div id="historyLogsContainer" style="max-height: 50vh; overflow-y: auto;"></div>
+    <div class="modal-actions">
+      <button class="cancel" id="closeHistoryModalBtn">Close Logs Explorer</button>
+    </div>
+  </div>
+</div>
+
 <!-- New Stop Modal -->
 <div class="modal-overlay" id="stopModal">
   <div class="modal-box">
@@ -839,7 +866,7 @@
 <!-- Cycle Dashboard Modal -->
 <div class="modal-overlay" id="dashboardModal">
   <div class="modal-box dashboard-modal">
-    <div class="modal-title">📊 Cycle Analytics & Downtime Summary</div>
+    <div class="modal-title">📊 Cycle Analytics & Dashboard</div>
     <div class="modal-sub" id="dashboardSiteSub">Site: Suzuki</div>
 
     <div class="dashboard-grid">
@@ -856,18 +883,6 @@
         <div class="dash-title">Cleaned Area</div>
         <div class="dash-val"><span id="dashStatSqm">0</span> m²</div>
         <div class="dash-sub">Total Project Output</div>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-title">Total System Days</div>
-        <div class="dash-val"><span id="dashStatSystemDays">0</span></div>
-        <div class="dash-sub">Cumulative Active Kits</div>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-title">Total Operator Days</div>
-        <div class="dash-val"><span id="dashStatOperatorDays">0</span></div>
-        <div class="dash-sub">Cumulative On-Site Crew</div>
       </div>
 
       <div class="dash-card">
@@ -894,43 +909,40 @@
       </div>
 
       <div class="dash-card full-width">
-        <div class="dash-title">Downtime & Delay Analysis by Reason</div>
+        <div class="dash-title">Recorded Daily Logs Summary</div>
         <div style="overflow-x: auto;">
           <table class="daily-logs-table">
             <thead>
               <tr>
-                <th>Reason / Issue</th>
-                <th>Occurrences</th>
-                <th>Total Time Lost</th>
-                <th>% of Downtime</th>
+                <th>Date</th>
+                <th>Shift Time</th>
+                <th>SQM Cleaned</th>
+                <th>Active Kits</th>
               </tr>
             </thead>
-            <tbody id="dashDelaysTableBody"></tbody>
+            <tbody id="dashDailyLogsTableBody"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <div class="modal-actions" style="flex-wrap: wrap;">
-      <button class="copy-dash-btn" id="copyDashboardSummaryBtn">📋 Copy Table for Google Sheets</button>
-      <button class="backup-dash-btn" id="exportSiteBackupBtn">💾 Export Site Backup (JSON)</button>
-      <button class="backup-dash-btn" id="importSiteBackupBtn" style="background:var(--blue-dim); color:var(--blue); border-color:var(--blue);">📂 Import Site Backup</button>
-      <input type="file" id="siteBackupFileInput" accept=".json" style="display:none;">
+    <div class="modal-actions">
       <button class="cancel" id="closeDashboardBtn">Close Dashboard</button>
     </div>
   </div>
 </div>
 
 <script>
-// State Variables Initialization
-const DEFAULT_SITES = ['Suzuki', 'Vica Park', 'Herzliya Quarters'];
+// State Variables Initialization & Last Site Memory
 let state = null;
 let currentDate = null;
 let currentSite = localStorage.getItem('app-last-site') || 'Suzuki';
-let globalSitesList = JSON.parse(localStorage.getItem('app-cached-sites')) || DEFAULT_SITES;
+let currentCycle = localStorage.getItem(`app-last-cycle_${currentSite}`) || 'Cycle 09/2026';
+let globalSitesList = ['Suzuki', 'Vica Park', 'Herzliya Quarters'];
+let siteCyclesList = ['Cycle 09/2026'];
 let siteLinksData = { opReportLink: '', projectAlbumLink: '' };
-let globalOperatorsList = JSON.parse(localStorage.getItem('app-cached-operators')) || ['Yuval'];
-let buildingData = JSON.parse(localStorage.getItem(`app-cached-building_${currentSite.replace(/[.#$/\[\]]/g, "_")}`) || 'null');
+let globalOperatorsList = ['Yuval']; 
+let buildingData = null; 
 let siteCleanedFramesHistory = new Set(); 
 let siteDefectiveReportFrames = new Set();
 let siteDefectiveUnwalkableFrames = new Set();
@@ -950,9 +962,19 @@ let collapsedMap = {};
 let dbRef = null;
 
 let newKitDrops = [{ facade: '', rows: '', cols: '' }];
-let lastDeletedKit = null;
-let lastDeletedOperator = null;
-let offlineSyncQueue = [];
+
+// System Security Password
+const ADMIN_PASSWORD = "1234";
+
+function verifyAdminPassword(actionDescription = "perform this administrative action") {
+  const enteredPass = prompt(`🔒 Security Verification:\nPlease enter Admin Password to ${actionDescription}:`);
+  if (enteredPass === ADMIN_PASSWORD) {
+    return true;
+  } else if (enteredPass !== null) {
+    alert("❌ Incorrect Password. Action cancelled.");
+  }
+  return false;
+}
 
 const STAGES = [
   {key:'arrival',    label:'Arrival'},
@@ -964,47 +986,10 @@ const STAGES = [
 
 const STANDARD_PARADEVICES = ["Parapod", "Paraslide", "ParaSlide Top row", "Paraclamp", "Paraline", "Paradavit"];
 
-// Firebase Initialization
-const firebaseConfig = {
-  apiKey: "AIzaSyCoq-GXRGkJLJ3jDeYo_KiZ04oqMyENFpY",
-  authDomain: "workday-kits-operations-9de4d.firebaseapp.com",
-  databaseURL: "https://workday-kits-operations-9de4d-default-rtdb.firebaseio.com",
-  projectId: "workday-kits-operations-9de4d",
-  storageBucket: "workday-kits-operations-9de4d.firebasestorage.app",
-  messagingSenderId: "781011410308",
-  appId: "1:781011410308:web:85c2805bd989c7851651d1"
-};
-
-try {
-  firebase.initializeApp(firebaseConfig);
-  firebase.database().goOnline();
-} catch(e) { console.error(e); }
-
-const db = firebase.database();
-
-// True connection state, reported by Firebase itself. Far more reliable than
-// navigator.onLine, which only reflects whether the device has *a* network
-// interface — not whether the database is actually reachable.
-let isFirebaseConnected = true;
-db.ref('.info/connected').on('value', (snap) => {
-  isFirebaseConnected = snap.val() === true;
-  updateNetworkStatus();
-  if (isFirebaseConnected) processOfflineSyncQueue();
-});
-
-window.addEventListener('online', updateNetworkStatus);
-window.addEventListener('offline', updateNetworkStatus);
-
-function updateNetworkStatus() {
-  const tag = document.getElementById('netStatusTag');
-  const online = isFirebaseConnected && navigator.onLine;
-  if (online) {
-    tag.textContent = '🟢 Online';
-    tag.className = 'network-status-tag online';
-  } else {
-    tag.textContent = '🔴 Offline';
-    tag.className = 'network-status-tag offline';
-  }
+function getCleanSiteKey() {
+  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+  const cleanCycle = (currentCycle || 'Cycle 09/2026').replace(/[.#$/\[\]]/g, "_");
+  return `${cleanSite}/${cleanCycle}`;
 }
 
 function compressImage(file, maxWidth = 800, maxHeight = 600, quality = 0.7) {
@@ -1098,7 +1083,6 @@ function renderOperatorsList() {
 
   const selectedOperators = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
 
-  const frag = document.createDocumentFragment();
   globalOperatorsList.forEach(opName => {
     const isChecked = selectedOperators.includes(opName);
     const label = document.createElement('label');
@@ -1117,41 +1101,29 @@ function renderOperatorsList() {
         currentArr = currentArr.filter(name => name !== opName);
       }
       state.operators = currentArr.join(', ');
-      saveFieldUpdate('operators', state.operators);
+      saveState();
       renderOperatorsList();
     });
 
     label.querySelector('.delete-operator-btn').addEventListener('click', (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
-      lastDeletedOperator = opName;
-      globalOperatorsList = globalOperatorsList.filter(name => name !== opName);
-      db.ref('globalOperatorsList').set(globalOperatorsList).catch(err => console.error(err));
+      if (confirm(`Remove operator "${opName}" permanently from global list?`)) {
+        globalOperatorsList = globalOperatorsList.filter(name => name !== opName);
+        db.ref('globalOperatorsList').set(globalOperatorsList);
 
-      let currentArr = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
-      currentArr = currentArr.filter(name => name !== opName);
-      state.operators = currentArr.join(', ');
-      saveFieldUpdate('operators', state.operators);
+        let currentArr = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
+        currentArr = currentArr.filter(name => name !== opName);
+        state.operators = currentArr.join(', ');
+        saveState();
 
-      renderOperatorsList();
-      showToastWithUndo(`Operator "${opName}" removed`, undoDeleteOperator);
+        renderOperatorsList();
+        showToast(`Operator "${opName}" removed`);
+      }
     });
 
-    frag.appendChild(label);
+    container.appendChild(label);
   });
-  container.appendChild(frag);
-}
-
-function undoDeleteOperator() {
-  if (lastDeletedOperator) {
-    if (!globalOperatorsList.includes(lastDeletedOperator)) {
-      globalOperatorsList.push(lastDeletedOperator);
-      db.ref('globalOperatorsList').set(globalOperatorsList).catch(err => console.error(err));
-      renderOperatorsList();
-      showToast(`Operator "${lastDeletedOperator}" restored!`);
-      lastDeletedOperator = null;
-    }
-  }
 }
 
 document.getElementById('addNewOperatorBtn').addEventListener('click', () => {
@@ -1160,12 +1132,12 @@ document.getElementById('addNewOperatorBtn').addEventListener('click', () => {
   if (val) {
     if (!globalOperatorsList.includes(val)) {
       globalOperatorsList.push(val);
-      db.ref('globalOperatorsList').set(globalOperatorsList).catch(err => console.error(err));
+      db.ref('globalOperatorsList').set(globalOperatorsList);
       
       let currentArr = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
       if (!currentArr.includes(val)) currentArr.push(val);
       state.operators = currentArr.join(', ');
-      saveFieldUpdate('operators', state.operators);
+      saveState();
 
       input.value = '';
       renderOperatorsList();
@@ -1206,7 +1178,6 @@ function populateAvailableKitSelect(selectElem, currentKitId = '') {
   selectElem.innerHTML = '<option value="">— Select —</option>';
   const usedKitIds = (state && state.kits) ? state.kits.map(k => String(k.id)) : [];
 
-  const frag = document.createDocumentFragment();
   for (let i = 1; i <= 50; i++) {
     const kitStr = String(i);
     if (!usedKitIds.includes(kitStr) || kitStr === String(currentKitId)) {
@@ -1214,24 +1185,21 @@ function populateAvailableKitSelect(selectElem, currentKitId = '') {
       opt.value = i;
       opt.textContent = i;
       if (kitStr === String(currentKitId)) opt.selected = true;
-      frag.appendChild(opt);
+      selectElem.appendChild(opt);
     }
   }
-  selectElem.appendChild(frag);
 }
 
 function populate1To50Select(selectElem, defaultVal = '') {
   if (!selectElem) return;
   selectElem.innerHTML = '<option value="">— Select —</option>';
-  const frag = document.createDocumentFragment();
   for (let i = 1; i <= 50; i++) {
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = i;
     if (String(i) === String(defaultVal)) opt.selected = true;
-    frag.appendChild(opt);
+    selectElem.appendChild(opt);
   }
-  selectElem.appendChild(frag);
 }
 
 populateAvailableKitSelect(document.getElementById('newKitNum'));
@@ -1239,91 +1207,246 @@ populate1To50Select(document.getElementById('newRbu'));
 populate1To50Select(document.getElementById('newVru'));
 populate1To50Select(document.getElementById('newMcp'));
 
-function renderSitesDropdown(filterQuery = '') {
+const firebaseConfig = {
+  apiKey: "AIzaSyCoq-GXRGkJLJ3jDeYo_KiZ04oqMyENFpY",
+  authDomain: "workday-kits-operations-9de4d.firebaseapp.com",
+  databaseURL: "https://workday-kits-operations-9de4d-default-rtdb.firebaseio.com",
+  projectId: "workday-kits-operations-9de4d",
+  storageBucket: "workday-kits-operations-9de4d.firebasestorage.app",
+  messagingSenderId: "781011410308",
+  appId: "1:781011410308:web:85c2805bd989c7851651d1"
+};
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  firebase.database().goOnline();
+} catch(e) { console.error(e); }
+
+const db = firebase.database();
+
+function renderSitesDropdown() {
   const sel = document.getElementById('siteSelect');
   if (!sel) return;
   sel.innerHTML = '';
 
-  const filtered = globalSitesList.filter(s => s.toLowerCase().includes(filterQuery.toLowerCase()));
-
-  const frag = document.createDocumentFragment();
-  filtered.forEach(sName => {
+  globalSitesList.forEach(sName => {
     const opt = document.createElement('option');
     opt.value = sName;
     opt.textContent = sName;
     if (sName === currentSite) opt.selected = true;
-    frag.appendChild(opt);
+    sel.appendChild(opt);
   });
 
   const customOpt = document.createElement('option');
   customOpt.value = 'custom';
   customOpt.textContent = '+ New Site...';
-  frag.appendChild(customOpt);
+  sel.appendChild(customOpt);
 
-  sel.appendChild(frag);
+  renderCyclesDropdown();
 }
 
-document.getElementById('siteFilterInput').addEventListener('focus', () => {
-  discoverSiteKeysFromDatabase();
-});
-document.getElementById('siteFilterInput').addEventListener('input', (e) => {
-  renderSitesDropdown(e.target.value);
-});
+// Rename Current Site (Admin Password Protected)
+document.getElementById('renameSiteBtn').addEventListener('click', () => {
+  if (!verifyAdminPassword("rename the site")) return;
+  
+  const newName = prompt(`Rename site "${currentSite}" to:`, currentSite);
+  if (newName && newName.trim() && newName.trim() !== currentSite) {
+    const oldSite = currentSite;
+    const cleanOldSite = oldSite.replace(/[.#$/\[\]]/g, "_");
+    const cleanNewSite = newName.trim();
+    const cleanNewSiteKey = cleanNewSite.replace(/[.#$/\[\]]/g, "_");
 
-// Sync Sites & Operators from Firebase Realtime — this is what makes every
-// building/operator that already exists in the cloud show up automatically,
-// with no re-entry needed.
-// Auto-discover every real site under sites/ in the database, even ones that
-// were never added to the separate globalSitesList array (e.g. created by
-// importing data directly in the Firebase console). Uses a "shallow" REST
-// read so it only fetches the site NAMES, not each site's full building
-// JSON/history — fast and light regardless of how much data each site has.
-function discoverSiteKeysFromDatabase() {
-  const url = `${firebaseConfig.databaseURL}/sites.json?shallow=true`;
-  fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      if (!data || typeof data !== 'object') return;
-      const realKeys = Object.keys(data);
-      const merged = Array.from(new Set([...globalSitesList, ...realKeys]));
-      const isNew = merged.length !== globalSitesList.length;
-      if (isNew) {
-        globalSitesList = merged;
-        localStorage.setItem('app-cached-sites', JSON.stringify(merged));
-        renderSitesDropdown(document.getElementById('siteFilterInput') ? document.getElementById('siteFilterInput').value : '');
-        // Heal the official list so this scan isn't needed every time
-        db.ref('globalSitesList').set(merged).catch(err => console.error('Could not heal sites list:', err));
+    db.ref(`sites/${cleanOldSite}`).once('value', (snap) => {
+      const siteData = snap.val();
+      if (siteData) {
+        db.ref(`sites/${cleanNewSiteKey}`).set(siteData).then(() => {
+          db.ref(`sites/${cleanOldSite}`).remove();
+          
+          globalSitesList = globalSitesList.map(s => s === oldSite ? cleanNewSite : s);
+          globalSitesList = Array.from(new Set(globalSitesList));
+          db.ref('globalSitesList').set(globalSitesList);
+
+          currentSite = cleanNewSite;
+          localStorage.setItem('app-last-site', currentSite);
+          renderSitesDropdown();
+          loadDay(currentDate);
+          showToast(`Site renamed to "${cleanNewSite}"!`);
+        });
+      } else {
+        globalSitesList = globalSitesList.map(s => s === oldSite ? cleanNewSite : s);
+        globalSitesList = Array.from(new Set(globalSitesList));
+        db.ref('globalSitesList').set(globalSitesList);
+
+        currentSite = cleanNewSite;
+        localStorage.setItem('app-last-site', currentSite);
+        renderSitesDropdown();
+        loadDay(currentDate);
+        showToast(`Site renamed to "${cleanNewSite}"!`);
       }
-    })
-    .catch(err => console.error('Site auto-discovery failed:', err));
+    });
+  }
+});
+
+// Delete Current Site (Admin Password Protected)
+document.getElementById('deleteSiteBtn').addEventListener('click', () => {
+  if (!verifyAdminPassword("delete the entire site")) return;
+
+  if (confirm(`CRITICAL WARNING: Are you sure you want to permanently DELETE site "${currentSite}" and ALL its cycles?`)) {
+    const oldSite = currentSite;
+    const cleanOldSite = oldSite.replace(/[.#$/\[\]]/g, "_");
+
+    db.ref(`sites/${cleanOldSite}`).remove().then(() => {
+      globalSitesList = globalSitesList.filter(s => s !== oldSite);
+      if (!globalSitesList.length) globalSitesList = ['Suzuki'];
+      db.ref('globalSitesList').set(globalSitesList);
+
+      currentSite = globalSitesList[0];
+      currentCycle = 'Cycle 09/2026';
+      localStorage.setItem('app-last-site', currentSite);
+      localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+      
+      renderSitesDropdown();
+      loadDay(currentDate);
+      showToast(`Site "${oldSite}" deleted successfully!`);
+    });
+  }
+});
+
+function renderCyclesDropdown() {
+  const cSel = document.getElementById('cycleSelect');
+  if (!cSel) return;
+  cSel.innerHTML = '';
+
+  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+  
+  db.ref(`sites/${cleanSite}/cyclesList`).once('value', (snap) => {
+    let cycles = snap.val() || ['Cycle 09/2026'];
+    if (currentCycle && !cycles.includes(currentCycle)) cycles.push(currentCycle);
+    
+    // Clean duplicates rigorously via Set
+    cycles = Array.from(new Set(cycles));
+    siteCyclesList = cycles;
+
+    cycles.forEach(cName => {
+      const opt = document.createElement('option');
+      opt.value = cName;
+      opt.textContent = cName;
+      if (cName === currentCycle) opt.selected = true;
+      cSel.appendChild(opt);
+    });
+  });
 }
+
+document.getElementById('cycleSelect').addEventListener('change', (e) => {
+  currentCycle = e.target.value;
+  localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+  loadDay(currentDate);
+});
+
+// Create NEW Cycle (Admin Password Protected)
+document.getElementById('createNewCycleBtn').addEventListener('click', () => {
+  if (!verifyAdminPassword("create a new cycle")) return;
+
+  const newCycleName = prompt("Enter a name for the new cycle (e.g. Cycle 10/2026, Winter 2026):");
+  if (newCycleName && newCycleName.trim()) {
+    const cleanName = newCycleName.trim();
+    if (!siteCyclesList.includes(cleanName)) {
+      siteCyclesList.push(cleanName);
+      siteCyclesList = Array.from(new Set(siteCyclesList));
+      const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+      db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
+    }
+    currentCycle = cleanName;
+    localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+    renderCyclesDropdown();
+    loadDay(currentDate);
+    showToast(`New Clean Cycle "${cleanName}" created!`);
+  }
+});
+
+// Rename Current Cycle (Admin Password Protected)
+document.getElementById('renameCycleBtn').addEventListener('click', () => {
+  if (!verifyAdminPassword("rename the current cycle")) return;
+
+  const newName = prompt(`Rename cycle "${currentCycle}" to:`, currentCycle);
+  if (newName && newName.trim() && newName.trim() !== currentCycle) {
+    const oldCycle = currentCycle;
+    const cleanName = newName.trim();
+    const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+
+    const oldKey = `${cleanSite}/${oldCycle.replace(/[.#$/\[\]]/g, "_")}`;
+    const newKey = `${cleanSite}/${cleanName.replace(/[.#$/\[\]]/g, "_")}`;
+
+    db.ref(`sites/${oldKey}`).once('value', (snap) => {
+      const cycleData = snap.val();
+      if (cycleData) {
+        db.ref(`sites/${newKey}`).set(cycleData).then(() => {
+          db.ref(`sites/${oldKey}`).remove();
+          
+          siteCyclesList = siteCyclesList.map(c => c === oldCycle ? cleanName : c);
+          siteCyclesList = Array.from(new Set(siteCyclesList));
+          db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
+
+          currentCycle = cleanName;
+          localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+          renderCyclesDropdown();
+          loadDay(currentDate);
+          showToast(`Cycle renamed to "${cleanName}"!`);
+        });
+      } else {
+        siteCyclesList = siteCyclesList.map(c => c === oldCycle ? cleanName : c);
+        siteCyclesList = Array.from(new Set(siteCyclesList));
+        db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
+
+        currentCycle = cleanName;
+        localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+        renderCyclesDropdown();
+        loadDay(currentDate);
+        showToast(`Cycle renamed to "${cleanName}"!`);
+      }
+    });
+  }
+});
+
+// Delete Cycle (Admin Password Protected)
+document.getElementById('deleteCycleBtn').addEventListener('click', () => {
+  if (!verifyAdminPassword("delete this cycle")) return;
+
+  if (confirm(`CRITICAL ACTION: Are you sure you want to permanently DELETE cycle "${currentCycle}" and ALL its logged history?`)) {
+    const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+    const siteKey = getCleanSiteKey();
+
+    db.ref(`sites/${siteKey}`).remove().then(() => {
+      siteCyclesList = siteCyclesList.filter(c => c !== currentCycle);
+      if (!siteCyclesList.length) siteCyclesList = ['Cycle 09/2026'];
+      
+      db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
+
+      currentCycle = siteCyclesList[0];
+      localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+      renderCyclesDropdown();
+      loadDay(currentDate);
+      showToast(`Cycle deleted successfully!`);
+    });
+  }
+});
 
 db.ref('globalSitesList').on('value', (snap) => {
   const val = snap.val();
   if (val && Array.isArray(val) && val.length > 0) {
     globalSitesList = val;
-    localStorage.setItem('app-cached-sites', JSON.stringify(val));
   } else {
-    db.ref('globalSitesList').set(globalSitesList).catch(err => console.error('Seed sites list failed:', err));
+    db.ref('globalSitesList').set(globalSitesList);
   }
-  renderSitesDropdown(document.getElementById('siteFilterInput') ? document.getElementById('siteFilterInput').value : '');
-}, (err) => {
-  console.error('Sites list read failed:', err);
-  showToast('לא הצלחתי לטעון רשימת אתרים מהענן — בודק שוב...');
+  renderSitesDropdown();
 });
 
 db.ref('globalOperatorsList').on('value', (snap) => {
   const val = snap.val();
   if (val && Array.isArray(val)) {
     globalOperatorsList = val;
-    localStorage.setItem('app-cached-operators', JSON.stringify(val));
     renderOperatorsList();
-  } else {
-    db.ref('globalOperatorsList').set(globalOperatorsList).catch(err => console.error('Seed operators list failed:', err));
   }
-}, (err) => {
-  console.error('Operators list read failed:', err);
-  showToast('לא הצלחתי לטעון רשימת אופרטורים מהענן — בודק שוב...');
 });
 
 document.getElementById('fetchWeatherBtn').addEventListener('click', fetchLiveWeather);
@@ -1350,9 +1473,7 @@ function fetchLiveWeather() {
           if (state) {
             state.temp = temp; state.humidity = humidity;
             state.windGusts = windGusts;
-            saveFieldUpdate('temp', temp);
-            saveFieldUpdate('humidity', humidity);
-            saveFieldUpdate('windGusts', windGusts);
+            saveState();
           }
 
           checkWindAlert();
@@ -1375,23 +1496,6 @@ function checkWindAlert() {
   if (alertBox) alertBox.style.display = (gusts > 25) ? 'block' : 'none';
 }
 
-function checkTeamSizeValidation() {
-  const total = parseInt(document.getElementById('peopleInput').value || 0, 10);
-  const junior = parseInt(document.getElementById('juniorCountInput').value || 0, 10);
-  const expert = parseInt(document.getElementById('expertCountInput').value || 0, 10);
-  const alertBox = document.getElementById('teamMismatchAlert');
-
-  if (total > 0 && (junior + expert !== total)) {
-    alertBox.style.display = 'block';
-  } else {
-    alertBox.style.display = 'none';
-  }
-}
-
-document.getElementById('peopleInput').addEventListener('input', checkTeamSizeValidation);
-document.getElementById('juniorCountInput').addEventListener('input', checkTeamSizeValidation);
-document.getElementById('expertCountInput').addEventListener('input', checkTeamSizeValidation);
-
 document.getElementById('windGustsInput').addEventListener('input', checkWindAlert);
 
 function isFrameUnwalkable(frame) {
@@ -1408,6 +1512,7 @@ function checkWindowOverlap(kitId, frameId) {
 }
 
 document.getElementById('uploadJsonBtn').addEventListener('click', () => {
+  if (!verifyAdminPassword("upload/overwrite Building JSON")) return;
   document.getElementById('jsonFileInput').click();
 });
 
@@ -1421,11 +1526,8 @@ document.getElementById('jsonFileInput').addEventListener('change', (e) => {
       const parsed = JSON.parse(evt.target.result);
       buildingData = parsed;
       const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-      try { localStorage.setItem(`app-cached-building_${cleanSite}`, JSON.stringify(parsed)); } catch(e){}
-      render();
-      db.ref(`sites/${cleanSite}/buildingJson`).set(parsed)
-        .then(() => showToast(`Building JSON "${parsed.name || 'Building'}" saved to cloud for "${currentSite}"!`))
-        .catch(err => { console.error(err); showToast('נשמר מקומית, אך השמירה בענן נכשלה — בדוק חיבור לאינטרנט'); });
+      db.ref(`sites/${cleanSite}/buildingJson`).set(parsed);
+      showToast(`Building JSON "${parsed.name || 'Building'}" loaded for site "${currentSite}"!`);
     } catch(err) {
       alert('Invalid JSON file format');
     }
@@ -1449,8 +1551,35 @@ function recalculateSiteCleanedHistory() {
   });
 }
 
+// Render active days bar (ONLY dates with actual recorded kits/data in THIS cycle)
+function renderActiveDaysBar() {
+  const bar = document.getElementById('activeDaysBar');
+  if (!bar) return;
+  bar.innerHTML = '';
+
+  const activeDates = Object.keys(siteAllDaysData || {}).filter(dKey => {
+    const day = siteAllDaysData[dKey];
+    return day && ((day.kits && day.kits.length > 0) || day.operators || day.generalIssues);
+  }).sort();
+
+  if (!activeDates.length) return;
+
+  activeDates.forEach(dStr => {
+    const chip = document.createElement('div');
+    chip.className = 'active-day-chip' + (dStr === currentDate ? ' current' : '');
+    chip.textContent = formatDateDisplay(dStr);
+    chip.addEventListener('click', () => {
+      loadDay(dStr);
+    });
+    bar.appendChild(chip);
+  });
+}
+
+// Reset Current Cycle (Admin Password Protected)
 document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
-  if (confirm(`Are you sure you want to reset ALL cleaned window history AND delete ALL recorded daily sessions for building "${currentSite}"?`)) {
+  if (!verifyAdminPassword("RESET this entire cycle")) return;
+
+  if (confirm(`CRITICAL WARNING: Are you sure you want to reset ALL window history AND delete ALL daily sessions for "${currentSite}" (${currentCycle})?`)) {
     siteCleanedFramesHistory.clear();
     siteDefectiveReportFrames.clear();
     siteDefectiveUnwalkableFrames.clear();
@@ -1459,21 +1588,81 @@ document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
     
     state = blankDay(currentDate);
 
-    const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+    const siteKey = getCleanSiteKey();
     
-    db.ref(`sites/${cleanSite}/cleanedFramesHistory`).remove().catch(err => console.error(err));
-    db.ref(`sites/${cleanSite}/defectiveReportFrames`).remove().catch(err => console.error(err));
-    db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).remove().catch(err => console.error(err));
-    db.ref(`sites/${cleanSite}/days`).remove().then(() => {
+    db.ref(`sites/${siteKey}/cleanedFramesHistory`).remove();
+    db.ref(`sites/${siteKey}/defectiveReportFrames`).remove();
+    db.ref(`sites/${siteKey}/defectiveUnwalkableFrames`).remove();
+    db.ref(`sites/${siteKey}/days`).remove().then(() => {
       saveState();
       render();
-      showToast('Entire Building Cycle Reset!');
-    }).catch(err => {
-      console.error(err);
-      showToast('שגיאה באיפוס — בדוק חיבור לאינטרנט ונסה שוב');
+      showToast('Cycle Reset Successfully!');
     });
   }
 });
+
+// Logs History Explorer Modal
+document.getElementById('openHistoryModalBtn').addEventListener('click', () => {
+  renderHistoryLogsList();
+  document.getElementById('historyModal').classList.add('show');
+});
+
+document.getElementById('closeHistoryModalBtn').addEventListener('click', () => {
+  document.getElementById('historyModal').classList.remove('show');
+});
+
+document.getElementById('historySearchInput').addEventListener('input', (e) => {
+  renderHistoryLogsList(e.target.value.toLowerCase());
+});
+
+function renderHistoryLogsList(filterText = '') {
+  const container = document.getElementById('historyLogsContainer');
+  document.getElementById('historySiteSub').textContent = `Site: ${currentSite} (${currentCycle}) — Search & Review Logs`;
+  container.innerHTML = '';
+
+  const activeDates = Object.keys(siteAllDaysData || {}).filter(dKey => {
+    const day = siteAllDaysData[dKey];
+    return day && ((day.kits && day.kits.length > 0) || day.operators || day.generalIssues);
+  }).sort().reverse();
+
+  if (!activeDates.length) {
+    container.innerHTML = '<div class="empty-note">No recorded daily logs for this cycle yet</div>';
+    return;
+  }
+
+  activeDates.forEach(dKey => {
+    const dayObj = siteAllDaysData[dKey];
+    const dateFormatted = formatDateDisplay(dKey);
+    const ops = dayObj.operators || 'Unspecified';
+    const notes = dayObj.generalIssues || '';
+    const kitCount = (dayObj.kits || []).length;
+
+    let totalSqm = 0;
+    (dayObj.kits || []).forEach(k => { if (k.sqmCleaned) totalSqm += k.sqmCleaned; });
+
+    const matchText = `${dKey} ${dateFormatted} ${ops} ${notes}`.toLowerCase();
+    if (filterText && !matchText.includes(filterText)) return;
+
+    const card = document.createElement('div');
+    card.className = 'history-log-card';
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--amber);">
+        <span>📅 Date: ${dateFormatted}</span>
+        <span>${totalSqm.toFixed(1)} m² | ${kitCount} Kits</span>
+      </div>
+      <div style="font-size:12px; margin-top:4px; color:var(--text);"><strong>Operators:</strong> ${ops}</div>
+      ${notes ? `<div style="font-size:11px; margin-top:2px; color:var(--orange);"><strong>Issues/Blockers:</strong> ${notes}</div>` : ''}
+    `;
+
+    card.addEventListener('click', () => {
+      loadDay(dKey);
+      document.getElementById('historyModal').classList.remove('show');
+      showToast(`Loaded session for ${dateFormatted}`);
+    });
+
+    container.appendChild(card);
+  });
+}
 
 document.getElementById('openDashboardBtn').addEventListener('click', () => {
   calculateAndRenderDashboard();
@@ -1485,7 +1674,7 @@ document.getElementById('closeDashboardBtn').addEventListener('click', () => {
 });
 
 function calculateAndRenderDashboard() {
-  document.getElementById('dashboardSiteSub').textContent = `Site: ${currentSite}`;
+  document.getElementById('dashboardSiteSub').textContent = `Site: ${currentSite} (${currentCycle})`;
 
   let totalBuildingSqm = 0;
   const sectionSqmMap = {};
@@ -1524,22 +1713,14 @@ function calculateAndRenderDashboard() {
   document.getElementById('dashProgressBarFill').style.width = `${Math.min(100, progressPercent)}%`;
 
   let totalShiftMs = 0, totalUptimeMs = 0, totalDowntimeMs = 0;
-  let totalSystemDays = 0;
-  let totalOperatorDays = 0;
 
-  const delaySummaryMap = {};
+  const dailyTableBody = document.getElementById('dashDailyLogsTableBody');
+  dailyTableBody.innerHTML = '';
 
-  const sortedDateKeys = Object.keys(siteAllDaysData).sort();
-
-  sortedDateKeys.forEach(dateKey => {
+  Object.keys(siteAllDaysData).forEach(dateKey => {
     const dayObj = siteAllDaysData[dateKey];
     if (dayObj && dayObj.kits && dayObj.kits.length > 0) {
-      let earliestArrival = null, latestFinish = null;
-
-      totalSystemDays += dayObj.kits.length;
-
-      const opCount = dayObj.operators ? dayObj.operators.split(',').filter(s => s.trim().length > 0).length : 0;
-      totalOperatorDays += opCount;
+      let earliestArrival = null, latestFinish = null, daySqm = 0;
 
       dayObj.kits.forEach(kit => {
         const e = kit.events || {};
@@ -1556,25 +1737,21 @@ function calculateAndRenderDashboard() {
         if (wallMs) totalShiftMs += wallMs;
         if (netMs) totalUptimeMs += netMs;
         if (stopsMs) totalDowntimeMs += stopsMs;
-
-        if (kit.stops && kit.stops.length > 0) {
-          kit.stops.forEach((st) => {
-            const reason = (st.reason && st.reason.trim()) ? st.reason.trim() : 'Unspecified Delay';
-            const durMs = (st.start && st.end) ? (new Date(st.end) - new Date(st.start)) : 0;
-
-            if (!delaySummaryMap[reason]) {
-              delaySummaryMap[reason] = { count: 0, totalMs: 0 };
-            }
-            delaySummaryMap[reason].count++;
-            delaySummaryMap[reason].totalMs += durMs;
-          });
-        }
+        if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
       });
+
+      const dayShiftMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${formatDateDisplay(dateKey)}</td>
+        <td>${fmtDur(dayShiftMs)}</td>
+        <td>${daySqm.toFixed(2)} m²</td>
+        <td>${dayObj.kits.length} Kits</td>
+      `;
+      dailyTableBody.appendChild(tr);
     }
   });
-
-  document.getElementById('dashStatSystemDays').textContent = totalSystemDays;
-  document.getElementById('dashStatOperatorDays').textContent = totalOperatorDays;
 
   const uptimeHours = totalUptimeMs / (1000 * 3600);
   const speedSqmPerHour = uptimeHours > 0 ? (cleanedBuildingSqm / uptimeHours) : 0;
@@ -1584,35 +1761,9 @@ function calculateAndRenderDashboard() {
   document.getElementById('dashStatTotalTime').textContent = fmtDur(totalShiftMs);
   document.getElementById('dashStatDowntimePercent').textContent = downtimePercent.toFixed(1);
 
-  const delaysTableBody = document.getElementById('dashDelaysTableBody');
-  delaysTableBody.innerHTML = '';
-
-  const delayKeys = Object.keys(delaySummaryMap).sort((a,b) => delaySummaryMap[b].totalMs - delaySummaryMap[a].totalMs);
-
-  if (delayKeys.length === 0) {
-    delaysTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--dim);">No downtime or stops recorded in this cycle</td></tr>';
-  } else {
-    const frag = document.createDocumentFragment();
-    delayKeys.forEach(reason => {
-      const item = delaySummaryMap[reason];
-      const pct = totalDowntimeMs > 0 ? ((item.totalMs / totalDowntimeMs) * 100).toFixed(1) : '0.0';
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td style="font-weight:bold; color:var(--text);">${reason}</td>
-        <td style="text-align:center;">${item.count}</td>
-        <td style="font-weight:bold; color:var(--amber);">${fmtDur(item.totalMs)}</td>
-        <td style="font-weight:bold; color:var(--orange);">${pct}%</td>
-      `;
-      frag.appendChild(tr);
-    });
-    delaysTableBody.appendChild(frag);
-  }
-
   const facadeListContainer = document.getElementById('dashFacadeProgressList');
   facadeListContainer.innerHTML = '';
 
-  const fragFacade = document.createDocumentFragment();
   Object.keys(sectionSqmMap).forEach(secName => {
     const totalSec = sectionSqmMap[secName] || 1;
     const cleanedSec = sectionCleanedMap[secName] || 0;
@@ -1629,96 +1780,14 @@ function calculateAndRenderDashboard() {
         <div class="progress-bar-fill" style="width: ${Math.min(100, secPercent)}%;"></div>
       </div>
     `;
-    fragFacade.appendChild(item);
+    facadeListContainer.appendChild(item);
   });
-  facadeListContainer.appendChild(fragFacade);
 }
-
-document.getElementById('exportSiteBackupBtn').addEventListener('click', () => {
-  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-  db.ref(`sites/${cleanSite}`).once('value', (snap) => {
-    const data = snap.val();
-    if (!data) { showToast('No data to export'); return; }
-    const jsonStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup_${cleanSite}_${todayISO()}.json`;
-    a.click();
-    showToast(`Site backup downloaded for ${currentSite}`);
-  }, (err) => {
-    console.error(err);
-    showToast('שגיאה בייצוא הגיבוי — בדוק חיבור לאינטרנט');
-  });
-});
-
-document.getElementById('importSiteBackupBtn').addEventListener('click', () => {
-  document.getElementById('siteBackupFileInput').click();
-});
-
-document.getElementById('siteBackupFileInput').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    try {
-      const parsed = JSON.parse(evt.target.result);
-      if (confirm(`Overwrite all current data for site "${currentSite}" with imported backup?`)) {
-        const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-        db.ref(`sites/${cleanSite}`).set(parsed).then(() => {
-          showToast('Site backup restored successfully!');
-          loadDay(currentDate);
-        }).catch(err => {
-          console.error(err);
-          showToast('שגיאה בשחזור הגיבוי — בדוק חיבור לאינטרנט');
-        });
-      }
-    } catch(err) {
-      alert('Invalid backup JSON format');
-    }
-  };
-  reader.readAsText(file);
-});
-
-document.getElementById('copyDashboardSummaryBtn').addEventListener('click', () => {
-  const table = document.querySelector('#dashDelaysTableBody');
-  if (!table || table.children.length === 0) {
-    showToast('No delay table data to copy');
-    return;
-  }
-
-  const rows = [];
-  rows.push(["Reason / Issue", "Occurrences", "Total Time Lost", "% of Downtime"].join('\t'));
-
-  Array.from(table.children).forEach(tr => {
-    const cells = Array.from(tr.children).map(td => td.innerText.trim());
-    if (cells.length === 4) {
-      rows.push(cells.join('\t'));
-    }
-  });
-
-  const textToCopy = rows.join('\n');
-
-  navigator.clipboard.writeText(textToCopy).then(() => {
-    showToast('Table copied! Paste into Google Sheets');
-  }).catch(() => {
-    const textArea = document.createElement('textarea');
-    textArea.value = textToCopy;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    showToast('Table copied! Paste into Google Sheets');
-  });
-});
 
 function renderNewKitDrops() {
   const container = document.getElementById('newKitDropList');
   if (!container) return;
   container.innerHTML = '';
-  const frag = document.createDocumentFragment();
   newKitDrops.forEach((item, idx) => {
     const row = document.createElement('div');
     row.className = 'drop-col-item';
@@ -1730,9 +1799,8 @@ function renderNewKitDrops() {
       </div>
       ${newKitDrops.length > 1 ? `<button type="button" class="btn-remove-drop" data-idx="${idx}">🗑️ Remove Drop Area</button>` : ''}
     `;
-    frag.appendChild(row);
+    container.appendChild(row);
   });
-  container.appendChild(frag);
 
   container.querySelectorAll('input').forEach(inp => {
     inp.addEventListener('input', (e) => {
@@ -1763,12 +1831,18 @@ const customSiteInput = document.getElementById('customSiteInput');
 
 siteSelect.addEventListener('change', (e) => {
   if (e.target.value === 'custom') {
+    if (!verifyAdminPassword("add a new site")) {
+      siteSelect.value = currentSite;
+      return;
+    }
     customSiteInput.style.display = 'block';
     customSiteInput.focus();
   } else {
     customSiteInput.style.display = 'none';
     currentSite = e.target.value;
+    currentCycle = localStorage.getItem(`app-last-cycle_${currentSite}`) || 'Cycle 09/2026';
     localStorage.setItem('app-last-site', currentSite);
+    renderCyclesDropdown();
     loadDay(currentDate);
   }
 });
@@ -1777,12 +1851,13 @@ customSiteInput.addEventListener('change', () => {
   const val = customSiteInput.value.trim();
   if (val) {
     currentSite = val;
+    currentCycle = 'Cycle 09/2026';
     if (!globalSitesList.includes(val)) {
       globalSitesList.push(val);
-      db.ref('globalSitesList').set(globalSitesList).catch(err => console.error(err));
-      localStorage.setItem('app-cached-sites', JSON.stringify(globalSitesList));
+      db.ref('globalSitesList').set(globalSitesList);
     }
     localStorage.setItem('app-last-site', currentSite);
+    localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
     customSiteInput.style.display = 'none';
     customSiteInput.value = '';
     renderSitesDropdown();
@@ -1809,6 +1884,7 @@ function blankDay(dateISO){
   return { 
     date: dateISO, 
     site: currentSite, 
+    cycle: currentCycle,
     operators: '',
     people: '', 
     workType: 'Cleaning',
@@ -1856,80 +1932,25 @@ function fmtDur(ms){
 function showToast(msg){
   const t = document.getElementById('toast');
   if (!t) return;
-  t.innerHTML = `<span>${msg}</span>`;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 1600);
-}
-
-function showToastWithUndo(msg, undoCallback) {
-  const t = document.getElementById('toast');
-  if (!t) return;
-  t.innerHTML = `<span>${msg}</span><button class="toast-undo-btn" id="toastUndoBtn">Undo</button>`;
-  t.classList.add('show');
-  
-  document.getElementById('toastUndoBtn').onclick = () => {
-    undoCallback();
-    t.classList.remove('show');
-  };
-  setTimeout(()=>t.classList.remove('show'), 5000);
-}
-
-function saveFieldUpdate(pathKey, val) {
-  if (!currentDate || !currentSite) return;
-  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-  const path = `sites/${cleanSite}/days/${currentDate}/${pathKey}`;
-
-  // Always keep a local copy of the latest pending value for this path so a
-  // page reload before the write reaches the cloud never loses data.
-  offlineSyncQueue = offlineSyncQueue.filter(item => item.path !== path);
-  offlineSyncQueue.push({ path, val });
-  try { localStorage.setItem('offline_sync_queue', JSON.stringify(offlineSyncQueue)); } catch(e){}
-
-  // Always attempt the write — Firebase's own SDK queues it internally while
-  // offline and flushes automatically on reconnect. The catch below is only
-  // for genuine failures (e.g. permission errors), which we log and leave in
-  // the local queue so the periodic retry can pick it up.
-  db.ref(path).set(val)
-    .then(() => {
-      offlineSyncQueue = offlineSyncQueue.filter(item => item.path !== path);
-      try { localStorage.setItem('offline_sync_queue', JSON.stringify(offlineSyncQueue)); } catch(e){}
-    })
-    .catch(err => console.error('Save failed, will retry:', path, err));
-}
-
-function processOfflineSyncQueue() {
-  const savedQueue = localStorage.getItem('offline_sync_queue');
-  if (!savedQueue) return;
-  try {
-    const q = JSON.parse(savedQueue);
-    if (!q.length) return;
-    q.forEach(item => {
-      db.ref(item.path).set(item.val)
-        .then(() => {
-          offlineSyncQueue = offlineSyncQueue.filter(r => r.path !== item.path);
-          try { localStorage.setItem('offline_sync_queue', JSON.stringify(offlineSyncQueue)); } catch(e){}
-        })
-        .catch(err => console.error('Retry failed for', item.path, err));
-    });
-  } catch(e) { console.error(e); }
 }
 
 function saveState(){
   if(!state || !currentDate || !currentSite) return;
   const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+  const siteKey = getCleanSiteKey();
   
   try {
-    localStorage.setItem(`offline_${cleanSite}_${currentDate}`, JSON.stringify(state));
+    localStorage.setItem(`offline_${siteKey}_${currentDate}`, JSON.stringify(state));
   } catch(e) { console.error(e); }
 
-  db.ref(`sites/${cleanSite}/defectiveReportFrames`).set(Array.from(siteDefectiveReportFrames)).catch(err => console.error(err));
-  db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).set(Array.from(siteDefectiveUnwalkableFrames)).catch(err => console.error(err));
-  db.ref(`sites/${cleanSite}/siteLinks`).set(siteLinksData).catch(err => console.error(err));
-  db.ref(`sites/${cleanSite}/days/${currentDate}`).update(state).catch(err => {
-    console.error(err);
-    // Fall back to the durable per-field retry queue so this isn't lost
-    saveFieldUpdate('kits', state.kits);
-  });
+  try {
+    db.ref(`sites/${siteKey}/defectiveReportFrames`).set(Array.from(siteDefectiveReportFrames));
+    db.ref(`sites/${siteKey}/defectiveUnwalkableFrames`).set(Array.from(siteDefectiveUnwalkableFrames));
+    db.ref(`sites/${cleanSite}/siteLinks`).set(siteLinksData);
+    db.ref(`sites/${siteKey}/days/${currentDate}`).set(state);
+  } catch(e) { console.error(e); }
 }
 
 function loadDay(dateISO){
@@ -1937,57 +1958,35 @@ function loadDay(dateISO){
   if (dbRef) dbRef.off();
 
   const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+  const siteKey = getCleanSiteKey();
 
-  // 1) Paint immediately from whatever is already cached locally, so the
-  //    screen is never blank/stuck waiting on a network round trip — this is
-  //    what makes the app feel instant even on a slow or flaky connection.
-  const cachedBuilding = localStorage.getItem(`app-cached-building_${cleanSite}`);
-  buildingData = cachedBuilding ? JSON.parse(cachedBuilding) : null;
-
-  const localFallback = localStorage.getItem(`offline_${cleanSite}_${dateISO}`);
-  state = localFallback ? JSON.parse(localFallback) : blankDay(dateISO);
-  if(!state.kits) state.kits = [];
-  state.kits.forEach(k => {
-    if(!k.stops) k.stops = [];
-    if(!k.events) k.events = {};
-    if(!k.drops) k.drops = [{ facade: k.facade||'', rows: k.rows||'', cols: k.cols||'' }];
-    if(!k.selectedFrames) k.selectedFrames = [];
-  });
-  if (state.workType === 'Inspection') document.body.classList.add('inspection-mode');
-  else document.body.classList.remove('inspection-mode');
-  render();
-
-  // 2) Layer in live data from Firebase as it arrives — this is what makes a
-  //    building JSON / operators / history uploaded once show up on every
-  //    device and every future session automatically.
+  // Load Building JSON (Shared across all cycles of the site)
   db.ref(`sites/${cleanSite}/buildingJson`).on('value', (snap) => {
-    const val = snap.val();
-    if (val) {
-      buildingData = val;
-      try { localStorage.setItem(`app-cached-building_${cleanSite}`, JSON.stringify(val)); } catch(e){}
-    }
-  }, (err) => console.error('Building JSON read failed:', err));
+    buildingData = snap.val() || null;
+  });
 
+  // Load Site-level persistent Links (Persists across cycles)
   db.ref(`sites/${cleanSite}/siteLinks`).on('value', (snap) => {
     siteLinksData = snap.val() || { opReportLink: '', projectAlbumLink: '' };
     document.getElementById('opReportLinkInput').value = siteLinksData.opReportLink || '';
     document.getElementById('projectAlbumLinkInput').value = siteLinksData.projectAlbumLink || '';
-  }, (err) => console.error('Site links read failed:', err));
+  });
 
-  db.ref(`sites/${cleanSite}/defectiveReportFrames`).on('value', (snap) => {
+  db.ref(`sites/${siteKey}/defectiveReportFrames`).on('value', (snap) => {
     siteDefectiveReportFrames = new Set(snap.val() || []);
-  }, (err) => console.error('Defective (report) read failed:', err));
+  });
 
-  db.ref(`sites/${cleanSite}/defectiveUnwalkableFrames`).on('value', (snap) => {
+  db.ref(`sites/${siteKey}/defectiveUnwalkableFrames`).on('value', (snap) => {
     siteDefectiveUnwalkableFrames = new Set(snap.val() || []);
-  }, (err) => console.error('Defective (unwalkable) read failed:', err));
+  });
 
-  db.ref(`sites/${cleanSite}/days`).on('value', (snap) => {
+  db.ref(`sites/${siteKey}/days`).on('value', (snap) => {
     siteAllDaysData = snap.val() || {};
     recalculateSiteCleanedHistory();
-  }, (err) => console.error('Days history read failed:', err));
+    renderActiveDaysBar();
+  });
 
-  dbRef = db.ref(`sites/${cleanSite}/days/${dateISO}`);
+  dbRef = db.ref(`sites/${siteKey}/days/${dateISO}`);
   dbRef.on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -1999,19 +1998,21 @@ function loadDay(dateISO){
         if(!k.drops) k.drops = [{ facade: k.facade||'', rows: k.rows||'', cols: k.cols||'' }];
         if(!k.selectedFrames) k.selectedFrames = [];
       });
+    } else {
+      const localFallback = localStorage.getItem(`offline_${siteKey}_${dateISO}`);
+      if (localFallback) {
+        state = JSON.parse(localFallback);
+      } else {
+        state = blankDay(dateISO);
+      }
     }
-    // If data is null (nothing saved yet for this day), keep the local
-    // fallback/blank state that was already painted in step 1 above.
-
+    
     if (state.workType === 'Inspection') {
       document.body.classList.add('inspection-mode');
     } else {
       document.body.classList.remove('inspection-mode');
     }
     render();
-  }, (err) => {
-    console.error('Day data read failed:', err);
-    showToast('שגיאת חיבור לענן — עובד זמנית על נתונים מקומיים');
   });
 }
 
@@ -2193,17 +2194,17 @@ function renderKitCard(kit){
 
   card.querySelector('.delete-kit-btn').addEventListener('click', (ev) => {
     ev.stopPropagation();
-    lastDeletedKit = JSON.parse(JSON.stringify(kit));
-    state.kits = state.kits.filter(k => k.id !== kit.id);
-    saveState();
-    showToastWithUndo(`Kit #${kit.id} deleted`, undoDeleteKit);
+    if(confirm(`Are you sure you want to delete Kit #${kit.id}?`)){
+      state.kits = state.kits.filter(k => k.id !== kit.id);
+      saveState();
+      showToast(`Kit #${kit.id} deleted`);
+    }
   });
 
   const dropsContainer = card.querySelector('.card-drop-list');
   function renderCardDrops() {
     dropsContainer.innerHTML = '';
     if(!kit.drops || !kit.drops.length) kit.drops = [{ facade: '', rows: '', cols: '' }];
-    const frag = document.createDocumentFragment();
     kit.drops.forEach((dItem, dIdx) => {
       const row = document.createElement('div');
       row.className = 'drop-col-item';
@@ -2215,9 +2216,8 @@ function renderKitCard(kit){
         </div>
         ${kit.drops.length > 1 ? `<button type="button" class="btn-remove-drop" data-didx="${dIdx}">🗑️ Remove Drop Area</button>` : ''}
       `;
-      frag.appendChild(row);
+      dropsContainer.appendChild(row);
     });
-    dropsContainer.appendChild(frag);
 
     dropsContainer.querySelectorAll('input').forEach(inp => {
       inp.addEventListener('change', (ev) => {
@@ -2277,7 +2277,6 @@ function renderKitCard(kit){
   });
 
   const grid = card.querySelector('.stage-grid');
-  const fragStage = document.createDocumentFragment();
   STAGES.forEach((s,i)=>{
     const done = !!(kit.events && kit.events[s.key]);
     const locked = i > nextIdx;
@@ -2311,9 +2310,8 @@ function renderKitCard(kit){
       });
     }
 
-    fragStage.appendChild(chip);
+    grid.appendChild(chip);
   });
-  grid.appendChild(fragStage);
 
   const stopBtn = card.querySelector('[data-act="stop"]');
   const startBtn = card.querySelector('[data-act="start"]');
@@ -2402,18 +2400,6 @@ function renderKitCard(kit){
   return card;
 }
 
-function undoDeleteKit() {
-  if (lastDeletedKit) {
-    if (!state.kits.some(k => String(k.id) === String(lastDeletedKit.id))) {
-      state.kits.push(lastDeletedKit);
-      saveState();
-      renderKits();
-      showToast(`Kit #${lastDeletedKit.id} restored!`);
-      lastDeletedKit = null;
-    }
-  }
-}
-
 function openFacadeMapModal(kit) {
   activeMapKitId = kit.id;
   selectedFrameIds = new Set(kit.selectedFrames || []);
@@ -2421,14 +2407,12 @@ function openFacadeMapModal(kit) {
   const sectionSel = document.getElementById('facadeSectionSelect');
   sectionSel.innerHTML = '';
   
-  const frag = document.createDocumentFragment();
   (buildingData.sections || []).forEach((sec, idx) => {
     const opt = document.createElement('option');
     opt.value = idx;
     opt.textContent = `${sec.name || sec.section_id} (${sec.n_cols} cols x ${sec.n_rows} rows)`;
-    frag.appendChild(opt);
+    sectionSel.appendChild(opt);
   });
-  sectionSel.appendChild(frag);
 
   currentMapInteractionMode = 'scroll';
   clearMapModeButtons();
@@ -2528,7 +2512,6 @@ function renderFacadeGrid(sectionIdx) {
   });
 
   const sortedRowKeys = Object.keys(rowMap).map(Number).sort((a,b) => b - a);
-  const fragGrid = document.createDocumentFragment();
 
   sortedRowKeys.forEach(yKey => {
     const rowFrames = rowMap[yKey].sort((a,b) => parseInt(a.frame_pos.x || 0, 10) - parseInt(b.frame_pos.x || 0, 10));
@@ -2601,10 +2584,9 @@ function renderFacadeGrid(sectionIdx) {
       rowContainer.appendChild(cell);
     });
 
-    fragGrid.appendChild(rowContainer);
+    wrapper.appendChild(rowContainer);
   });
 
-  wrapper.appendChild(fragGrid);
   document.getElementById('facadeSqmTotal').textContent = calculateSelectedSqm().toFixed(2);
 }
 
@@ -2707,9 +2689,7 @@ function renderKits(){
     wrap.appendChild(empty);
     return;
   }
-  const frag = document.createDocumentFragment();
-  state.kits.forEach(kit => frag.appendChild(renderKitCard(kit)));
-  wrap.appendChild(frag);
+  state.kits.forEach(kit => wrap.appendChild(renderKitCard(kit)));
 }
 
 document.getElementById('addKitToggle').addEventListener('click', ()=>{
@@ -2899,20 +2879,21 @@ document.getElementById('workTypeInput').addEventListener('change', (e)=>{
     } else {
       document.body.classList.remove('inspection-mode');
     }
-    saveFieldUpdate('workType', state.workType);
+    saveState(); 
   } 
 });
 
-document.getElementById('qualityRatingInput').addEventListener('change', (e)=>{ if(state) { state.qualityRating = e.target.value; saveFieldUpdate('qualityRating', state.qualityRating); } });
-document.getElementById('peopleInput').addEventListener('change', (e)=>{ if(state) { state.people = e.target.value; saveFieldUpdate('people', state.people); checkTeamSizeValidation(); } });
-document.getElementById('juniorCountInput').addEventListener('change', (e)=>{ if(state) { state.juniorCount = e.target.value; saveFieldUpdate('juniorCount', state.juniorCount); checkTeamSizeValidation(); } });
-document.getElementById('expertCountInput').addEventListener('change', (e)=>{ if(state) { state.expertCount = e.target.value; saveFieldUpdate('expertCount', state.expertCount); checkTeamSizeValidation(); } });
+document.getElementById('qualityRatingInput').addEventListener('change', (e)=>{ if(state) { state.qualityRating = e.target.value; saveState(); } });
+document.getElementById('peopleInput').addEventListener('change', (e)=>{ if(state) { state.people = e.target.value; saveState(); } });
+document.getElementById('juniorCountInput').addEventListener('change', (e)=>{ if(state) { state.juniorCount = e.target.value; saveState(); } });
+document.getElementById('expertCountInput').addEventListener('change', (e)=>{ if(state) { state.expertCount = e.target.value; saveState(); } });
 
-document.getElementById('tempInput').addEventListener('change', (e)=>{ if(state) { state.temp = e.target.value; saveFieldUpdate('temp', state.temp); } });
-document.getElementById('humidityInput').addEventListener('change', (e)=>{ if(state) { state.humidity = e.target.value; saveFieldUpdate('humidity', state.humidity); } });
-document.getElementById('windGustsInput').addEventListener('change', (e)=>{ if(state) { state.windGusts = e.target.value; saveFieldUpdate('windGusts', state.windGusts); checkWindAlert(); } });
+document.getElementById('tempInput').addEventListener('change', (e)=>{ if(state) { state.temp = e.target.value; saveState(); } });
+document.getElementById('humidityInput').addEventListener('change', (e)=>{ if(state) { state.humidity = e.target.value; saveState(); } });
+document.getElementById('windGustsInput').addEventListener('change', (e)=>{ if(state) { state.windGusts = e.target.value; saveState(); checkWindAlert(); } });
 
-document.getElementById('generalIssuesInput').addEventListener('change', (e)=>{ if(state) { state.generalIssues = e.target.value; saveFieldUpdate('generalIssues', state.generalIssues); } });
+document.getElementById('generalIssuesInput').addEventListener('change', (e)=>{ if(state) { state.generalIssues = e.target.value; saveState(); } });
+
 document.getElementById('opReportLinkInput').addEventListener('change', (e)=>{ 
   siteLinksData.opReportLink = e.target.value; 
   saveState(); 
@@ -2993,7 +2974,6 @@ function render(){
   }
 
   checkWindAlert();
-  checkTeamSizeValidation();
 
   if(state) {
     renderKits();
@@ -3021,9 +3001,14 @@ function generateRichHTMLEmail() {
 
       const bgStyle = idx % 2 === 0 ? 'background-color: #F8FAFC;' : 'background-color: #FFFFFF;';
 
+      const componentsStr = `RBU: ${kit.rbu || 'N/A'} | VRU: ${kit.vru || 'N/A'} | MCP: ${kit.mcp || 'N/A'}`;
+
       tableRowsHTML += `
         <tr style="${bgStyle}">
-          <td style="padding: 10px 14px; border: 1px solid #CBD5E1; font-weight: bold; color: #0F172A;">Kit #${kit.id} (${kit.type})</td>
+          <td style="padding: 10px 14px; border: 1px solid #CBD5E1; color: #0F172A;">
+            <strong>Kit #${kit.id} (${kit.type})</strong>
+            <div style="font-size: 11px; color: #64748B; margin-top: 2px;">🔧 Components: ${componentsStr}</div>
+          </td>
           <td style="padding: 10px 14px; border: 1px solid #CBD5E1; font-weight: bold; color: #2563EB; text-align: center;">${sqmNum} SQM</td>
           <td style="padding: 10px 14px; border: 1px solid #CBD5E1; text-align: center; color: #334155;">${netDurStr}</td>
         </tr>
@@ -3033,14 +3018,14 @@ function generateRichHTMLEmail() {
         const issuesFormatted = kit.kitIssues.trim().split('\n').map(line => `<li style="margin-bottom: 4px;">${line}</li>`).join('');
         kitIssuesHTML += `
           <div style="margin-bottom: 12px;">
-            <strong style="color: #0F172A;">Kit #${kit.id}:</strong>
+            <strong style="color: #0F172A;">Kit #${kit.id} (${kit.type}):</strong>
             <ul style="margin: 4px 0 0 20px; padding: 0; color: #334155;">${issuesFormatted}</ul>
           </div>
         `;
       } else {
         kitIssuesHTML += `
           <div style="margin-bottom: 12px;">
-            <strong style="color: #0F172A;">Kit #${kit.id}:</strong>
+            <strong style="color: #0F172A;">Kit #${kit.id} (${kit.type}):</strong>
             <ul style="margin: 4px 0 0 20px; padding: 0; color: #64748B;"><li>N/A</li></ul>
           </div>
         `;
@@ -3062,9 +3047,9 @@ function generateRichHTMLEmail() {
 
   const fullHTML = `
     <div style="font-family: Arial, sans-serif; font-size: 15px; color: #0F172A; max-width: 680px; margin: 0 auto; line-height: 1.6; border: 1px solid #E2E8F0; padding: 20px; border-radius: 12px; background: #FFFFFF;">
-      <h2 style="color: #0F172A; font-size: 20px; border-bottom: 2px solid #0072E5; padding-bottom: 8px; margin-top: 0;">📅 Daily Summary - ${formattedDate}</h2>
+      <h2 style="color: #0F172A; font-size: 20px; border-bottom: 2px solid #0072E5; padding-bottom: 8px; margin-top: 0;">📅 Daily Summary - ${formattedDate} (${currentCycle})</h2>
       <p style="margin: 6px 0;">Hi Team,</p>
-      <p style="margin: 6px 0;">Below is the daily summary of today's work in <strong>${currentSite}</strong>.</p>
+      <p style="margin: 6px 0;">Below is the daily summary of today's work in <strong>${currentSite}</strong> (${currentCycle}).</p>
       <p style="margin: 6px 0; color: #64748B;"><strong>Operators:</strong> ${operators}</p>
       
       <div style="background-color: #EFF6FF; border-left: 4px solid #2563EB; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
@@ -3072,11 +3057,11 @@ function generateRichHTMLEmail() {
         <span style="font-size: 22px; font-weight: 800; color: #2563EB;">${Math.round(dayTotalSqm)} SQM</span>
       </div>
 
-      <h3 style="color: #1E293B; font-size: 16px; margin-top: 20px; margin-bottom: 10px;">📊 SQM & Performance per System</h3>
+      <h3 style="color: #1E293B; font-size: 16px; margin-top: 20px; margin-bottom: 10px;">📊 SQM, Components & Performance per System</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <thead>
           <tr style="background-color: #0F172A; color: #FFFFFF; text-align: left;">
-            <th style="padding: 10px 14px; border: 1px solid #0F172A;">System / Kit</th>
+            <th style="padding: 10px 14px; border: 1px solid #0F172A;">System & Components</th>
             <th style="padding: 10px 14px; border: 1px solid #0F172A; text-align: center;">SQM Cleaned</th>
             <th style="padding: 10px 14px; border: 1px solid #0F172A; text-align: center;">Net Operational Time</th>
           </tr>
@@ -3159,7 +3144,7 @@ function fallbackCopyHTML(html) {
 
 document.getElementById('openEmailClientBtn').addEventListener('click', () => {
   const text = document.getElementById('emailTextPreview').innerText;
-  const subject = encodeURIComponent(`Daily Summary - ${formatDateDisplay(state.date)} - ${currentSite}`);
+  const subject = encodeURIComponent(`Daily Summary - ${formatDateDisplay(state.date)} - ${currentSite} (${currentCycle})`);
   const body = encodeURIComponent(text);
   window.location.href = `mailto:?subject=${subject}&body=${body}`;
 });
@@ -3245,7 +3230,7 @@ function copyRowsForSheets(){
       state.humidity || '—',                // 26. Humidity (%)
       state.windGusts || '—',               // 27. Wind Gusts (km/h)
       `[Mode: ${locLabel}] ${kit.deployNotes||''}`.trim(), // 28. Deployment Notes
-      stopsDetail                           // 29. Stops & Reasons
+      stopsDetail                            // 29. Stops & Reasons
     ];
 
     rows.push(row.join('\t'));
@@ -3375,7 +3360,7 @@ function exportFullCyclePdfReport() {
       <div class="header">
         <div>
           <div class="title">Cleaning Cycle Progress Report</div>
-          <div class="subtitle">Building: <strong>${currentSite}</strong> | Date: ${formatDateDisplay(todayISO())}</div>
+          <div class="subtitle">Building: <strong>${currentSite}</strong> (${currentCycle}) | Date: ${formatDateDisplay(todayISO())}</div>
         </div>
         <div style="font-size: 12px; font-weight: bold; color: #0072E5;">IsraOps Field Report</div>
       </div>
@@ -3450,9 +3435,6 @@ document.getElementById('loadBtn').addEventListener('click', ()=>{
   document.getElementById('dateInput').value = today;
   renderSitesDropdown();
   loadDay(today);
-  discoverSiteKeysFromDatabase();
-  updateNetworkStatus();
-  processOfflineSyncQueue();
   
   setInterval(()=>{
     if(!state || !state.kits) return;
