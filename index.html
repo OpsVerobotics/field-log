@@ -654,6 +654,50 @@
     background:transparent; border:none; color:var(--orange); font-size:14px; font-weight:700;
     min-width:34px; min-height:34px; border-radius:17px; cursor:pointer;
   }
+
+  /* ================= Phone fit ================= */
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  html, body { overflow-x:hidden; }
+  body { overflow-x:clip; padding-bottom:calc(40px + env(safe-area-inset-bottom)); }
+  body.modal-open { overflow:hidden; }
+  header { padding-top:calc(14px + env(safe-area-inset-top)); }
+  .header-top { gap:8px; }
+  .eyebrow { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .header-right-actions { flex-shrink:0; }
+  h1 { font-size:clamp(19px, 5.6vw, 22px); }
+
+  /* Grid children may shrink instead of pushing the page wider */
+  .field, .context-field, .field-row > *, .kit-fields-grid > *, .kit-new-grid > *,
+  .settings-grid > *, .header-actions > *, .live-actions > *, .dashboard-grid > * { min-width:0; }
+  .field-row { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .field-row.three-col { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+  .kit-report { grid-template-columns:repeat(4, minmax(0, 1fr)); }
+  .kit-report .stat .v { font-size:13px; overflow-wrap:anywhere; }
+  img, table { max-width:100%; }
+
+  .kit-new-grid .field.full-width, .kit-new-grid .drop-cols-container { grid-column:1 / -1; }
+  .settings-select { width:100%; min-height:44px; font-family:var(--body); font-size:15px; }
+
+  .toast {
+    max-width:calc(100vw - 32px); width:max-content; white-space:normal; text-align:center;
+    bottom:calc(20px + env(safe-area-inset-bottom));
+  }
+
+  /* Bottom sheets: never taller than the screen, scroll inside, clear of the home bar */
+  .modal-box {
+    max-height:92vh; max-height:92dvh; overflow-y:auto; overscroll-behavior:contain;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  }
+
+  @media (max-width:380px) {
+    section { margin-left:12px; margin-right:12px; }
+    header { padding-left:12px; padding-right:12px; }
+    .kit-report { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .kit-report .stat .v { font-size:15px; }
+    .header-actions .btn { font-size:12px; }
+    .btn-lg { font-size:16px; }
+    .kit-live { padding:0 12px 12px; }
+  }
 </style>
 
 <!-- Firebase SDK -->
@@ -668,11 +712,6 @@
       <div class="eyebrow">FIELD LOG · KIT TRACKER <span class="network-status-tag offline" id="netStatus">OFFLINE</span></div>
       <div class="header-right-actions">
         <button type="button" class="toggle-header-btn" id="toggleHeaderBtn">▲ Hide</button>
-        <select class="theme-selector" id="themeSelect">
-          <option value="dark">🌙 Dark</option>
-          <option value="light">☀️ Light</option>
-          <option value="high-contrast">⚡ High Contrast</option>
-        </select>
       </div>
     </div>
     <h1>Daily Field Operations</h1>
@@ -738,15 +777,15 @@
     <div class="field-row three-col">
       <div class="field">
         <label>Team Size</label>
-        <input type="number" id="peopleInput" min="0" placeholder="Total">
+        <input type="number" inputmode="numeric" id="peopleInput" min="0" placeholder="Total">
       </div>
       <div class="field">
         <label>Junior Count</label>
-        <input type="number" id="juniorCountInput" min="0" placeholder="Junior">
+        <input type="number" inputmode="numeric" id="juniorCountInput" min="0" placeholder="Junior">
       </div>
       <div class="field">
         <label>Expert Count</label>
-        <input type="number" id="expertCountInput" min="0" placeholder="Expert">
+        <input type="number" inputmode="numeric" id="expertCountInput" min="0" placeholder="Expert">
       </div>
     </div>
   </section>
@@ -759,15 +798,15 @@
     <div class="field-row three-col">
       <div class="field">
         <label>Temp (°C)</label>
-        <input type="number" id="tempInput" placeholder="°C">
+        <input type="number" inputmode="decimal" id="tempInput" placeholder="°C">
       </div>
       <div class="field">
         <label>Humidity (%)</label>
-        <input type="number" id="humidityInput" placeholder="%">
+        <input type="number" inputmode="numeric" id="humidityInput" placeholder="%">
       </div>
       <div class="field">
         <label>Wind Gusts (km/h)</label>
-        <input type="number" id="windGustsInput" placeholder="km/h">
+        <input type="number" inputmode="numeric" id="windGustsInput" placeholder="km/h">
       </div>
     </div>
     <div class="wind-alert-box" id="windAlertBox">
@@ -878,6 +917,15 @@
   <div class="modal-box settings-modal">
     <div class="modal-title">⚙️ Settings</div>
     <div class="modal-sub" id="settingsSub"></div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Appearance</div>
+      <select class="theme-selector settings-select" id="themeSelect">
+        <option value="dark">🌙 Dark</option>
+        <option value="light">☀️ Light (best in sunlight)</option>
+        <option value="high-contrast">⚡ High contrast</option>
+      </select>
+    </div>
 
     <div class="settings-group">
       <div class="settings-group-title">Site</div>
@@ -1724,6 +1772,13 @@ document.getElementById('addNewOperatorBtn').addEventListener('click', () => {
     }
   }
 });
+
+// ---------- Modal scroll lock ----------
+(function lockScrollWhenModalOpen() {
+  const update = () => document.body.classList.toggle('modal-open', !!document.querySelector('.modal-overlay.show'));
+  const obs = new MutationObserver(update);
+  document.querySelectorAll('.modal-overlay').forEach(m => obs.observe(m, { attributes: true, attributeFilter: ['class'] }));
+})();
 
 // ---------- Header & theme ----------
 const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
