@@ -508,6 +508,152 @@
     body { background: #fff; color: #000; }
     header, .btn-group, .add-kit, .reset-link, .site-pick, .datepick, section { display: none !important; }
   }
+
+  /* ================= Visual refresh: one accent, neutral secondary, red only for destructive ================= */
+  :root[data-theme="dark"] { --line:#2E3642; --line-strong:#4A5668; --on-accent:#1A1300; }
+  :root[data-theme="light"] { --line:#D5DCE6; --line-strong:#A3AFC0; --on-accent:#1A1300; }
+  :root[data-theme="high-contrast"] { --line-strong:#FFFFFF; --on-accent:#000000; }
+
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:44px;
+    padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:var(--panel2);
+    color:var(--text); font-family:var(--body); font-size:14px; font-weight:700; cursor:pointer;
+    text-align:center; line-height:1.2; text-decoration:none;
+  }
+  .btn-primary { background:var(--amber); border-color:var(--amber); color:var(--on-accent); }
+  .btn-danger { background:transparent; border-color:var(--orange); color:var(--orange); }
+  .btn-stop { background:var(--orange); border-color:var(--orange); color:var(--on-accent); }
+  .btn-resume { background:var(--green); border-color:var(--green); color:var(--on-accent); }
+  .btn-block { width:100%; }
+  .btn-lg { min-height:56px; font-family:var(--disp); font-size:18px; letter-spacing:.02em; }
+  .btn:disabled { opacity:.4; cursor:default; }
+  .btn:active:not(:disabled) { transform:scale(0.98); }
+  .btn:focus-visible, .reason-chip:focus-visible, .stage-seg:focus-visible, .kit-details-toggle:focus-visible,
+  select:focus-visible, input:focus-visible, textarea:focus-visible { outline:2px solid var(--amber); outline-offset:2px; }
+
+  /* Header: scrolls away so the work area gets the full screen */
+  header { position:relative; }
+  .eyebrow { white-space:nowrap; }
+  .header-actions .btn { font-size:13px; padding:8px 6px; }
+  .toggle-header-btn { background:var(--panel2); border:1px solid var(--line); color:var(--text); }
+  .context-bar { margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .context-field { display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .context-field:last-child { grid-column:span 2; }
+  .context-field label { font-size:12px; font-weight:700; color:var(--dim); }
+  .context-field select, .context-field input {
+    width:100%; min-height:44px; background:var(--panel); border:1px solid var(--line); color:var(--text);
+    font-family:var(--body); font-size:16px; font-weight:700; padding:8px 10px; border-radius:10px;
+  }
+  .header-actions { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:10px; }
+  @media (min-width:650px) {
+    .context-bar { grid-template-columns:1fr 1fr 1fr; }
+    .context-field:last-child { grid-column:auto; }
+  }
+
+  /* Neutral secondary controls, thinner borders */
+  .weather-btn, .add-operator-btn, .btn-add-drop { background:var(--panel2); color:var(--text); border:1px solid var(--line); }
+  .btn-remove-drop { background:transparent; }
+  .clear-today-btn { background:transparent; border-width:1px; }
+  .field input, .field select, .field textarea, .operators-wrapper, .summary, .dash-card, .kit-fields-grid { border-width:1px; }
+  .add-kit { background:transparent; border:1.5px dashed var(--line-strong); color:var(--text); }
+  .kit-new-box { border-width:1px; }
+  .kit-new-box .go { background:var(--amber); color:var(--on-accent); border:1px solid var(--amber); box-shadow:none; }
+  .copy-btn, .pdf-btn { background:var(--panel2); border:1px solid var(--line); color:var(--text); box-shadow:none; }
+  .email-btn { background:var(--amber); border:1px solid var(--amber); color:var(--on-accent); box-shadow:none; }
+  .modal-box { border-width:1px; }
+  .modal-actions .confirm { background:var(--amber); border:1px solid var(--amber); color:var(--on-accent); }
+  .modal-actions .danger { background:transparent; border:1px solid var(--orange); color:var(--orange); }
+  .modal-actions .cancel { border-width:1px; }
+  .modal-actions .secondary { background:var(--panel2); border:1px solid var(--line); color:var(--text); }
+  .map-mode-btn { border-width:1px; }
+  .map-mode-btn.active { background:var(--amber-dim); border-color:var(--amber); color:var(--amber); }
+
+  /* Kit card: live actions on top, details folded away */
+  .kit-card { border:1px solid var(--line); box-shadow:none; }
+  .kit-card.wall-active { border:1px solid var(--amber); box-shadow:inset 4px 0 0 var(--amber); }
+  .kit-card.stopped { border-color:var(--orange); box-shadow:inset 4px 0 0 var(--orange); }
+  .kit-card.stopped .kit-status-dot { background:var(--orange); box-shadow:0 0 0 3px var(--orange-dim); }
+  .kit-title-wrap { min-width:0; }
+  .kit-subtitle { font-size:12px; color:var(--dim); font-weight:500; margin-top:1px; }
+  .kit-head-right { flex-direction:column; align-items:flex-end; gap:2px; }
+  .kit-status-label { font-size:12px; font-weight:700; color:var(--dim); }
+  .kit-card.wall-active .kit-status-label { color:var(--amber); }
+  .kit-card.stopped .kit-status-label { color:var(--orange); }
+  .kit-card.finished .kit-status-label { color:var(--green); }
+  .kit-live { padding:0 14px 14px; display:flex; flex-direction:column; gap:10px; }
+  .kit-live .kit-report { margin-top:0; }
+
+  .stage-track { display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; }
+  .stage-seg {
+    background:none; border:none; padding:2px 0; display:flex; flex-direction:column; align-items:flex-start;
+    gap:4px; color:var(--dim); font-family:var(--body); text-align:left; min-width:0; cursor:default;
+  }
+  .stage-seg .seg-bar { width:100%; height:6px; border-radius:3px; background:var(--panel3); }
+  .stage-seg.done { color:var(--text); cursor:pointer; }
+  .stage-seg.done .seg-bar { background:var(--amber); }
+  .stage-seg.next .seg-bar { background:var(--amber-dim); outline:1px solid var(--amber); }
+  .stage-seg.next .seg-lbl { color:var(--amber); }
+  .stage-seg .seg-lbl { font-size:11px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .stage-seg .seg-tm { font-family:var(--mono); font-size:10px; min-height:12px; }
+  .stage-seg:disabled { opacity:1; }
+
+  .live-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .live-actions > :only-child { grid-column:span 2; }
+  .stopped-banner {
+    background:var(--orange-dim); border:1px solid var(--orange); color:var(--orange);
+    border-radius:10px; padding:10px 12px; font-weight:700; font-size:15px;
+  }
+  .stopped-banner .why { color:var(--text); font-weight:500; font-size:13px; margin-top:2px; }
+  .kit-done-note { color:var(--green); font-weight:700; font-size:14px; }
+  .kit-details-toggle {
+    width:100%; background:transparent; border:none; border-top:1px solid var(--line); color:var(--dim);
+    font-family:var(--body); font-size:13px; font-weight:700; padding:12px; min-height:44px; cursor:pointer;
+  }
+  .kit-body[hidden] { display:none; }
+  .mini-title { font-size:12px; font-weight:700; color:var(--dim); margin:4px 0 6px; }
+
+  /* Stop reasons */
+  .reason-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .reason-chip {
+    min-height:44px; padding:8px 14px; border-radius:22px; border:1px solid var(--line); background:var(--panel2);
+    color:var(--text); font-family:var(--body); font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .reason-chip.active { background:var(--amber); border-color:var(--amber); color:var(--on-accent); }
+
+  /* Settings & dialogs */
+  .settings-modal { max-height:90vh; overflow-y:auto; }
+  .settings-group { margin-top:16px; }
+  .settings-group-title { font-size:12px; font-weight:700; color:var(--dim); margin-bottom:8px; }
+  .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .settings-grid .btn { width:100%; }
+  .settings-hint { font-size:12px; color:var(--dim); margin-top:8px; }
+  .danger-zone { border-top:1px solid var(--line); padding-top:14px; }
+  .danger-zone .settings-group-title { color:var(--orange); }
+  .dialog-overlay { z-index:80; }
+  .dialog-box { max-width:420px; }
+  .dialog-message { white-space:pre-line; font-family:var(--body); font-size:14px; color:var(--text); line-height:1.5; }
+  .dialog-input {
+    width:100%; min-height:48px; background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    font-family:var(--body); font-size:16px; padding:10px 12px; border-radius:10px;
+  }
+
+  /* Logs tabs & stops report */
+  .tab-bar { display:grid; grid-template-columns:1fr 1fr; gap:4px; background:var(--panel2); padding:4px; border-radius:12px; margin-bottom:12px; }
+  .tab-btn { min-height:40px; border:none; border-radius:9px; background:transparent; color:var(--dim); font-family:var(--body); font-size:14px; font-weight:700; cursor:pointer; }
+  .tab-btn.active { background:var(--panel); color:var(--text); box-shadow:0 1px 2px rgba(0,0,0,.25); }
+  .stops-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .daily-logs-table td.num, .daily-logs-table th.num { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .daily-logs-table tr.total-row td { font-weight:700; border-top:2px solid var(--line-strong); }
+  .daily-logs-table td.wrap { min-width:140px; font-family:var(--body); }
+  .stops-report .dash-val { font-size:20px; }
+
+  /* Custom stop reasons */
+  .reason-chip-add { background:transparent; border-style:dashed; border-color:var(--line-strong); color:var(--dim); }
+  .reason-chip-static { display:inline-flex; align-items:center; gap:4px; cursor:default; padding-right:4px; }
+  .reason-remove {
+    background:transparent; border:none; color:var(--orange); font-size:14px; font-weight:700;
+    min-width:34px; min-height:34px; border-radius:17px; cursor:pointer;
+  }
 </style>
 
 <!-- Firebase SDK -->
@@ -521,7 +667,7 @@
     <div class="header-top">
       <div class="eyebrow">FIELD LOG · KIT TRACKER <span class="network-status-tag offline" id="netStatus">OFFLINE</span></div>
       <div class="header-right-actions">
-        <button type="button" class="toggle-header-btn" id="toggleHeaderBtn">▲ Collapse Menu</button>
+        <button type="button" class="toggle-header-btn" id="toggleHeaderBtn">▲ Hide</button>
         <select class="theme-selector" id="themeSelect">
           <option value="dark">🌙 Dark</option>
           <option value="light">☀️ Light</option>
@@ -532,35 +678,24 @@
     <h1>Daily Field Operations</h1>
     
     <div class="header-collapsible" id="headerCollapsible">
-      <div class="site-pick">
-        <div class="row-full">
-          <label>Site:</label>
+      <div class="context-bar">
+        <div class="context-field">
+          <label for="siteSelect">Site</label>
           <select id="siteSelect"></select>
-          <input type="text" id="customSiteInput" placeholder="Enter new site name" style="display:none;">
         </div>
-        <button type="button" class="site-action-btn" id="renameSiteBtn" title="Rename current site">✏️ Rename Site</button>
-        <button type="button" class="site-action-btn" id="deleteSiteBtn" title="Delete current site" style="color:var(--orange);">🗑️ Delete Site</button>
-
-        <div class="row-full" style="margin-top: 4px;">
-          <label>Cycle:</label>
+        <div class="context-field">
+          <label for="cycleSelect">Cycle</label>
           <select id="cycleSelect"></select>
         </div>
-        <button type="button" class="new-cycle-btn" id="createNewCycleBtn">➕ New Cycle</button>
-        <button type="button" class="cycle-action-btn" id="renameCycleBtn" title="Rename current cycle">✏️ Rename</button>
-        <button type="button" class="cycle-action-btn" id="deleteCycleBtn" title="Delete current cycle" style="color:var(--orange);">🗑️ Delete Cycle</button>
-        
-        <button type="button" class="dashboard-btn" id="openDashboardBtn">📊 Open Dashboard</button>
-        <button type="button" class="history-logs-btn" id="openHistoryModalBtn">📜 View Logs History</button>
-        <button type="button" class="json-upload-btn" id="uploadJsonBtn">📁 Upload Building JSON</button>
-        <button type="button" class="json-upload-btn" id="exportBackupBtn" title="Download a full backup of this site">💾 Export Backup</button>
-        <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
-
-        <button type="button" class="main-reset-cycle-btn" id="mainResetCycleBtn">🔄 Reset Current Cycle</button>
+        <div class="context-field">
+          <label for="dateInput">Date</label>
+          <input type="date" id="dateInput">
+        </div>
       </div>
-
-      <div class="datepick">
-        <input type="date" id="dateInput">
-        <button id="loadBtn">Load Date</button>
+      <div class="header-actions">
+        <button type="button" class="btn" id="openDashboardBtn">📊 Dashboard</button>
+        <button type="button" class="btn" id="openHistoryModalBtn">📜 Logs</button>
+        <button type="button" class="btn" id="openSettingsBtn">⚙️ Settings</button>
       </div>
       <div id="activeDaysBar" class="active-days-bar"></div>
     </div>
@@ -738,6 +873,72 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Settings Modal (site & cycle management) -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal-box settings-modal">
+    <div class="modal-title">⚙️ Settings</div>
+    <div class="modal-sub" id="settingsSub"></div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Site</div>
+      <div class="settings-grid">
+        <button type="button" class="btn" id="newSiteBtn">➕ New site</button>
+        <button type="button" class="btn" id="renameSiteBtn">✏️ Rename site</button>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Cycle</div>
+      <div class="settings-grid">
+        <button type="button" class="btn" id="createNewCycleBtn">➕ New cycle</button>
+        <button type="button" class="btn" id="renameCycleBtn">✏️ Rename cycle</button>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Building & data</div>
+      <div class="settings-grid">
+        <label class="btn" for="jsonFileInput">📁 Upload building JSON</label>
+        <button type="button" class="btn" id="exportBackupBtn">💾 Export backup</button>
+      </div>
+      <input type="file" id="jsonFileInput" accept=".json,application/json" hidden>
+      <div class="settings-hint" id="buildingJsonStatus"></div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Stop reasons</div>
+      <div class="reason-chips" id="settingsReasonsList"></div>
+      <div class="settings-hint">Tap ✕ to remove a reason. Past stops keep the reason they were logged with.</div>
+    </div>
+
+    <div class="settings-group danger-zone">
+      <div class="settings-group-title">Danger zone</div>
+      <div class="settings-grid">
+        <button type="button" class="btn btn-danger" id="mainResetCycleBtn">🔄 Reset cycle</button>
+        <button type="button" class="btn btn-danger" id="deleteCycleBtn">🗑️ Delete cycle</button>
+        <button type="button" class="btn btn-danger" id="deleteSiteBtn" style="grid-column: span 2;">🗑️ Delete site</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="cancel" id="closeSettingsBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- In-app dialog (replaces browser prompt / alert / confirm) -->
+<div class="modal-overlay dialog-overlay" id="dialogModal">
+  <div class="modal-box dialog-box">
+    <div class="modal-title" id="dialogTitle"></div>
+    <div class="modal-sub dialog-message" id="dialogMessage"></div>
+    <input type="text" id="dialogInput" class="dialog-input" autocomplete="off">
+    <div class="modal-actions">
+      <button class="cancel" id="dialogCancel">Cancel</button>
+      <button class="confirm" id="dialogConfirm">OK</button>
+    </div>
+  </div>
+</div>
+
 <!-- Email Preview Modal -->
 <div class="modal-overlay" id="emailModal">
   <div class="modal-box email-modal-box">
@@ -747,7 +948,7 @@
     <div class="modal-actions">
       <button class="cancel" id="emailModalCancel">Close</button>
       <button class="confirm" id="copyEmailTextBtn">📋 Copy Rich Text Email</button>
-      <button class="confirm" id="openEmailClientBtn" style="background:var(--blue-dim); border-color:var(--blue); color:var(--blue);">✉️ Open Email App</button>
+      <button class="secondary" id="openEmailClientBtn">✉️ Open Email App</button>
     </div>
   </div>
 </div>
@@ -755,12 +956,29 @@
 <!-- History & Logs Modal -->
 <div class="modal-overlay" id="historyModal">
   <div class="modal-box history-modal">
-    <div class="modal-title">📜 Recorded Daily Operational Logs</div>
-    <div class="modal-sub" id="historySiteSub">Site Logs Explorer</div>
-    <input type="text" id="historySearchInput" placeholder="🔍 Search logs by date, operator, or notes..." style="width: 100%; padding: 10px; margin-bottom: 12px; background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 8px;">
-    <div id="historyLogsContainer" style="max-height: 50vh; overflow-y: auto;"></div>
+    <div class="modal-title">📜 Logs</div>
+    <div class="modal-sub" id="historySiteSub"></div>
+
+    <div class="tab-bar">
+      <button type="button" class="tab-btn active" data-tab="days">Daily logs</button>
+      <button type="button" class="tab-btn" data-tab="stops">Stops report</button>
+    </div>
+
+    <div id="tabDays">
+      <input type="text" id="historySearchInput" placeholder="🔍 Search logs by date, operator, or notes..." style="width: 100%; padding: 10px; margin-bottom: 12px; background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 8px;">
+      <div id="historyLogsContainer" style="max-height: 50vh; overflow-y: auto;"></div>
+    </div>
+
+    <div id="tabStops" class="stops-report" hidden>
+      <div class="stops-actions">
+        <button type="button" class="btn" id="copyStopsSummaryBtn">📋 Copy summary</button>
+        <button type="button" class="btn" id="copyStopsListBtn">📋 Copy all stops</button>
+      </div>
+      <div id="stopsReportContainer" style="max-height: 55vh; overflow-y: auto;"></div>
+    </div>
+
     <div class="modal-actions">
-      <button class="cancel" id="closeHistoryModalBtn">Close Logs Explorer</button>
+      <button class="cancel" id="closeHistoryModalBtn">Close</button>
     </div>
   </div>
 </div>
@@ -768,11 +986,12 @@
 <!-- New Stop Modal -->
 <div class="modal-overlay" id="stopModal">
   <div class="modal-box">
-    <div class="modal-title">Stop Reason</div>
+    <div class="modal-title">Stop reason</div>
     <div class="modal-sub" id="stopModalSub">What is causing the delay?</div>
-    <textarea id="stopReasonInput" placeholder="e.g. Waiting for approval, technical issue, weather..."></textarea>
+    <div class="reason-chips" id="stopReasonChips"></div>
+    <textarea id="stopReasonInput" rows="2" placeholder="Details, or describe another issue..."></textarea>
     <div style="margin-top: 10px;">
-      <label style="font-size: 11px; font-weight: bold; color: var(--dim);">Attach Photo (Optional):</label>
+      <label style="font-size: 12px; font-weight: bold; color: var(--dim);">Attach photo (optional)</label>
       <input type="file" id="stopPhotoInput" accept="image/*" style="font-size: 12px; margin-top: 4px;">
       <div id="stopPhotoPreviewWrap" style="display:none; margin-top:6px;">
         <img id="stopPhotoPreview" class="stop-img-preview" alt="">
@@ -781,7 +1000,7 @@
     </div>
     <div class="modal-actions">
       <button class="cancel" id="stopReasonCancel">Cancel</button>
-      <button class="confirm" id="stopReasonConfirm">Confirm Stop</button>
+      <button class="confirm" id="stopReasonConfirm">⏸ Confirm stop</button>
     </div>
   </div>
 </div>
@@ -801,7 +1020,8 @@
         <input type="time" id="stopEditEnd" step="1">
       </div>
     </div>
-    <textarea id="stopEditReason" placeholder="Stop reason..."></textarea>
+    <div class="reason-chips" id="stopEditReasonChips"></div>
+    <textarea id="stopEditReason" rows="2" placeholder="Details, or describe another issue..."></textarea>
 
     <div style="margin-top: 10px;">
       <label style="font-size: 11px; font-weight: bold; color: var(--dim);">Photo Attachment:</label>
@@ -888,9 +1108,9 @@
       </div>
 
       <div class="dash-card">
-        <div class="dash-title">Total System Time</div>
-        <div class="dash-val"><span id="dashStatTotalTime">00:00</span></div>
-        <div class="dash-sub">Cumulative time on wall (all kits)</div>
+        <div class="dash-title">Avg Time per Kit</div>
+        <div class="dash-val"><span id="dashStatAvgKit">—</span></div>
+        <div class="dash-sub" id="dashStatAvgKitSub">Average time on wall per kit</div>
       </div>
 
       <div class="dash-card">
@@ -932,10 +1152,10 @@
 // ================================================================
 // Field Operations Log
 // Data layout in Firebase (per site/cycle):
-//    sites/<site>/<cycle>/days/<date>          day fields + kitsMap/<kitUid>
-//    sites/<site>/<cycle>/photos/<photoId>      stop photos (kept out of days)
-//    sites/<site>/<cycle>/defectReport/<key>    frame id
-//    sites/<site>/<cycle>/defectBlock/<key>     frame id
+//   sites/<site>/<cycle>/days/<date>          day fields + kitsMap/<kitUid>
+//   sites/<site>/<cycle>/photos/<photoId>     stop photos (kept out of days)
+//   sites/<site>/<cycle>/defectReport/<key>   frame id
+//   sites/<site>/<cycle>/defectBlock/<key>    frame id
 // Older data (kits arrays, inline photos, defect arrays) is migrated
 // automatically the first time a cycle is opened.
 // ================================================================
@@ -974,20 +1194,89 @@ let pendingStopKitUid = null;
 let pendingStopPhotoData = null;
 let editingTimeInfo = null;
 let editingStopInfo = null;
-let collapsedMap = {};
+let detailsOpen = {};
+let lastStageTap = {};
 
 let newKitDrops = [{ facade: '', rows: '', cols: '' }];
 
 // Confirmation step before critical actions (prevents accidental clicks)
 const ADMIN_PASSWORD = "1234";
 
-function verifyAdminPassword(actionDescription = "perform this administrative action") {
-  const enteredPass = prompt(`🔒 Security Verification:\nPlease enter Admin Password to ${actionDescription}:`);
-  if (enteredPass === ADMIN_PASSWORD) {
-    return true;
-  } else if (enteredPass !== null) {
-    alert("❌ Incorrect Password. Action cancelled.");
-  }
+// ---------- In-app dialogs ----------
+let dialogResolver = null;
+
+function uiDialog({ title = '', message = '', input = null, confirmText = 'OK', cancelText = 'Cancel', danger = false, hideCancel = false }) {
+  return new Promise(resolve => {
+    if (dialogResolver) dialogResolver(null);
+    document.getElementById('dialogTitle').textContent = title;
+    const msgEl = document.getElementById('dialogMessage');
+    msgEl.textContent = message;
+    msgEl.style.display = message ? 'block' : 'none';
+
+    const inp = document.getElementById('dialogInput');
+    if (input) {
+      inp.style.display = 'block';
+      inp.type = input.type || 'text';
+      inp.value = input.value || '';
+      inp.placeholder = input.placeholder || '';
+      inp.inputMode = input.inputMode || 'text';
+    } else {
+      inp.style.display = 'none';
+      inp.value = '';
+    }
+
+    const okBtn = document.getElementById('dialogConfirm');
+    okBtn.textContent = confirmText;
+    okBtn.className = danger ? 'danger' : 'confirm';
+    const cancelBtn = document.getElementById('dialogCancel');
+    cancelBtn.textContent = cancelText;
+    cancelBtn.style.display = hideCancel ? 'none' : '';
+
+    dialogResolver = resolve;
+    document.getElementById('dialogModal').classList.add('show');
+    setTimeout(() => (input ? inp : okBtn).focus(), 60);
+  });
+}
+
+function closeDialog(result) {
+  document.getElementById('dialogModal').classList.remove('show');
+  const r = dialogResolver;
+  dialogResolver = null;
+  if (r) r(result);
+}
+
+document.getElementById('dialogConfirm').addEventListener('click', () => {
+  const inp = document.getElementById('dialogInput');
+  closeDialog(inp.style.display === 'none' ? true : inp.value);
+});
+document.getElementById('dialogCancel').addEventListener('click', () => closeDialog(null));
+document.getElementById('dialogInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('dialogConfirm').click(); }
+});
+document.getElementById('dialogModal').addEventListener('click', (e) => {
+  if (e.target.id === 'dialogModal') closeDialog(null);
+});
+
+function uiAlert(title, message = '') {
+  return uiDialog({ title, message, confirmText: 'OK', hideCancel: true });
+}
+function uiConfirm(title, message = '', opts = {}) {
+  return uiDialog({ title, message, confirmText: opts.confirmText || 'Confirm', danger: !!opts.danger }).then(r => r === true);
+}
+function uiPrompt(title, message = '', value = '', placeholder = '') {
+  return uiDialog({ title, message, input: { value, placeholder }, confirmText: 'Save' }).then(r => (r === null || r === true) ? null : String(r));
+}
+
+async function requireAdmin(actionDescription) {
+  const entered = await uiDialog({
+    title: '🔒 Admin password',
+    message: `Enter the admin password to ${actionDescription}.`,
+    input: { type: 'password', inputMode: 'numeric' },
+    confirmText: 'Continue'
+  });
+  if (entered === null) return false;
+  if (entered === ADMIN_PASSWORD) return true;
+  await uiAlert('Incorrect password', 'The action was cancelled.');
   return false;
 }
 
@@ -1169,12 +1458,40 @@ function dayPath() { return `sites/${getCleanSiteKey()}/days/${currentDate}`; }
 function dayMeta() { return { date: currentDate, site: currentSite, cycle: currentCycle }; }
 function cacheKey(dateISO) { return `offline_${getCleanSiteKey()}_${dateISO || currentDate}`; }
 
+// Writes sent but not yet confirmed by the server, per cached day
+const pendingWrites = {};
+
 function cacheLocal() {
   if (!state || !currentDate) return;
-  try { localStorage.setItem(cacheKey(), JSON.stringify(state)); } catch(e) { console.error(e); }
+  const key = cacheKey();
+  try {
+    localStorage.setItem(key, JSON.stringify({ v: 2, dirty: (pendingWrites[key] || 0) > 0, state }));
+  } catch(e) { console.error(e); }
+}
+
+function markCacheClean(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+    const o = JSON.parse(raw);
+    if (o && o.v === 2) { o.dirty = false; localStorage.setItem(key, JSON.stringify(o)); }
+  } catch(e) { console.error(e); }
+}
+
+// Marks the day as "has unsynced changes" until Firebase confirms the write
+function trackWrite(promise) {
+  const key = cacheKey();
+  pendingWrites[key] = (pendingWrites[key] || 0) + 1;
+  cacheLocal();
+  promise.then(() => {
+    if (!pendingWrites[key]) return;
+    pendingWrites[key]--;
+    if (pendingWrites[key] <= 0) { delete pendingWrites[key]; markCacheClean(key); }
+  }).catch(onSaveError);
 }
 
 function clearLocalCache(prefix) {
+  Object.keys(pendingWrites).forEach(k => { if (k.startsWith(prefix)) delete pendingWrites[k]; });
   try {
     Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k));
   } catch(e) { console.error(e); }
@@ -1187,8 +1504,7 @@ function onSaveError(err) {
 
 function saveDayFields(fields) {
   if (!state || !currentDate) return;
-  cacheLocal();
-  db.ref(dayPath()).update(Object.assign(dayMeta(), cloneForDb(fields))).catch(onSaveError);
+  trackWrite(db.ref(dayPath()).update(Object.assign(dayMeta(), cloneForDb(fields))));
 }
 
 function saveKit(kit) {
@@ -1196,19 +1512,17 @@ function saveKit(kit) {
   if (!kit.uid) kit.uid = newId('k');
   if (kit.order == null) kit.order = Date.now();
   externalizeInlinePhotos(kit);
-  cacheLocal();
   const upd = dayMeta();
   upd[`kitsMap/${kit.uid}`] = cloneForDb(kit);
-  db.ref(dayPath()).update(upd).catch(onSaveError);
+  trackWrite(db.ref(dayPath()).update(upd));
 }
 
 function removeKit(kit) {
   (kit.stops || []).forEach(st => { if (st && st.photoId) deletePhoto(st.photoId); });
   state.kits = state.kits.filter(k => k.uid !== kit.uid);
-  cacheLocal();
   const upd = {};
   upd[`kitsMap/${kit.uid}`] = null;
-  db.ref(dayPath()).update(upd).catch(onSaveError);
+  trackWrite(db.ref(dayPath()).update(upd));
 }
 
 function fullDayPayload(s) {
@@ -1362,10 +1676,10 @@ function renderOperatorsList() {
       renderOperatorsList();
     });
 
-    label.querySelector('.delete-operator-btn').addEventListener('click', (ev) => {
+    label.querySelector('.delete-operator-btn').addEventListener('click', async (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
-      if (confirm(`Remove operator "${opName}" permanently from global list?`)) {
+      if (await uiConfirm(`Remove operator "${opName}"?`, 'They will be removed from the operators list for all sites. Past logs keep their name.', { danger: true, confirmText: 'Remove' })) {
         globalOperatorsList = globalOperatorsList.filter(name => name !== opName);
         db.ref('globalOperatorsList').set(globalOperatorsList);
 
@@ -1417,13 +1731,13 @@ const headerCollapsible = document.getElementById('headerCollapsible');
 
 toggleHeaderBtn.addEventListener('click', () => {
   const isCollapsed = headerCollapsible.classList.toggle('collapsed');
-  toggleHeaderBtn.textContent = isCollapsed ? '▼ Expand Menu' : '▲ Collapse Menu';
+  toggleHeaderBtn.textContent = isCollapsed ? '▼ Menu' : '▲ Hide';
   localStorage.setItem('header-collapsed', isCollapsed ? 'true' : 'false');
 });
 
 if (localStorage.getItem('header-collapsed') === 'true') {
   headerCollapsible.classList.add('collapsed');
-  toggleHeaderBtn.textContent = '▼ Expand Menu';
+  toggleHeaderBtn.textContent = '▼ Menu';
 }
 
 const themeSelect = document.getElementById('themeSelect');
@@ -1485,76 +1799,117 @@ function renderSitesDropdown() {
     sel.appendChild(opt);
   });
 
-  const customOpt = document.createElement('option');
-  customOpt.value = 'custom';
-  customOpt.textContent = '+ New Site...';
-  sel.appendChild(customOpt);
 
   renderCyclesDropdown();
 }
 
-// Rename Current Site (password step)
-document.getElementById('renameSiteBtn').addEventListener('click', () => {
-  if (!verifyAdminPassword("rename the site")) return;
-  
-  const newName = prompt(`Rename site "${currentSite}" to:`, currentSite);
-  if (newName && newName.trim() && newName.trim() !== currentSite) {
-    const oldSite = currentSite;
-    const cleanOldSite = cleanKeyPart(oldSite);
-    const cleanNewSite = newName.trim();
-    const cleanNewSiteKey = cleanKeyPart(cleanNewSite);
-
-    const finish = () => {
-      globalSitesList = globalSitesList.map(s => s === oldSite ? cleanNewSite : s);
-      globalSitesList = Array.from(new Set(globalSitesList));
-      db.ref('globalSitesList').set(globalSitesList);
-
-      currentSite = cleanNewSite;
-      localStorage.setItem('app-last-site', currentSite);
-      localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
-      renderSitesDropdown();
-      loadDay(currentDate);
-      showToast(`Site renamed to "${cleanNewSite}"!`);
-    };
-
-    db.ref(`sites/${cleanOldSite}`).once('value', (snap) => {
-      const siteData = snap.val();
-      if (siteData) {
-        db.ref(`sites/${cleanNewSiteKey}`).set(siteData).then(() => {
-          db.ref(`sites/${cleanOldSite}`).remove();
-          finish();
-        }).catch(onSaveError);
-      } else {
-        finish();
-      }
-    });
+// ---------- Settings (site & cycle management) ----------
+function refreshSettingsInfo() {
+  document.getElementById('settingsSub').textContent = `${currentSite} · ${currentCycle}`;
+  const st = document.getElementById('buildingJsonStatus');
+  if (buildingData && buildingData.sections) {
+    const n = Object.keys(buildingData.sections).length;
+    st.textContent = `Building loaded: ${buildingData.name || 'Building'} (${n} section${n === 1 ? '' : 's'})`;
+  } else {
+    st.textContent = 'No building JSON uploaded for this site yet.';
   }
+}
+function openSettings() {
+  refreshSettingsInfo();
+  renderSettingsReasons();
+  document.getElementById('settingsModal').classList.add('show');
+}
+function closeSettings() { document.getElementById('settingsModal').classList.remove('show'); }
+
+document.getElementById('openSettingsBtn').addEventListener('click', openSettings);
+document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
+document.getElementById('settingsModal').addEventListener('click', (e) => { if (e.target.id === 'settingsModal') closeSettings(); });
+
+// New site
+document.getElementById('newSiteBtn').addEventListener('click', async () => {
+  if (!(await requireAdmin('add a new site'))) return;
+  const name = await uiPrompt('New site', 'Enter a name for the new site.', '', 'e.g. Vica Park');
+  const val = (name || '').trim();
+  if (!val) return;
+  currentSite = val;
+  currentCycle = localStorage.getItem(`app-last-cycle_${currentSite}`) || 'Cycle 09/2026';
+  if (!globalSitesList.includes(val)) {
+    globalSitesList.push(val);
+    db.ref('globalSitesList').set(globalSitesList);
+  }
+  localStorage.setItem('app-last-site', currentSite);
+  localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+  renderSitesDropdown();
+  loadDay(currentDate);
+  closeSettings();
+  showToast(`Site "${val}" added. Upload its building JSON in Settings.`);
 });
 
-// Delete Current Site (password step)
-document.getElementById('deleteSiteBtn').addEventListener('click', () => {
-  if (!verifyAdminPassword("delete the entire site")) return;
+// Rename current site
+document.getElementById('renameSiteBtn').addEventListener('click', async () => {
+  if (!(await requireAdmin('rename the site'))) return;
+  const input = await uiPrompt('Rename site', `Current name: ${currentSite}`, currentSite);
+  const cleanNewSite = (input || '').trim();
+  if (!cleanNewSite || cleanNewSite === currentSite) return;
 
-  if (confirm(`CRITICAL WARNING: Are you sure you want to permanently DELETE site "${currentSite}" and ALL its cycles?`)) {
-    const oldSite = currentSite;
-    const cleanOldSite = cleanKeyPart(oldSite);
+  const oldSite = currentSite;
+  const cleanOldSite = cleanKeyPart(oldSite);
+  const cleanNewSiteKey = cleanKeyPart(cleanNewSite);
 
-    db.ref(`sites/${cleanOldSite}`).remove().then(() => {
-      clearLocalCache(`offline_${cleanOldSite}/`);
-      globalSitesList = globalSitesList.filter(s => s !== oldSite);
-      if (!globalSitesList.length) globalSitesList = ['Suzuki'];
-      db.ref('globalSitesList').set(globalSitesList);
+  const finish = () => {
+    globalSitesList = globalSitesList.map(s => s === oldSite ? cleanNewSite : s);
+    globalSitesList = Array.from(new Set(globalSitesList));
+    db.ref('globalSitesList').set(globalSitesList);
 
-      currentSite = globalSitesList[0];
-      currentCycle = localStorage.getItem(`app-last-cycle_${currentSite}`) || 'Cycle 09/2026';
-      localStorage.setItem('app-last-site', currentSite);
-      localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
-      
-      renderSitesDropdown();
-      loadDay(currentDate);
-      showToast(`Site "${oldSite}" deleted successfully!`);
-    }).catch(onSaveError);
-  }
+    currentSite = cleanNewSite;
+    localStorage.setItem('app-last-site', currentSite);
+    localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+    renderSitesDropdown();
+    loadDay(currentDate);
+    refreshSettingsInfo();
+    showToast(`Site renamed to "${cleanNewSite}"`);
+  };
+
+  db.ref(`sites/${cleanOldSite}`).once('value', (snap) => {
+    const siteData = snap.val();
+    if (siteData) {
+      db.ref(`sites/${cleanNewSiteKey}`).set(siteData).then(() => {
+        db.ref(`sites/${cleanOldSite}`).remove();
+        finish();
+      }).catch(onSaveError);
+    } else {
+      finish();
+    }
+  });
+});
+
+// Delete current site
+document.getElementById('deleteSiteBtn').addEventListener('click', async () => {
+  if (!(await requireAdmin('delete the entire site'))) return;
+  const ok = await uiConfirm(`Delete site "${currentSite}"?`,
+    'This permanently deletes the site with all its cycles, logs and photos.\nConsider exporting a backup first.',
+    { danger: true, confirmText: 'Delete site' });
+  if (!ok) return;
+
+  const oldSite = currentSite;
+  const cleanOldSite = cleanKeyPart(oldSite);
+
+  clearLocalCache(`offline_${cleanOldSite}/`);
+  db.ref(`sites/${cleanOldSite}`).remove().then(() => {
+    globalSitesList = globalSitesList.filter(s => s !== oldSite);
+    if (!globalSitesList.length) globalSitesList = ['Suzuki'];
+    db.ref('globalSitesList').set(globalSitesList);
+
+    currentSite = globalSitesList[0];
+    currentCycle = localStorage.getItem(`app-last-cycle_${currentSite}`) || 'Cycle 09/2026';
+    localStorage.setItem('app-last-site', currentSite);
+    localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+
+    renderSitesDropdown();
+    loadDay(currentDate);
+    closeSettings();
+    showToast(`Site "${oldSite}" deleted`);
+  }).catch(onSaveError);
 });
 
 function renderCyclesDropdown() {
@@ -1589,88 +1944,88 @@ document.getElementById('cycleSelect').addEventListener('change', (e) => {
   loadDay(currentDate);
 });
 
-// Create NEW Cycle (password step)
-document.getElementById('createNewCycleBtn').addEventListener('click', () => {
-  if (!verifyAdminPassword("create a new cycle")) return;
+// Create new cycle
+document.getElementById('createNewCycleBtn').addEventListener('click', async () => {
+  if (!(await requireAdmin('create a new cycle'))) return;
+  const name = await uiPrompt('New cycle', 'Name the new cycle, e.g. Cycle 10/2026 or Winter 2026.', '', 'Cycle 10/2026');
+  const cleanName = (name || '').trim();
+  if (!cleanName) return;
+  if (!siteCyclesList.includes(cleanName)) {
+    siteCyclesList.push(cleanName);
+    siteCyclesList = Array.from(new Set(siteCyclesList));
+    db.ref(`sites/${cleanKeyPart(currentSite)}/cyclesList`).set(siteCyclesList);
+  }
+  currentCycle = cleanName;
+  localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+  renderCyclesDropdown();
+  loadDay(currentDate);
+  closeSettings();
+  showToast(`Cycle "${cleanName}" created`);
+});
 
-  const newCycleName = prompt("Enter a name for the new cycle (e.g. Cycle 10/2026, Winter 2026):");
-  if (newCycleName && newCycleName.trim()) {
-    const cleanName = newCycleName.trim();
-    if (!siteCyclesList.includes(cleanName)) {
-      siteCyclesList.push(cleanName);
-      siteCyclesList = Array.from(new Set(siteCyclesList));
-      db.ref(`sites/${cleanKeyPart(currentSite)}/cyclesList`).set(siteCyclesList);
-    }
+// Rename current cycle
+document.getElementById('renameCycleBtn').addEventListener('click', async () => {
+  if (!(await requireAdmin('rename the current cycle'))) return;
+  const input = await uiPrompt('Rename cycle', `Current name: ${currentCycle}`, currentCycle);
+  const cleanName = (input || '').trim();
+  if (!cleanName || cleanName === currentCycle) return;
+
+  const oldCycle = currentCycle;
+  const cleanSite = cleanKeyPart(currentSite);
+  const oldKey = `${cleanSite}/${cleanKeyPart(oldCycle)}`;
+  const newKey = `${cleanSite}/${cleanKeyPart(cleanName)}`;
+
+  const finish = () => {
+    siteCyclesList = siteCyclesList.map(c => c === oldCycle ? cleanName : c);
+    siteCyclesList = Array.from(new Set(siteCyclesList));
+    db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
+
     currentCycle = cleanName;
     localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
     renderCyclesDropdown();
     loadDay(currentDate);
-    showToast(`New Clean Cycle "${cleanName}" created!`);
-  }
-});
+    refreshSettingsInfo();
+    showToast(`Cycle renamed to "${cleanName}"`);
+  };
 
-// Rename Current Cycle (password step)
-document.getElementById('renameCycleBtn').addEventListener('click', () => {
-  if (!verifyAdminPassword("rename the current cycle")) return;
-
-  const newName = prompt(`Rename cycle "${currentCycle}" to:`, currentCycle);
-  if (newName && newName.trim() && newName.trim() !== currentCycle) {
-    const oldCycle = currentCycle;
-    const cleanName = newName.trim();
-    const cleanSite = cleanKeyPart(currentSite);
-
-    const oldKey = `${cleanSite}/${cleanKeyPart(oldCycle)}`;
-    const newKey = `${cleanSite}/${cleanKeyPart(cleanName)}`;
-
-    const finish = () => {
-      siteCyclesList = siteCyclesList.map(c => c === oldCycle ? cleanName : c);
-      siteCyclesList = Array.from(new Set(siteCyclesList));
-      db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
-
-      currentCycle = cleanName;
-      localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
-      renderCyclesDropdown();
-      loadDay(currentDate);
-      showToast(`Cycle renamed to "${cleanName}"!`);
-    };
-
-    db.ref(`sites/${oldKey}`).once('value', (snap) => {
-      const cycleData = snap.val();
-      if (cycleData) {
-        db.ref(`sites/${newKey}`).set(cycleData).then(() => {
-          db.ref(`sites/${oldKey}`).remove();
-          clearLocalCache(`offline_${oldKey}_`);
-          finish();
-        }).catch(onSaveError);
-      } else {
+  db.ref(`sites/${oldKey}`).once('value', (snap) => {
+    const cycleData = snap.val();
+    if (cycleData) {
+      db.ref(`sites/${newKey}`).set(cycleData).then(() => {
+        clearLocalCache(`offline_${oldKey}_`);
+        db.ref(`sites/${oldKey}`).remove();
         finish();
-      }
-    });
-  }
+      }).catch(onSaveError);
+    } else {
+      finish();
+    }
+  });
 });
 
-// Delete Cycle (password step)
-document.getElementById('deleteCycleBtn').addEventListener('click', () => {
-  if (!verifyAdminPassword("delete this cycle")) return;
+// Delete current cycle
+document.getElementById('deleteCycleBtn').addEventListener('click', async () => {
+  if (!(await requireAdmin('delete this cycle'))) return;
+  const ok = await uiConfirm(`Delete cycle "${currentCycle}"?`,
+    'This permanently deletes the cycle with all its daily logs and photos.',
+    { danger: true, confirmText: 'Delete cycle' });
+  if (!ok) return;
 
-  if (confirm(`CRITICAL ACTION: Are you sure you want to permanently DELETE cycle "${currentCycle}" and ALL its logged history?`)) {
-    const cleanSite = cleanKeyPart(currentSite);
-    const siteKey = getCleanSiteKey();
+  const cleanSite = cleanKeyPart(currentSite);
+  const siteKey = getCleanSiteKey();
 
-    db.ref(`sites/${siteKey}`).remove().then(() => {
-      clearLocalCache(`offline_${siteKey}_`);
-      siteCyclesList = siteCyclesList.filter(c => c !== currentCycle);
-      if (!siteCyclesList.length) siteCyclesList = ['Cycle 09/2026'];
-      
-      db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
+  clearLocalCache(`offline_${siteKey}_`);
+  db.ref(`sites/${siteKey}`).remove().then(() => {
+    siteCyclesList = siteCyclesList.filter(c => c !== currentCycle);
+    if (!siteCyclesList.length) siteCyclesList = ['Cycle 09/2026'];
+    db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
 
-      currentCycle = siteCyclesList[0];
-      localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
-      renderCyclesDropdown();
-      loadDay(currentDate);
-      showToast(`Cycle deleted successfully!`);
-    }).catch(onSaveError);
-  }
+    currentCycle = siteCyclesList[0];
+    localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+    renderCyclesDropdown();
+    loadDay(currentDate);
+    closeSettings();
+    showToast('Cycle deleted');
+  }).catch(onSaveError);
 });
 
 db.ref('globalSitesList').on('value', (snap) => {
@@ -1774,28 +2129,29 @@ function checkWindowOverlap(kitUid, frameId) {
   return state.kits.some(k => k.uid !== kitUid && (k.selectedFrames || []).includes(frameId));
 }
 
-document.getElementById('uploadJsonBtn').addEventListener('click', () => {
-  if (!verifyAdminPassword("upload/overwrite Building JSON")) return;
-  document.getElementById('jsonFileInput').click();
-});
-
-document.getElementById('jsonFileInput').addEventListener('change', (e) => {
+document.getElementById('jsonFileInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
+  e.target.value = '';
   if (!file) return;
+  if (!(await requireAdmin('upload/overwrite the building JSON'))) return;
 
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    try {
-      const parsed = JSON.parse(evt.target.result);
-      buildingData = parsed;
-      db.ref(`sites/${cleanKeyPart(currentSite)}/buildingJson`).set(parsed).catch(onSaveError);
-      showToast(`Building JSON "${parsed.name || 'Building'}" loaded for site "${currentSite}"!`);
-    } catch(err) {
-      alert('Invalid JSON file format');
-    }
-    e.target.value = '';
-  };
-  reader.readAsText(file);
+  let text;
+  try { text = await file.text(); }
+  catch (err) { await uiAlert('Could not read the file'); return; }
+
+  let parsed;
+  try { parsed = JSON.parse(text); }
+  catch (err) { await uiAlert('Invalid JSON file', 'The file could not be read as JSON.'); return; }
+
+  if (!parsed || !parsed.sections) {
+    await uiAlert('Not a building file', 'The JSON has no "sections" list.');
+    return;
+  }
+
+  buildingData = parsed;
+  db.ref(`sites/${cleanKeyPart(currentSite)}/buildingJson`).set(parsed).catch(onSaveError);
+  refreshSettingsInfo();
+  showToast(`Building "${parsed.name || 'Building'}" loaded for ${currentSite}`);
 });
 
 function recalculateSiteCleanedHistory() {
@@ -1829,37 +2185,52 @@ function renderActiveDaysBar() {
   });
 }
 
-// Reset Current Cycle (password step)
-document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
-  if (!verifyAdminPassword("RESET this entire cycle")) return;
+// Reset current cycle
+document.getElementById('mainResetCycleBtn').addEventListener('click', async () => {
+  if (!(await requireAdmin('reset this cycle'))) return;
+  const ok = await uiConfirm(`Reset "${currentCycle}"?`,
+    `This deletes ALL daily logs, window history, defects and photos for ${currentSite} (${currentCycle}).`,
+    { danger: true, confirmText: 'Reset cycle' });
+  if (!ok) return;
 
-  if (confirm(`CRITICAL WARNING: Are you sure you want to reset ALL window history AND delete ALL daily sessions for "${currentSite}" (${currentCycle})?`)) {
-    const siteKey = getCleanSiteKey();
-    const upd = {
-      days: null, photos: null,
-      defectReport: null, defectBlock: null,
-      defectiveReportFrames: null, defectiveUnwalkableFrames: null,
-      cleanedFramesHistory: null
-    };
+  const siteKey = getCleanSiteKey();
+  const upd = {
+    days: null, photos: null,
+    defectReport: null, defectBlock: null,
+    defectiveReportFrames: null, defectiveUnwalkableFrames: null,
+    cleanedFramesHistory: null
+  };
 
-    db.ref(`sites/${siteKey}`).update(upd).then(() => {
-      clearLocalCache(`offline_${siteKey}_`);
-      siteCleanedFramesHistory.clear();
-      siteDefectiveReportFrames.clear();
-      siteDefectiveUnwalkableFrames.clear();
-      selectedFrameIds.clear();
-      siteAllDaysData = {};
-      state = blankDay(currentDate);
-      render();
-      showToast('Cycle Reset Successfully!');
-    }).catch(onSaveError);
-  }
+  clearLocalCache(`offline_${siteKey}_`);
+  db.ref(`sites/${siteKey}`).update(upd).then(() => {
+    siteCleanedFramesHistory.clear();
+    siteDefectiveReportFrames.clear();
+    siteDefectiveUnwalkableFrames.clear();
+    selectedFrameIds.clear();
+    siteAllDaysData = {};
+    state = blankDay(currentDate);
+    render();
+    closeSettings();
+    showToast('Cycle reset');
+  }).catch(onSaveError);
 });
 
 // ---------- Logs history ----------
 document.getElementById('openHistoryModalBtn').addEventListener('click', () => {
   renderHistoryLogsList();
+  setLogsTab('days');
   document.getElementById('historyModal').classList.add('show');
+});
+
+function setLogsTab(tab) {
+  document.querySelectorAll('#historyModal .tab-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === tab));
+  document.getElementById('tabDays').hidden = tab !== 'days';
+  document.getElementById('tabStops').hidden = tab !== 'stops';
+  document.getElementById('historySiteSub').textContent = `Site: ${currentSite} (${currentCycle})`;
+  if (tab === 'stops') renderStopsReport();
+}
+document.querySelectorAll('#historyModal .tab-btn').forEach(b => {
+  b.addEventListener('click', () => setLogsTab(b.getAttribute('data-tab')));
 });
 
 document.getElementById('closeHistoryModalBtn').addEventListener('click', () => {
@@ -1872,7 +2243,6 @@ document.getElementById('historySearchInput').addEventListener('input', (e) => {
 
 function renderHistoryLogsList(filterText = '') {
   const container = document.getElementById('historyLogsContainer');
-  document.getElementById('historySiteSub').textContent = `Site: ${currentSite} (${currentCycle}) — Search & Review Logs`;
   container.innerHTML = '';
 
   const activeDates = Object.keys(siteAllDaysData || {}).filter(dKey => dayHasActivity(siteAllDaysData[dKey])).sort().reverse();
@@ -1915,6 +2285,211 @@ function renderHistoryLogsList(filterText = '') {
     container.appendChild(card);
   });
 }
+
+// ---------- Stops report ----------
+function collectStops() {
+  const list = [];
+  Object.keys(siteAllDaysData || {}).sort().forEach(dKey => {
+    dayKits(siteAllDaysData[dKey]).forEach(kit => {
+      (kit.stops || []).forEach(st => {
+        if (!st || !st.start) return;
+        let note = st.note != null ? st.note : (st.category ? '' : (st.reason || ''));
+        if (note === '(No reason specified)') note = '';
+        list.push({
+          date: dKey,
+          kitId: kit.id,
+          type: kit.type,
+          start: st.start,
+          end: st.end || null,
+          ms: st.end ? Math.max(0, new Date(st.end) - new Date(st.start)) : null,
+          category: st.category || 'Other',
+          note
+        });
+      });
+    });
+  });
+  return list;
+}
+
+function summarizeStops(stops) {
+  const byCat = {};
+  let totalMs = 0, totalDone = 0, longest = 0;
+  stops.forEach(s => {
+    if (!byCat[s.category]) byCat[s.category] = { count: 0, done: 0, ms: 0, longest: 0 };
+    const c = byCat[s.category];
+    c.count++;
+    if (s.ms != null) {
+      c.done++; c.ms += s.ms; c.longest = Math.max(c.longest, s.ms);
+      totalDone++; totalMs += s.ms; longest = Math.max(longest, s.ms);
+    }
+  });
+  const rows = Object.keys(byCat).map(cat => {
+    const c = byCat[cat];
+    return {
+      cat, count: c.count, done: c.done, ms: c.ms,
+      longest: c.done ? c.longest : null,
+      avg: c.done ? c.ms / c.done : null,
+      pct: totalMs > 0 ? c.ms / totalMs * 100 : 0
+    };
+  }).sort((a, b) => (b.ms - a.ms) || (b.count - a.count));
+  return {
+    rows, totalMs, totalDone, totalCount: stops.length,
+    longest: totalDone ? longest : null,
+    avg: totalDone ? totalMs / totalDone : null
+  };
+}
+
+function cycleWallMs() {
+  let ms = 0;
+  Object.keys(siteAllDaysData || {}).forEach(dKey => {
+    dayKits(siteAllDaysData[dKey]).forEach(kit => {
+      const { wallMs } = kitDurations(kit);
+      if (wallMs != null) ms += wallMs;
+    });
+  });
+  return ms;
+}
+
+function renderStopsReport() {
+  const box = document.getElementById('stopsReportContainer');
+  const stops = collectStops();
+  if (!stops.length) {
+    box.innerHTML = '<div class="empty-note">No stops recorded in this cycle yet</div>';
+    return;
+  }
+
+  const sum = summarizeStops(stops);
+  const wallMs = cycleWallMs();
+  const pctWall = wallMs > 0 ? (sum.totalMs / wallMs * 100) : null;
+  const openCount = sum.totalCount - sum.totalDone;
+
+  const summaryRows = sum.rows.map(r => `
+    <tr>
+      <td class="wrap">${esc(r.cat)}</td>
+      <td class="num">${r.count}</td>
+      <td class="num">${fmtDur(r.ms)}</td>
+      <td class="num">${fmtDur(r.avg)}</td>
+      <td class="num">${fmtDur(r.longest)}</td>
+      <td class="num">${r.pct.toFixed(1)}%</td>
+    </tr>`).join('');
+
+  const listRows = stops.slice().sort((a, b) => new Date(b.start) - new Date(a.start)).map(s => `
+    <tr>
+      <td class="num">${esc(formatDateDisplay(s.date))}</td>
+      <td>#${esc(s.kitId)}<div style="color:var(--dim); font-size:11px;">${esc(s.type)}</div></td>
+      <td class="num">${fmtTime(s.start).slice(0,5)}–${s.end ? fmtTime(s.end).slice(0,5) : '…'}</td>
+      <td class="num">${s.ms != null ? fmtDur(s.ms) : 'Open'}</td>
+      <td class="wrap">${esc(s.category)}</td>
+      <td class="wrap">${esc(s.note) || '<span style="color:var(--dim);">—</span>'}</td>
+    </tr>`).join('');
+
+  box.innerHTML = `
+    <div class="dashboard-grid">
+      <div class="dash-card">
+        <div class="dash-title">Total stops</div>
+        <div class="dash-val">${sum.totalCount}</div>
+        <div class="dash-sub">${openCount ? `${openCount} still open` : 'All closed'}</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-title">Total downtime</div>
+        <div class="dash-val">${fmtDur(sum.totalMs)}</div>
+        <div class="dash-sub">Closed stops only</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-title">Avg stop</div>
+        <div class="dash-val">${fmtDur(sum.avg)}</div>
+        <div class="dash-sub">Longest ${fmtDur(sum.longest)}</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-title">Of time on wall</div>
+        <div class="dash-val">${pctWall != null ? pctWall.toFixed(1) + '%' : '—'}</div>
+        <div class="dash-sub">Downtime share</div>
+      </div>
+    </div>
+
+    <div class="mini-title">By reason</div>
+    <div style="overflow-x:auto;">
+      <table class="daily-logs-table">
+        <thead><tr>
+          <th>Reason</th><th class="num">Count</th><th class="num">Total</th>
+          <th class="num">Avg</th><th class="num">Longest</th><th class="num">Share</th>
+        </tr></thead>
+        <tbody>
+          ${summaryRows}
+          <tr class="total-row">
+            <td>Total</td>
+            <td class="num">${sum.totalCount}</td>
+            <td class="num">${fmtDur(sum.totalMs)}</td>
+            <td class="num">${fmtDur(sum.avg)}</td>
+            <td class="num">${fmtDur(sum.longest)}</td>
+            <td class="num">100%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mini-title" style="margin-top:16px;">All stops · newest first</div>
+    <div style="overflow-x:auto;">
+      <table class="daily-logs-table">
+        <thead><tr>
+          <th>Date</th><th>Kit</th><th>Time</th><th class="num">Duration</th><th>Reason</th><th>Details</th>
+        </tr></thead>
+        <tbody>${listRows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function copyToClipboard(text, okMsg) {
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast(okMsg); } catch (e) { showToast('Copy failed'); }
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast(okMsg)).catch(fallback);
+  } else {
+    fallback();
+  }
+}
+
+function stopsSummaryTsv() {
+  const sum = summarizeStops(collectStops());
+  const lines = [['Site', 'Cycle', 'Reason', 'Count', 'Total time', 'Avg time', 'Longest', '% of downtime'].join('\t')];
+  sum.rows.forEach(r => {
+    lines.push([currentSite, currentCycle, r.cat, r.count, fmtDur(r.ms), fmtDur(r.avg), fmtDur(r.longest), r.pct.toFixed(1) + '%'].map(sheetCell).join('\t'));
+  });
+  lines.push([currentSite, currentCycle, 'TOTAL', sum.totalCount, fmtDur(sum.totalMs), fmtDur(sum.avg), fmtDur(sum.longest), '100%'].map(sheetCell).join('\t'));
+  return lines.join('\n');
+}
+
+function stopsListTsv() {
+  const stops = collectStops().sort((a, b) => new Date(a.start) - new Date(b.start));
+  const lines = [['Date', 'Site', 'Cycle', 'Kit', 'ParaDevice', 'Start', 'End', 'Duration', 'Reason', 'Details'].join('\t')];
+  stops.forEach(s => {
+    lines.push([
+      s.date, currentSite, currentCycle, s.kitId, s.type,
+      fmtTime(s.start), s.end ? fmtTime(s.end) : '',
+      s.ms != null ? fmtDur(s.ms) : 'Open',
+      s.category, s.note
+    ].map(sheetCell).join('\t'));
+  });
+  return lines.join('\n');
+}
+
+document.getElementById('copyStopsSummaryBtn').addEventListener('click', () => {
+  if (!collectStops().length) { showToast('No stops to copy'); return; }
+  copyToClipboard(stopsSummaryTsv(), 'Stops summary copied! Paste into Sheets');
+});
+document.getElementById('copyStopsListBtn').addEventListener('click', () => {
+  if (!collectStops().length) { showToast('No stops to copy'); return; }
+  copyToClipboard(stopsListTsv(), 'All stops copied! Paste into Sheets');
+});
 
 // ---------- Dashboard ----------
 document.getElementById('openDashboardBtn').addEventListener('click', () => {
@@ -1963,6 +2538,7 @@ function calculateAndRenderDashboard() {
   document.getElementById('dashProgressBarFill').style.width = `${Math.min(100, progressPercent)}%`;
 
   let totalWallMs = 0, totalUptimeMs = 0, totalDowntimeMs = 0;
+  let wallSessions = 0, wallSqm = 0;
 
   const dailyTableBody = document.getElementById('dashDailyLogsTableBody');
   dailyTableBody.innerHTML = '';
@@ -1990,6 +2566,8 @@ function calculateAndRenderDashboard() {
         totalWallMs += wallMs;
         totalUptimeMs += netMs || 0;
         totalDowntimeMs += stopsMs || 0;
+        wallSessions++;
+        wallSqm += kit.sqmCleaned || 0;
       }
       if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
     });
@@ -2007,12 +2585,16 @@ function calculateAndRenderDashboard() {
   });
 
   const uptimeHours = totalUptimeMs / (1000 * 3600);
-  const speedSqmPerHour = uptimeHours > 0 ? (cleanedBuildingSqm / uptimeHours) : 0;
+  // Speed uses only kits with a complete wall period, so area and time match
+  const speedSqmPerHour = uptimeHours > 0 ? (wallSqm / uptimeHours) : 0;
   // Wall time already includes stops, so it is the right denominator
   const downtimePercent = totalWallMs > 0 ? (totalDowntimeMs / totalWallMs * 100) : 0;
 
   document.getElementById('dashStatSpeed').textContent = speedSqmPerHour.toFixed(1);
-  document.getElementById('dashStatTotalTime').textContent = fmtDur(totalWallMs);
+  document.getElementById('dashStatAvgKit').textContent = wallSessions ? fmtDur(totalWallMs / wallSessions) : '—';
+  document.getElementById('dashStatAvgKitSub').textContent = wallSessions
+    ? `On the wall · ${wallSessions} kit session${wallSessions === 1 ? '' : 's'}`
+    : 'No completed wall periods yet';
   document.getElementById('dashStatDowntimePercent').textContent = downtimePercent.toFixed(1);
 
   const facadeListContainer = document.getElementById('dashFacadeProgressList');
@@ -2082,43 +2664,13 @@ document.getElementById('newKitAddDropBtn').addEventListener('click', () => {
 renderNewKitDrops();
 
 const siteSelect = document.getElementById('siteSelect');
-const customSiteInput = document.getElementById('customSiteInput');
 
 siteSelect.addEventListener('change', (e) => {
-  if (e.target.value === 'custom') {
-    if (!verifyAdminPassword("add a new site")) {
-      siteSelect.value = currentSite;
-      return;
-    }
-    customSiteInput.style.display = 'block';
-    customSiteInput.focus();
-  } else {
-    customSiteInput.style.display = 'none';
-    currentSite = e.target.value;
-    currentCycle = localStorage.getItem(`app-last-cycle_${currentSite}`) || 'Cycle 09/2026';
-    localStorage.setItem('app-last-site', currentSite);
-    renderCyclesDropdown();
-    loadDay(currentDate);
-  }
-});
-
-customSiteInput.addEventListener('change', () => {
-  const val = customSiteInput.value.trim();
-  if (val) {
-    currentSite = val;
-    currentCycle = 'Cycle 09/2026';
-    if (!globalSitesList.includes(val)) {
-      globalSitesList.push(val);
-      db.ref('globalSitesList').set(globalSitesList);
-    }
-    localStorage.setItem('app-last-site', currentSite);
-    localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
-    customSiteInput.style.display = 'none';
-    customSiteInput.value = '';
-    renderSitesDropdown();
-    loadDay(currentDate);
-    showToast(`New site "${val}" added! Please upload its JSON file.`);
-  }
+  currentSite = e.target.value;
+  currentCycle = localStorage.getItem(`app-last-cycle_${currentSite}`) || 'Cycle 09/2026';
+  localStorage.setItem('app-last-site', currentSite);
+  renderCyclesDropdown();
+  loadDay(currentDate);
 });
 
 // ---------- Date & formatting ----------
@@ -2210,10 +2762,14 @@ function applyTimeToDate(baseIso, timeStr) {
 }
 
 // ---------- Loading a day ----------
+// Returns { state, dirty } or null. Older cache entries count as already synced.
 function readCachedDay(dateISO) {
   try {
     const raw = localStorage.getItem(cacheKey(dateISO));
-    return raw ? normalizeState(JSON.parse(raw), dateISO) : null;
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (o && o.v === 2) return { state: normalizeState(o.state, dateISO), dirty: !!o.dirty };
+    return { state: normalizeState(o, dateISO), dirty: false };
   } catch(e) { return null; }
 }
 
@@ -2237,7 +2793,8 @@ function loadDay(dateISO){
   siteDefectiveUnwalkableFrames = new Set();
 
   // Show cached data immediately (useful with weak reception), server data replaces it
-  state = readCachedDay(dateISO) || blankDay(dateISO);
+  const cachedAtLoad = readCachedDay(dateISO);
+  state = cachedAtLoad ? cachedAtLoad.state : blankDay(dateISO);
   render();
   renderActiveDaysBar();
 
@@ -2277,14 +2834,16 @@ function loadDay(dateISO){
       state = normalizeState(data, dateISO);
       cacheLocal();
     } else {
-      // Nothing on the server. If this device has unsynced data for this day
-      // (e.g. it was entered offline and the page was reloaded), upload it.
+      // Nothing on the server. Only re-upload this device's copy if it holds
+      // changes the server never confirmed (e.g. entered offline, then reloaded).
+      // Data that was synced and then deleted or reset is NOT brought back.
       const cached = readCachedDay(dateISO);
-      if (cached && cached.kits && cached.kits.length) {
-        state = cached;
-        db.ref(dayPath()).set(fullDayPayload(state)).catch(onSaveError);
-        showToast('Restored unsynced data from this device');
+      if (cached && cached.dirty && dayHasActivity(cached.state)) {
+        state = cached.state;
+        trackWrite(db.ref(dayPath()).set(fullDayPayload(state)));
+        showToast('Uploaded unsynced data from this device');
       } else {
+        try { localStorage.removeItem(cacheKey(dateISO)); } catch(e) {}
         state = blankDay(dateISO);
       }
     }
@@ -2298,13 +2857,19 @@ function nextUnlockedIndex(kit){
   return STAGES.length;
 }
 
-function openStopIndex(kit){ return (kit.stops || []).findIndex(p => p.end == null); }
+function openStopIndex(kit){ return (kit.stops || []).findIndex(p => p && p.end == null); }
 
 function findKit(uid) { return state && state.kits ? state.kits.find(k => k.uid === uid) : null; }
 
 function markEvent(kit, key){
   if(kit.events[key]) return;
-  kit.events[key] = new Date().toISOString();
+  const now = new Date().toISOString();
+  // Leaving the wall closes a stop that is still open
+  if (key === 'dismantle') {
+    const oi = openStopIndex(kit);
+    if (oi !== -1) kit.stops[oi].end = now;
+  }
+  kit.events[key] = now;
   saveKit(kit);
   showToast('Kit ' + kit.id + ' · ' + STAGES.find(s=>s.key===key).label + ' logged');
 }
@@ -2319,15 +2884,26 @@ function kitDurations(kit){
   return {totalMs, wallMs, netMs, stopsMs};
 }
 
+function kitStatusLabel(kit, openStop, wallActive, nextIdx) {
+  if (kit.events && kit.events.finish) return 'Finished';
+  if (openStop) return 'Stopped';
+  if (wallActive) return 'On the wall';
+  if (nextIdx === 0) return 'Not started';
+  return STAGES[nextIdx - 1].label;
+}
+
 function renderKitCard(kit){
-  const wallActive = kit.events?.onWall && !kit.events?.dismantle;
+  const wallActive = !!(kit.events?.onWall && !kit.events?.dismantle);
   const finished = !!kit.events?.finish;
-  const collapsed = !!collapsedMap[kit.uid];
+  const open = !!detailsOpen[kit.uid];
   const nextIdx = nextUnlockedIndex(kit);
+  const nextStage = STAGES[nextIdx] || null;
+  const openIdx = openStopIndex(kit);
+  const openStop = openIdx !== -1 ? kit.stops[openIdx] : null;
   const {wallMs, netMs, stopsMs} = kitDurations(kit);
 
   const card = document.createElement('div');
-  card.className = 'kit-card' + (wallActive?' wall-active':'') + (finished?' finished':'') + (collapsed?' collapsed':'');
+  card.className = 'kit-card' + (wallActive?' wall-active':'') + (finished?' finished':'') + (openStop?' stopped':'');
   card.setAttribute('data-card-kit-uid', kit.uid);
 
   let clockText = '';
@@ -2338,19 +2914,62 @@ function renderKitCard(kit){
   const isCustomType = kit.type && !STANDARD_PARADEVICES.includes(kit.type);
   const opt = (v) => `<option value="${esc(v)}" ${kit.type===v?'selected':''}>${esc(v)}</option>`;
   const locOpt = (v) => `<option value="${v}" ${kit.deployLoc===v?'selected':''}>${v}</option>`;
+  const stopsCount = (kit.stops || []).length;
+
+  const trackHtml = STAGES.map((s, i) => {
+    const done = !!kit.events[s.key];
+    const cls = done ? ' done' : (i === nextIdx ? ' next' : '');
+    return `<button type="button" class="stage-seg${cls}" data-stage="${s.key}" ${done ? 'title="Edit time"' : 'disabled'}>
+        <span class="seg-bar"></span>
+        <span class="seg-lbl">${s.label}</span>
+        <span class="seg-tm">${done ? fmtTime(kit.events[s.key]).slice(0,5) : ''}</span>
+      </button>`;
+  }).join('');
+
+  let actionsHtml = '';
+  if (wallActive && openStop) {
+    actionsHtml += `
+      <div class="stopped-banner">
+        <div>⏸ Stopped · <span data-stopclock-uid="${esc(kit.uid)}">${fmtDur(new Date() - new Date(openStop.start))}</span></div>
+        <div class="why">${esc(openStop.reason)}</div>
+      </div>
+      <button type="button" class="btn btn-resume btn-lg btn-block" data-act="resume">▶ Resume</button>`;
+  }
+  const liveButtons = [];
+  if (wallActive && !openStop) liveButtons.push(`<button type="button" class="btn btn-stop btn-lg" data-act="stop">⏸ Stop</button>`);
+  if (nextStage) liveButtons.push(`<button type="button" class="btn ${wallActive ? '' : 'btn-primary'} btn-lg" data-act="next">▶ ${nextStage.label}</button>`);
+  if (liveButtons.length) actionsHtml += `<div class="live-actions">${liveButtons.join('')}</div>`;
+  if (finished) actionsHtml += `<div class="kit-done-note">✓ Finished at ${fmtTime(kit.events.finish)}</div>`;
 
   card.innerHTML = `
     <div class="kit-head">
       <div class="kit-head-left">
         <div class="kit-status-dot"></div>
-        <div class="kit-type">Kit #${esc(kit.id)} (${esc(kit.type)})</div>
+        <div class="kit-title-wrap">
+          <div class="kit-type">Kit #${esc(kit.id)}</div>
+          <div class="kit-subtitle">${esc(kit.type)} · ${esc(kit.deployLoc || 'Roof')}</div>
+        </div>
       </div>
       <div class="kit-head-right">
+        <div class="kit-status-label">${kitStatusLabel(kit, openStop, wallActive, nextIdx)}</div>
         <div class="kit-clock" data-clock-kit-uid="${esc(kit.uid)}">${clockText}</div>
-        <div class="chevron">▾</div>
       </div>
     </div>
-    <div class="kit-body">
+
+    <div class="kit-live">
+      <div class="stage-track">${trackHtml}</div>
+      ${actionsHtml}
+      <div class="kit-report">
+        <div class="stat"><div class="k">System Time</div><div class="v">${wallMs!=null?fmtDur(wallMs):'—'}</div></div>
+        <div class="stat"><div class="k">Downtime</div><div class="v">${fmtDur(stopsMs)}</div></div>
+        <div class="stat"><div class="k">Uptime</div><div class="v">${netMs!=null?fmtDur(netMs):'—'}</div></div>
+        <div class="stat"><div class="k">Cleaned</div><div class="v">${sqmText}</div></div>
+      </div>
+      <button type="button" class="btn btn-block kit-map-btn">🗺️ Select cleaned windows · ${sqmText}</button>
+    </div>
+
+    <button type="button" class="kit-details-toggle">${open ? '▴ Hide details' : `▾ Kit details · stops (${stopsCount}) · notes`}</button>
+    <div class="kit-body"${open ? '' : ' hidden'}>
       <div class="kit-fields-grid">
         <div class="field">
           <label>Kit #</label>
@@ -2386,8 +3005,6 @@ function renderKitCard(kit){
           </select>
         </div>
 
-        <button type="button" class="map-select-btn">🗺️ Open Building Map & Select Windows (${sqmText})</button>
-
         <div class="drop-cols-container" style="grid-column: span 2;">
           <div class="drop-cols-header">
             <span>DROP COLUMNS / AREAS</span>
@@ -2407,23 +3024,10 @@ function renderKitCard(kit){
         </div>
       </div>
 
-      <div class="stage-grid"></div>
-      
-      <div class="stops-block">
-        <div class="stop-pair">
-          <button class="stop-btn stop" data-act="stop">⏸ Stop</button>
-          <button class="stop-btn start" data-act="start">▶ Start</button>
-        </div>
-        <div class="stop-log"></div>
-      </div>
-      <div class="kit-report">
-        <div class="stat"><div class="k">System Time</div><div class="v">${wallMs!=null?fmtDur(wallMs):'—'}</div></div>
-        <div class="stat"><div class="k">Downtime</div><div class="v">${fmtDur(stopsMs)}</div></div>
-        <div class="stat"><div class="k">Uptime</div><div class="v">${netMs!=null?fmtDur(netMs):'—'}</div></div>
-        <div class="stat"><div class="k">Cleaned SQM</div><div class="v">${sqmText}</div></div>
-      </div>
+      <div class="mini-title">Stops</div>
+      <div class="stop-log"></div>
 
-      <button class="delete-kit-btn">🗑️ Delete Kit #${esc(kit.id)}</button>
+      <button type="button" class="btn btn-danger btn-block js-delete-kit" style="margin-top:14px;">🗑️ Delete Kit #${esc(kit.id)}</button>
     </div>
   `;
 
@@ -2432,6 +3036,64 @@ function renderKitCard(kit){
   populate1To50Select(card.querySelector('.vru-sel'), kit.vru);
   populate1To50Select(card.querySelector('.mcp-sel'), kit.mcp);
 
+  // Details open/close
+  const toggleDetails = () => { detailsOpen[kit.uid] = !detailsOpen[kit.uid]; render(); };
+  card.querySelector('.kit-head').addEventListener('click', toggleDetails);
+  card.querySelector('.kit-details-toggle').addEventListener('click', toggleDetails);
+
+  // Stage track: tap a completed stage to edit its time
+  card.querySelectorAll('.stage-seg.done').forEach(seg => {
+    seg.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const key = seg.getAttribute('data-stage');
+      const stage = STAGES.find(s => s.key === key);
+      editingTimeInfo = { kitUid: kit.uid, stageKey: key };
+      document.getElementById('timeEditInput').value = timeInputValue(kit.events[key]);
+      document.getElementById('timeEditSub').textContent = `Kit #${kit.id} (${kit.type}) — ${stage.label}`;
+      document.getElementById('timeEditModal').classList.add('show');
+    });
+  });
+
+  // Next stage (guarded against accidental double taps)
+  const nextBtn = card.querySelector('[data-act="next"]');
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    const now = Date.now();
+    if (lastStageTap[kit.uid] && now - lastStageTap[kit.uid] < 1500) return;
+    lastStageTap[kit.uid] = now;
+    markEvent(kit, nextStage.key);
+  });
+
+  const stopBtn = card.querySelector('[data-act="stop"]');
+  if (stopBtn) stopBtn.addEventListener('click', () => {
+    pendingStopKitUid = kit.uid;
+    pendingStopPhotoData = null;
+    pendingStopCategory = null;
+    drawNewStopChips();
+    document.getElementById('stopModalSub').textContent = `Kit #${kit.id} — what is causing the stop?`;
+    document.getElementById('stopReasonInput').value = '';
+    document.getElementById('stopPhotoInput').value = '';
+    document.getElementById('stopPhotoPreviewWrap').style.display = 'none';
+    document.getElementById('stopModal').classList.add('show');
+  });
+
+  const resumeBtn = card.querySelector('[data-act="resume"]');
+  if (resumeBtn) resumeBtn.addEventListener('click', () => {
+    const idx = openStopIndex(kit);
+    if (idx === -1) return;
+    kit.stops[idx].end = new Date().toISOString();
+    saveKit(kit);
+  });
+
+  card.querySelector('.kit-map-btn').addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if (!buildingData) {
+      uiAlert('No building map yet', 'Upload a building JSON for this site in ⚙️ Settings first.');
+      return;
+    }
+    openFacadeMapModal(kit);
+  });
+
+  // Detail fields
   const pdSelect = card.querySelector('.paradevice-sel');
   const customWrap = card.querySelector('.card-custom-type-wrap');
   const customInp = card.querySelector('.card-custom-type-input');
@@ -2455,22 +3117,27 @@ function renderKitCard(kit){
     }
   });
 
-  card.querySelector('.map-select-btn').addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    if (!buildingData) {
-      alert('Please upload a Building JSON file for this site first using the button at the top!');
+  card.querySelector('.kit-id-sel').addEventListener('change', (ev) => {
+    const newVal = ev.target.value;
+    if (!newVal) { ev.target.value = kit.id; return; }
+    const isTaken = state.kits.some(k => k.uid !== kit.uid && String(k.id) === String(newVal));
+    if (isTaken) {
+      showToast(`Kit #${newVal} is already in use today!`);
+      ev.target.value = kit.id;
       return;
     }
-    openFacadeMapModal(kit);
+    kit.id = newVal;
+    saveKit(kit);
   });
 
-  card.querySelector('.delete-kit-btn').addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    if(confirm(`Are you sure you want to delete Kit #${kit.id}?`)){
-      removeKit(kit);
-      render();
-      showToast(`Kit #${kit.id} deleted`);
-    }
+  card.querySelectorAll('.kit-fields-grid > .field input:not(.card-custom-type-input), .kit-fields-grid > .field select:not(.kit-id-sel):not(.paradevice-sel), .kit-fields-grid > .field textarea').forEach(elem => {
+    elem.addEventListener('change', (ev) => {
+      const fieldName = ev.target.getAttribute('data-field');
+      if(fieldName) {
+        kit[fieldName] = ev.target.value;
+        saveKit(kit);
+      }
+    });
   });
 
   const dropsContainer = card.querySelector('.card-drop-list');
@@ -2509,7 +3176,6 @@ function renderKitCard(kit){
       });
     });
   }
-
   renderCardDrops();
 
   card.querySelector('.card-add-drop').addEventListener('click', () => {
@@ -2519,95 +3185,9 @@ function renderKitCard(kit){
     renderCardDrops();
   });
 
-  card.querySelector('.kit-head').addEventListener('click', ()=>{
-    collapsedMap[kit.uid] = !collapsedMap[kit.uid];
-    render();
-  });
-
-  card.querySelector('.kit-id-sel').addEventListener('change', (ev) => {
-    const newVal = ev.target.value;
-    if (!newVal) { ev.target.value = kit.id; return; }
-    const isTaken = state.kits.some(k => k.uid !== kit.uid && String(k.id) === String(newVal));
-    if (isTaken) {
-      showToast(`Kit #${newVal} is already in use today!`);
-      ev.target.value = kit.id;
-      return;
-    }
-    kit.id = newVal;
-    saveKit(kit);
-  });
-
-  card.querySelectorAll('.kit-fields-grid > .field input:not(.card-custom-type-input), .kit-fields-grid > .field select:not(.kit-id-sel):not(.paradevice-sel), .kit-fields-grid > .field textarea').forEach(elem => {
-    elem.addEventListener('change', (ev) => {
-      const fieldName = ev.target.getAttribute('data-field');
-      if(fieldName) {
-        kit[fieldName] = ev.target.value;
-        saveKit(kit);
-      }
-    });
-  });
-
-  const grid = card.querySelector('.stage-grid');
-  STAGES.forEach((s,i)=>{
-    const done = !!(kit.events && kit.events[s.key]);
-    const locked = i > nextIdx;
-    const chip = document.createElement('div');
-    chip.className = 'stage-chip' + (done?' done':'') + (locked?' locked':'');
-    
-    chip.innerHTML = `
-      <div class="lbl">${s.label}</div>
-      <div class="tm">${done?fmtTime(kit.events[s.key]):''}</div>
-      ${done ? `<div class="edit-tm-btn" title="Edit/Reset stage">✏️</div>` : ''}
-    `;
-
-    if(!done && !locked){
-      chip.addEventListener('click', (ev)=>{ ev.stopPropagation(); markEvent(kit, s.key); });
-    } else {
-      chip.addEventListener('click', (ev)=>ev.stopPropagation());
-    }
-
-    if(done){
-      chip.querySelector('.edit-tm-btn').addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        editingTimeInfo = { kitUid: kit.uid, stageKey: s.key };
-        document.getElementById('timeEditInput').value = timeInputValue(kit.events[s.key]);
-        document.getElementById('timeEditSub').textContent = `Editing stage time for: ${kit.type} (#${kit.id}) — ${s.label}`;
-        document.getElementById('timeEditModal').classList.add('show');
-      });
-    }
-
-    grid.appendChild(chip);
-  });
-
-  const stopBtn = card.querySelector('[data-act="stop"]');
-  const startBtn = card.querySelector('[data-act="start"]');
-  const openIdx = openStopIndex(kit);
-  stopBtn.disabled = openIdx !== -1 || !wallActive;
-  startBtn.disabled = openIdx === -1;
-  
-  stopBtn.addEventListener('click', (ev)=>{
-    ev.stopPropagation();
-    if(!wallActive){ showToast('Stops can only be recorded while on the wall'); return; }
-    pendingStopKitUid = kit.uid;
-    pendingStopPhotoData = null;
-    document.getElementById('stopModalSub').textContent = `Kit #${kit.id} — Reason for stop?`;
-    document.getElementById('stopReasonInput').value = '';
-    document.getElementById('stopPhotoInput').value = '';
-    document.getElementById('stopPhotoPreviewWrap').style.display = 'none';
-    document.getElementById('stopModal').classList.add('show');
-    setTimeout(()=>document.getElementById('stopReasonInput').focus(), 50);
-  });
-  
-  startBtn.addEventListener('click', (ev)=>{
-    ev.stopPropagation();
-    const idx = openStopIndex(kit);
-    if(idx === -1) return;
-    kit.stops[idx].end = new Date().toISOString();
-    saveKit(kit);
-  });
-
+  // Stops list (inside details)
   const log = card.querySelector('.stop-log');
-  if(!kit.stops || kit.stops.length === 0){
+  if(!stopsCount){
     log.innerHTML = 'No recorded stops';
   } else {
     log.innerHTML = kit.stops.map((p,i)=>{
@@ -2616,7 +3196,7 @@ function renderKitCard(kit){
         <div class="stop-item">
           <div class="stop-item-top">
             <div>Stop ${i+1}: ${fmtTime(p.start)} → ${p.end?fmtTime(p.end):'—'} (${dur})<br><span class="reason">↳ ${esc(p.reason)}</span></div>
-            <span class="edit-stop-btn" data-stop-idx="${i}" title="Edit stop" style="cursor:pointer;">✏️</span>
+            <button type="button" class="btn edit-stop-btn" data-stop-idx="${i}" title="Edit stop" style="min-height:36px; padding:4px 10px;">✏️</button>
           </div>
           ${stopPhotoHtml(p)}
         </div>
@@ -2631,7 +3211,22 @@ function renderKitCard(kit){
     });
   }
 
+  card.querySelector('.js-delete-kit').addEventListener('click', async (ev) => {
+    ev.stopPropagation();
+    const ok = await uiConfirm(`Delete Kit #${kit.id}?`, 'This removes the kit, its stops and photos from this day.', { danger: true, confirmText: 'Delete kit' });
+    if (!ok) return;
+    removeKit(kit);
+    render();
+    showToast(`Kit #${kit.id} deleted`);
+  });
+
   return card;
+}
+
+let editingStopCategory = null;
+let editingStopExtra = null;
+function drawEditStopChips() {
+  renderReasonChips('stopEditReasonChips', editingStopCategory, (v) => { editingStopCategory = v; drawEditStopChips(); }, editingStopExtra);
 }
 
 function openStopEditModal(kit, stopIdx) {
@@ -2640,7 +3235,13 @@ function openStopEditModal(kit, stopIdx) {
 
   document.getElementById('stopEditStart').value = timeInputValue(st.start);
   document.getElementById('stopEditEnd').value = st.end ? timeInputValue(st.end) : '';
-  document.getElementById('stopEditReason').value = st.reason || '';
+
+  editingStopCategory = (st.category && !RESERVED_REASONS.includes(String(st.category).toLowerCase())) ? st.category : null;
+  editingStopExtra = (editingStopCategory && !stopReasons.includes(editingStopCategory)) ? editingStopCategory : null;
+  drawEditStopChips();
+  let note = st.note != null ? st.note : (st.category ? '' : (st.reason || ''));
+  if (note === '(No reason specified)') note = '';
+  document.getElementById('stopEditReason').value = note;
 
   const photoWrap = document.getElementById('stopEditPhotoWrap');
   const photoHtml = stopPhotoHtml(st);
@@ -2687,8 +3288,8 @@ function openFacadeMapModal(kit) {
   document.getElementById('facadeMapModal').classList.add('show');
 }
 
-document.getElementById('clearTodaySelectionBtn').addEventListener('click', () => {
-  if (confirm("Are you sure you want to clear all selected windows for this Kit today?")) {
+document.getElementById('clearTodaySelectionBtn').addEventListener('click', async () => {
+  if (await uiConfirm("Clear today's selection?", 'All windows selected for this kit today will be unselected.', { danger: true, confirmText: 'Clear' })) {
     selectedFrameIds.clear();
     const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
     renderFacadeGrid(sectionIdx);
@@ -2974,7 +3575,7 @@ document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
   const kit = blankKit(kitNum, type, rbu, vru, mcp, newKitDrops, deployLoc, deployNotes);
   if(!state.kits) state.kits = [];
   state.kits.push(kit);
-  collapsedMap[kit.uid] = false;
+  detailsOpen[kit.uid] = false;
   saveKit(kit);
   render();
 
@@ -2986,6 +3587,113 @@ document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
 });
 
 // ---------- Stops ----------
+const DEFAULT_STOP_REASONS = ['Moving drop', 'Communication problem', 'Change MCP', 'Change VRU', 'Change RBU'];
+const RESERVED_REASONS = ['other', 'unspecified'];
+let stopReasons = DEFAULT_STOP_REASONS.slice();
+let pendingStopCategory = null;
+
+function saveStopReasons() {
+  db.ref('stopReasonsConfig').set({ initialized: true, list: stopReasons }).catch(onSaveError);
+}
+
+function refreshReasonChipsInOpenModals() {
+  if (document.getElementById('stopModal').classList.contains('show')) drawNewStopChips();
+  if (document.getElementById('stopEditModal').classList.contains('show')) drawEditStopChips();
+  if (document.getElementById('settingsModal').classList.contains('show')) renderSettingsReasons();
+}
+
+db.ref('stopReasonsConfig').on('value', (snap) => {
+  const val = snap.val();
+  if (val && val.initialized) {
+    stopReasons = val.list ? Object.values(val.list).filter(Boolean) : [];
+  } else {
+    saveStopReasons(); // first run: store the default reasons
+  }
+  refreshReasonChipsInOpenModals();
+});
+
+async function promptNewStopReason() {
+  const name = await uiPrompt('New stop reason', 'It will be saved and offered for all future stops, on every device.', '', 'e.g. Battery swap');
+  const val = (name || '').trim().replace(/\s+/g, ' ').slice(0, 40);
+  if (!val) return null;
+  if (RESERVED_REASONS.includes(val.toLowerCase())) {
+    await uiAlert('Name not available', '"Other" is assigned automatically to stops that only have free text.');
+    return null;
+  }
+  const existing = stopReasons.find(r => r.toLowerCase() === val.toLowerCase());
+  if (existing) return existing;
+  stopReasons = stopReasons.concat(val);
+  saveStopReasons();
+  showToast(`Reason "${val}" saved`);
+  return val;
+}
+
+function renderReasonChips(containerId, selected, onPick, extra) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = '';
+  const list = stopReasons.slice();
+  if (extra && !list.includes(extra)) list.push(extra);
+  list.forEach(r => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'reason-chip' + (r === selected ? ' active' : '');
+    b.textContent = r;
+    b.addEventListener('click', () => onPick(r === selected ? null : r));
+    c.appendChild(b);
+  });
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'reason-chip reason-chip-add';
+  add.textContent = '+ Add reason';
+  add.addEventListener('click', async () => {
+    const v = await promptNewStopReason();
+    if (v) onPick(v);
+  });
+  c.appendChild(add);
+}
+
+function renderSettingsReasons() {
+  const c = document.getElementById('settingsReasonsList');
+  if (!c) return;
+  c.innerHTML = '';
+  stopReasons.forEach(r => {
+    const chip = document.createElement('span');
+    chip.className = 'reason-chip reason-chip-static';
+    chip.innerHTML = `<span>${esc(r)}</span><button type="button" class="reason-remove" aria-label="Remove ${esc(r)}">✕</button>`;
+    chip.querySelector('button').addEventListener('click', async () => {
+      const ok = await uiConfirm(`Remove "${r}"?`, 'It will no longer be offered when recording stops. Past stops keep this reason.', { danger: true, confirmText: 'Remove' });
+      if (!ok) return;
+      stopReasons = stopReasons.filter(x => x !== r);
+      saveStopReasons();
+      renderSettingsReasons();
+    });
+    c.appendChild(chip);
+  });
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'reason-chip reason-chip-add';
+  add.textContent = '+ Add reason';
+  add.addEventListener('click', async () => {
+    if (await promptNewStopReason()) renderSettingsReasons();
+  });
+  c.appendChild(add);
+}
+
+function drawNewStopChips() {
+  renderReasonChips('stopReasonChips', pendingStopCategory, (v) => { pendingStopCategory = v; drawNewStopChips(); });
+}
+
+function composeReason(category, note) {
+  const n = (note || '').trim();
+  if (category && n) return `${category} — ${n}`;
+  return category || n || '(No reason specified)';
+}
+
+function stopCategory(chip, note) {
+  return chip || ((note || '').trim() ? 'Other' : 'Unspecified');
+}
+
 document.getElementById('stopPhotoInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (file) {
@@ -3005,18 +3713,21 @@ document.getElementById('stopReasonCancel').addEventListener('click', ()=>{
   document.getElementById('stopModal').classList.remove('show');
   pendingStopKitUid = null;
   pendingStopPhotoData = null;
+  pendingStopCategory = null;
 });
 
 document.getElementById('stopReasonConfirm').addEventListener('click', ()=>{
   const kit = findKit(pendingStopKitUid);
   if(!kit){ document.getElementById('stopModal').classList.remove('show'); return; }
-  const reason = document.getElementById('stopReasonInput').value.trim();
+  const note = document.getElementById('stopReasonInput').value.trim();
 
   if(!kit.stops) kit.stops = [];
   const stop = {
     start: new Date().toISOString(),
     end: null,
-    reason: reason || '(No reason specified)'
+    category: stopCategory(pendingStopCategory, note),
+    note,
+    reason: composeReason(pendingStopCategory, note)
   };
   if (pendingStopPhotoData) stop.photoId = savePhoto(pendingStopPhotoData);
   kit.stops.push(stop);
@@ -3024,6 +3735,7 @@ document.getElementById('stopReasonConfirm').addEventListener('click', ()=>{
   document.getElementById('stopModal').classList.remove('show');
   pendingStopKitUid = null;
   pendingStopPhotoData = null;
+  pendingStopCategory = null;
   saveKit(kit);
 });
 
@@ -3032,15 +3744,18 @@ document.getElementById('stopEditCancel').addEventListener('click', ()=>{
   editingStopInfo = null;
 });
 
-document.getElementById('stopEditDelete').addEventListener('click', ()=>{
+document.getElementById('stopEditDelete').addEventListener('click', async ()=>{
   if(!editingStopInfo) return;
-  const kit = findKit(editingStopInfo.kitUid);
-  if(kit && kit.stops && kit.stops[editingStopInfo.stopIdx]){
-    const st = kit.stops[editingStopInfo.stopIdx];
+  const info = editingStopInfo;
+  const ok = await uiConfirm('Delete this stop?', 'The stop and its photo will be removed.', { danger: true, confirmText: 'Delete stop' });
+  if (!ok) return;
+  const kit = findKit(info.kitUid);
+  if(kit && kit.stops && kit.stops[info.stopIdx]){
+    const st = kit.stops[info.stopIdx];
     if (st.photoId) deletePhoto(st.photoId);
-    kit.stops.splice(editingStopInfo.stopIdx, 1);
+    kit.stops.splice(info.stopIdx, 1);
     saveKit(kit);
-    showToast('Stop entry deleted');
+    showToast('Stop deleted');
   }
   document.getElementById('stopEditModal').classList.remove('show');
   editingStopInfo = null;
@@ -3054,7 +3769,7 @@ document.getElementById('stopEditConfirm').addEventListener('click', async ()=>{
     const st = kit.stops[info.stopIdx];
     const valStart = document.getElementById('stopEditStart').value;
     const valEnd = document.getElementById('stopEditEnd').value;
-    const reason = document.getElementById('stopEditReason').value.trim();
+    const note = document.getElementById('stopEditReason').value.trim();
     const photoInput = document.getElementById('stopEditPhotoInput');
 
     if(valStart){
@@ -3066,14 +3781,16 @@ document.getElementById('stopEditConfirm').addEventListener('click', async ()=>{
     } else {
       st.end = null;
     }
-    st.reason = reason;
+    st.category = stopCategory(editingStopCategory, note);
+    st.note = note;
+    st.reason = composeReason(editingStopCategory, note);
 
     if (photoInput.files && photoInput.files[0]) {
       if (st.photoId) deletePhoto(st.photoId);
       delete st.photoUrl;
       st.photoId = savePhoto(await compressImage(photoInput.files[0]));
     }
-    
+
     saveKit(kit);
     showToast('Stop updated');
   }
@@ -3461,15 +4178,15 @@ function copyRowsForSheets(){
       sqmRawNumber,                         // 18. TOTAL Throughput
       kit.type || '',                       // 19. ParaDevice
       state.people || '0',                  // 20. Team Size
-      state.workType || 'Cleaning',          // 21. Work Type
-      state.qualityRating || '5 ⭐',         // 22. Quality Rating
+      state.workType || 'Cleaning',         // 21. Work Type
+      state.qualityRating || '5 ⭐',        // 22. Quality Rating
       state.juniorCount || '0',             // 23. Junior Count
       state.expertCount || '0',             // 24. Expert Count
       state.temp || '—',                    // 25. Temperature (°C)
       state.humidity || '—',                // 26. Humidity (%)
       state.windGusts || '—',               // 27. Wind Gusts (km/h)
       `[Mode: ${locLabel}] ${kit.deployNotes||''}`, // 28. Deployment Notes
-      stopsDetail                            // 29. Stops & Reasons
+      stopsDetail                           // 29. Stops & Reasons
     ];
 
     // Tabs/line breaks inside a value would split it into extra cells or rows
@@ -3637,9 +4354,8 @@ function exportFullCyclePdfReport() {
 document.getElementById('exportPdfBtn').addEventListener('click', exportFullCyclePdfReport);
 document.getElementById('copyRowsBtn').addEventListener('click', copyRowsForSheets);
 
-document.getElementById('loadBtn').addEventListener('click', ()=>{
-  const inputDate = document.getElementById('dateInput').value;
-  if(inputDate) loadDay(inputDate);
+document.getElementById('dateInput').addEventListener('change', (e)=>{
+  if (e.target.value) loadDay(e.target.value);
 });
 
 // ---------- Init ----------
@@ -3651,13 +4367,17 @@ document.getElementById('loadBtn').addEventListener('click', ()=>{
   
   setInterval(()=>{
     if(!state || !state.kits) return;
+    const now = new Date();
     state.kits.forEach(kit => {
       const wallActive = kit.events?.onWall && !kit.events?.dismantle;
-      if(wallActive){
-        document.querySelectorAll('[data-clock-kit-uid]').forEach(el => {
-          if (el.getAttribute('data-clock-kit-uid') === kit.uid) {
-            el.textContent = fmtDur(new Date() - new Date(kit.events.onWall));
-          }
+      if(!wallActive) return;
+      document.querySelectorAll('[data-clock-kit-uid]').forEach(el => {
+        if (el.getAttribute('data-clock-kit-uid') === kit.uid) el.textContent = fmtDur(now - new Date(kit.events.onWall));
+      });
+      const oi = openStopIndex(kit);
+      if (oi !== -1) {
+        document.querySelectorAll('[data-stopclock-uid]').forEach(el => {
+          if (el.getAttribute('data-stopclock-uid') === kit.uid) el.textContent = fmtDur(now - new Date(kit.stops[oi].start));
         });
       }
     });
