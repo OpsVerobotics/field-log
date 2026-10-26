@@ -327,6 +327,7 @@
   .stop-item-top{display:flex; justify-content:space-between; align-items:flex-start;}
   .stop-log .reason{color:var(--text); font-family:var(--body); font-weight:bold;}
   .stop-img-preview { max-width: 100%; max-height: 120px; border-radius: 6px; margin-top: 6px; border: 1px solid var(--line); }
+  img.stop-img-preview:not([src]) { display: none; }
 
   .remove-photo-btn {
     background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange);
@@ -424,7 +425,8 @@
     background: var(--panel2); border: 1.5px solid var(--line); border-radius: 6px;
     padding: 4px 6px; display: flex; flex-direction: column; justify-content: space-between;
     align-items: center; text-align: center; font-family: var(--mono); cursor: pointer;
-    user-select: none; transition: background 0.1s, border-color 0.1s, transform 0.1s; box-sizing: border-box;
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    transition: background 0.1s, border-color 0.1s, transform 0.1s; box-sizing: border-box;
     width: 65px !important; min-width: 65px !important; flex: 0 0 65px !important; height: 60px !important; overflow: hidden;
   }
 
@@ -517,7 +519,7 @@
 <div class="app-container">
   <header>
     <div class="header-top">
-      <div class="eyebrow">FIELD LOG · KIT TRACKER</div>
+      <div class="eyebrow">FIELD LOG · KIT TRACKER <span class="network-status-tag offline" id="netStatus">OFFLINE</span></div>
       <div class="header-right-actions">
         <button type="button" class="toggle-header-btn" id="toggleHeaderBtn">▲ Collapse Menu</button>
         <select class="theme-selector" id="themeSelect">
@@ -549,7 +551,8 @@
         
         <button type="button" class="dashboard-btn" id="openDashboardBtn">📊 Open Dashboard</button>
         <button type="button" class="history-logs-btn" id="openHistoryModalBtn">📜 View Logs History</button>
-        <button type="button" class="json-upload-btn" id="uploadJsonBtn" style="grid-column: span 2;">📁 Upload Building JSON</button>
+        <button type="button" class="json-upload-btn" id="uploadJsonBtn">📁 Upload Building JSON</button>
+        <button type="button" class="json-upload-btn" id="exportBackupBtn" title="Download a full backup of this site">💾 Export Backup</button>
         <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
 
         <button type="button" class="main-reset-cycle-btn" id="mainResetCycleBtn">🔄 Reset Current Cycle</button>
@@ -628,7 +631,7 @@
         <input type="number" id="humidityInput" placeholder="%">
       </div>
       <div class="field">
-        <label>Wind Gusts</label>
+        <label>Wind Gusts (km/h)</label>
         <input type="number" id="windGustsInput" placeholder="km/h">
       </div>
     </div>
@@ -772,7 +775,7 @@
       <label style="font-size: 11px; font-weight: bold; color: var(--dim);">Attach Photo (Optional):</label>
       <input type="file" id="stopPhotoInput" accept="image/*" style="font-size: 12px; margin-top: 4px;">
       <div id="stopPhotoPreviewWrap" style="display:none; margin-top:6px;">
-        <img id="stopPhotoPreview" class="stop-img-preview">
+        <img id="stopPhotoPreview" class="stop-img-preview" alt="">
         <button type="button" class="remove-photo-btn" id="removeStopPhotoBtn">🗑️ Remove Photo</button>
       </div>
     </div>
@@ -832,7 +835,7 @@
 <div class="modal-overlay" id="facadeMapModal">
   <div class="modal-box facade-grid-modal">
     <div class="modal-title">Building Map & Window Selection</div>
-    <div class="modal-sub" id="facadeMapSub">Select windows, report defects, or toggle scroll mode for mobile panning. Double-click grey cells to unlock. Red cells are unwalkable.</div>
+    <div class="modal-sub" id="facadeMapSub">Select windows, report defects, or toggle scroll mode for mobile panning. Double-click (or long-press on mobile) a cleaned cell to unlock it. Red cells are unwalkable.</div>
     
     <div class="map-mode-toggle">
       <button type="button" class="map-mode-btn" id="modeSelectBtn">✏️ Clean Windows</button>
@@ -860,7 +863,7 @@
 <div class="modal-overlay" id="dashboardModal">
   <div class="modal-box dashboard-modal">
     <div class="modal-title">📊 Cycle Analytics & Dashboard</div>
-    <div class="modal-sub" id="dashboardSiteSub">Site: Suzuki</div>
+    <div class="modal-sub" id="dashboardSiteSub">Site</div>
 
     <div class="dashboard-grid">
       <div class="dash-card full-width">
@@ -885,15 +888,15 @@
       </div>
 
       <div class="dash-card">
-        <div class="dash-title">Total Shift Time</div>
+        <div class="dash-title">Total System Time</div>
         <div class="dash-val"><span id="dashStatTotalTime">00:00</span></div>
-        <div class="dash-sub">Cumulative Shift Hours</div>
+        <div class="dash-sub">Cumulative time on wall (all kits)</div>
       </div>
 
       <div class="dash-card">
         <div class="dash-title">Downtime Impact</div>
         <div class="dash-val"><span id="dashStatDowntimePercent">0.0</span>%</div>
-        <div class="dash-sub">Stops / Total Time</div>
+        <div class="dash-sub">Stops / Time on wall</div>
       </div>
 
       <div class="dash-card full-width">
@@ -926,6 +929,26 @@
 </div>
 
 <script>
+// ================================================================
+// Field Operations Log
+// Data layout in Firebase (per site/cycle):
+//    sites/<site>/<cycle>/days/<date>          day fields + kitsMap/<kitUid>
+//    sites/<site>/<cycle>/photos/<photoId>      stop photos (kept out of days)
+//    sites/<site>/<cycle>/defectReport/<key>    frame id
+//    sites/<site>/<cycle>/defectBlock/<key>     frame id
+// Older data (kits arrays, inline photos, defect arrays) is migrated
+// automatically the first time a cycle is opened.
+// ================================================================
+
+// ---------- Small helpers ----------
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function safeUrl(u){ const s = String(u || '').trim(); return /^https?:\/\//i.test(s) ? s : ''; }
+function cleanKeyPart(s){ return String(s).replace(/[.#$/\[\]]/g, "_"); }
+function frameKey(id){ return String(id).replace(/[.#$\/\[\]%]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase()); }
+function newId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function cloneForDb(o){ return JSON.parse(JSON.stringify(o)); }
+function sheetCell(v){ return String(v ?? '').replace(/[\t\r\n]+/g, ' ').trim(); }
+
 // State Variables Initialization & Last Site Memory
 let state = null;
 let currentDate = null;
@@ -941,22 +964,21 @@ let siteDefectiveReportFrames = new Set();
 let siteDefectiveUnwalkableFrames = new Set();
 let siteAllDaysData = {}; 
 
-let activeMapKitId = null;
+let activeMapKitUid = null;
 let selectedFrameIds = new Set();
 let isDraggingSelection = false;
 let dragSelectState = true;
 let currentMapInteractionMode = 'scroll';
 
-let pendingStopKitId = null;
+let pendingStopKitUid = null;
 let pendingStopPhotoData = null;
 let editingTimeInfo = null;
 let editingStopInfo = null;
 let collapsedMap = {};
-let dbRef = null;
 
 let newKitDrops = [{ facade: '', rows: '', cols: '' }];
 
-// System Security Password
+// Confirmation step before critical actions (prevents accidental clicks)
 const ADMIN_PASSWORD = "1234";
 
 function verifyAdminPassword(actionDescription = "perform this administrative action") {
@@ -980,8 +1002,8 @@ const STAGES = [
 const STANDARD_PARADEVICES = ["Parapod", "Paraslide", "ParaSlide Top row", "Paraclamp", "Paraline", "Paradavit"];
 
 function getCleanSiteKey() {
-  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-  const cleanCycle = (currentCycle || 'Cycle 09/2026').replace(/[.#$/\[\]]/g, "_");
+  const cleanSite = cleanKeyPart(currentSite);
+  const cleanCycle = cleanKeyPart(currentCycle || 'Cycle 09/2026');
   return `${cleanSite}/${cleanCycle}`;
 }
 
@@ -1012,8 +1034,7 @@ function compressImage(file, maxWidth = 800, maxHeight = 600, quality = 0.7) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(compressedDataUrl);
+        resolve(canvas.toDataURL('image/jpeg', quality));
       };
       img.src = e.target.result;
     };
@@ -1059,16 +1080,258 @@ function deriveDropAreasFromFrames(frameIds) {
       colStr = cArray.length === 1 ? `${cArray[0]}` : `${cArray[0]}-${cArray[cArray.length-1]}`;
     }
 
-    results.push({
-      facade: secName,
-      rows: rowStr,
-      cols: colStr
-    });
+    results.push({ facade: secName, rows: rowStr, cols: colStr });
   });
 
   return results.length ? results : [{ facade: '', rows: '', cols: '' }];
 }
 
+// ---------- Firebase ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyCoq-GXRGkJLJ3jDeYo_KiZ04oqMyENFpY",
+  authDomain: "workday-kits-operations-9de4d.firebaseapp.com",
+  databaseURL: "https://workday-kits-operations-9de4d-default-rtdb.firebaseio.com",
+  projectId: "workday-kits-operations-9de4d",
+  storageBucket: "workday-kits-operations-9de4d.firebasestorage.app",
+  messagingSenderId: "781011410308",
+  appId: "1:781011410308:web:85c2805bd989c7851651d1"
+};
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  firebase.database().goOnline();
+} catch(e) { console.error(e); }
+
+const db = firebase.database();
+
+// Connection indicator
+db.ref('.info/connected').on('value', (snap) => {
+  const el = document.getElementById('netStatus');
+  if (!el) return;
+  const online = snap.val() === true;
+  el.textContent = online ? 'ONLINE' : 'OFFLINE';
+  el.className = 'network-status-tag ' + (online ? 'online' : 'offline');
+});
+
+// Listener management: every per-site/per-day listener goes through listen()
+// so that switching site, cycle or date detaches all of them.
+let activeListeners = [];
+function listen(path, cb) {
+  const ref = db.ref(path);
+  ref.on('value', cb);
+  activeListeners.push([ref, cb]);
+}
+function detachAll() {
+  activeListeners.forEach(([ref, cb]) => ref.off('value', cb));
+  activeListeners = [];
+}
+
+// ---------- Kits model ----------
+function legacyUid(kit, idx) {
+  return `m${idx}_${String(kit && kit.id != null ? kit.id : 'x').replace(/[^A-Za-z0-9_-]/g, '_')}`;
+}
+
+function normalizeKit(raw, idx) {
+  const kit = cloneForDb(raw || {});
+  if (!kit.uid) kit.uid = legacyUid(kit, idx);
+  if (kit.order == null) kit.order = idx;
+  kit.stops = kit.stops ? Object.values(kit.stops).filter(Boolean) : [];
+  if (!kit.events) kit.events = {};
+  if (!kit.drops) kit.drops = [{ facade: kit.facade || '', rows: kit.rows || '', cols: kit.cols || '' }];
+  else kit.drops = Object.values(kit.drops).filter(Boolean);
+  kit.selectedFrames = kit.selectedFrames ? Object.values(kit.selectedFrames).filter(v => v != null) : [];
+  return kit;
+}
+
+// Returns a day's kits as a sorted array, from the new map format and/or legacy array
+function dayKits(day) {
+  if (!day) return [];
+  const list = day.kitsMap ? Object.values(day.kitsMap).filter(Boolean).map((k, i) => normalizeKit(k, i)) : [];
+  if (day.kits) {
+    const have = new Set(list.map(k => k.uid));
+    Object.values(day.kits).filter(Boolean).forEach((k, i) => {
+      const nk = normalizeKit(k, i);
+      if (!have.has(nk.uid)) list.push(nk);
+    });
+  }
+  return list.sort((a, b) => (a.order || 0) - (b.order || 0));
+}
+
+function normalizeState(raw, dateISO) {
+  const s = Object.assign(blankDay(dateISO), raw || {});
+  s.kits = dayKits(raw);
+  delete s.kitsMap;
+  return s;
+}
+
+// ---------- Saving (only the part that changed) ----------
+function dayPath() { return `sites/${getCleanSiteKey()}/days/${currentDate}`; }
+function dayMeta() { return { date: currentDate, site: currentSite, cycle: currentCycle }; }
+function cacheKey(dateISO) { return `offline_${getCleanSiteKey()}_${dateISO || currentDate}`; }
+
+function cacheLocal() {
+  if (!state || !currentDate) return;
+  try { localStorage.setItem(cacheKey(), JSON.stringify(state)); } catch(e) { console.error(e); }
+}
+
+function clearLocalCache(prefix) {
+  try {
+    Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k));
+  } catch(e) { console.error(e); }
+}
+
+function onSaveError(err) {
+  console.error(err);
+  showToast('Save failed: check connection');
+}
+
+function saveDayFields(fields) {
+  if (!state || !currentDate) return;
+  cacheLocal();
+  db.ref(dayPath()).update(Object.assign(dayMeta(), cloneForDb(fields))).catch(onSaveError);
+}
+
+function saveKit(kit) {
+  if (!kit || !currentDate) return;
+  if (!kit.uid) kit.uid = newId('k');
+  if (kit.order == null) kit.order = Date.now();
+  externalizeInlinePhotos(kit);
+  cacheLocal();
+  const upd = dayMeta();
+  upd[`kitsMap/${kit.uid}`] = cloneForDb(kit);
+  db.ref(dayPath()).update(upd).catch(onSaveError);
+}
+
+function removeKit(kit) {
+  (kit.stops || []).forEach(st => { if (st && st.photoId) deletePhoto(st.photoId); });
+  state.kits = state.kits.filter(k => k.uid !== kit.uid);
+  cacheLocal();
+  const upd = {};
+  upd[`kitsMap/${kit.uid}`] = null;
+  db.ref(dayPath()).update(upd).catch(onSaveError);
+}
+
+function fullDayPayload(s) {
+  const payload = cloneForDb(s);
+  delete payload.kits;
+  payload.kitsMap = {};
+  (s.kits || []).forEach((k, i) => {
+    const nk = normalizeKit(k, i);
+    payload.kitsMap[nk.uid] = cloneForDb(nk);
+  });
+  return payload;
+}
+
+function saveSiteLinks() {
+  db.ref(`sites/${cleanKeyPart(currentSite)}/siteLinks`).set(siteLinksData).catch(onSaveError);
+}
+
+function setDefect(kind, frameId, on) {
+  // kind: 'defectReport' | 'defectBlock'
+  db.ref(`sites/${getCleanSiteKey()}/${kind}/${frameKey(frameId)}`).set(on ? frameId : null).catch(onSaveError);
+}
+
+// ---------- Photos (stored separately so daily data stays light) ----------
+const photoCache = {};
+const photoInflight = {};
+function photosPath() { return `sites/${getCleanSiteKey()}/photos`; }
+
+function savePhoto(dataUrl) {
+  const id = newId('p');
+  photoCache[getCleanSiteKey() + '|' + id] = dataUrl;
+  db.ref(`${photosPath()}/${id}`).set(dataUrl).catch(onSaveError);
+  return id;
+}
+
+function deletePhoto(id) {
+  if (!id) return;
+  delete photoCache[getCleanSiteKey() + '|' + id];
+  db.ref(`${photosPath()}/${id}`).remove().catch(console.error);
+}
+
+function externalizeInlinePhotos(kit) {
+  (kit.stops || []).forEach(st => {
+    if (st && typeof st.photoUrl === 'string' && st.photoUrl.startsWith('data:')) {
+      st.photoId = savePhoto(st.photoUrl);
+      delete st.photoUrl;
+    }
+  });
+}
+
+function getPhoto(id) {
+  const key = getCleanSiteKey() + '|' + id;
+  if (photoCache[key]) return Promise.resolve(photoCache[key]);
+  if (!photoInflight[key]) {
+    photoInflight[key] = db.ref(`${photosPath()}/${id}`).once('value').then(snap => {
+      const v = snap.val();
+      if (v) photoCache[key] = v;
+      delete photoInflight[key];
+      return v;
+    }).catch(() => { delete photoInflight[key]; return null; });
+  }
+  return photoInflight[key];
+}
+
+function stopPhotoHtml(st) {
+  if (!st) return '';
+  if (st.photoId) return `<img data-photo-id="${esc(st.photoId)}" class="stop-img-preview" alt="">`;
+  const u = st.photoUrl;
+  if (typeof u === 'string' && (u.startsWith('data:image/') || /^https?:\/\//i.test(u))) {
+    return `<img src="${esc(u)}" class="stop-img-preview" alt="">`;
+  }
+  return '';
+}
+
+function hydratePhotos(root = document) {
+  root.querySelectorAll('img[data-photo-id]:not([src])').forEach(img => {
+    const id = img.getAttribute('data-photo-id');
+    getPhoto(id).then(v => {
+      if (!v) return;
+      document.querySelectorAll('img[data-photo-id]:not([src])').forEach(i => {
+        if (i.getAttribute('data-photo-id') === id) i.src = v;
+      });
+    });
+  });
+}
+
+// ---------- One-time migration of older data ----------
+function migrateLegacyDays(siteKey, daysData) {
+  const upd = {};
+  Object.keys(daysData || {}).forEach(dKey => {
+    const day = daysData[dKey];
+    if (!day || !day.kits) return;
+    const existing = day.kitsMap || {};
+    Object.values(day.kits).filter(Boolean).forEach((k, i) => {
+      const kit = normalizeKit(k, i);
+      if (existing[kit.uid]) return;
+      kit.stops.forEach((st, si) => {
+        if (st && typeof st.photoUrl === 'string' && st.photoUrl.startsWith('data:')) {
+          const pid = `${dKey}_${kit.uid}_s${si}`;
+          upd[`photos/${pid}`] = st.photoUrl;
+          st.photoId = pid;
+          delete st.photoUrl;
+        }
+      });
+      upd[`days/${dKey}/kitsMap/${kit.uid}`] = cloneForDb(kit);
+    });
+    upd[`days/${dKey}/kits`] = null;
+  });
+  if (Object.keys(upd).length) {
+    db.ref(`sites/${siteKey}`).update(upd).catch(console.error);
+  }
+}
+
+function migrateLegacyDefects(siteKey, oldField, newField, val) {
+  if (!val) return;
+  const upd = {};
+  Object.values(val).forEach(id => {
+    if (id !== null && id !== undefined) upd[`${newField}/${frameKey(id)}`] = id;
+  });
+  upd[oldField] = null;
+  db.ref(`sites/${siteKey}`).update(upd).catch(console.error);
+}
+
+// ---------- Operators ----------
 function renderOperatorsList() {
   const container = document.getElementById('operatorsListContainer');
   if (!container) return;
@@ -1081,20 +1344,21 @@ function renderOperatorsList() {
     const label = document.createElement('label');
     label.className = 'operator-chip' + (isChecked ? ' selected' : '');
     label.innerHTML = `
-      <input type="checkbox" value="${opName}" ${isChecked ? 'checked' : ''}>
-      <span>${opName}</span>
+      <input type="checkbox" ${isChecked ? 'checked' : ''}>
+      <span>${esc(opName)}</span>
       <button type="button" class="delete-operator-btn" title="Remove operator permanently">✕</button>
     `;
 
     label.querySelector('input').addEventListener('change', (e) => {
-      let currentArr = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
+      if (!state) return;
+      let currentArr = state.operators ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
       if (e.target.checked) {
         if (!currentArr.includes(opName)) currentArr.push(opName);
       } else {
         currentArr = currentArr.filter(name => name !== opName);
       }
       state.operators = currentArr.join(', ');
-      saveState();
+      saveDayFields({ operators: state.operators });
       renderOperatorsList();
     });
 
@@ -1105,10 +1369,14 @@ function renderOperatorsList() {
         globalOperatorsList = globalOperatorsList.filter(name => name !== opName);
         db.ref('globalOperatorsList').set(globalOperatorsList);
 
-        let currentArr = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
-        currentArr = currentArr.filter(name => name !== opName);
-        state.operators = currentArr.join(', ');
-        saveState();
+        if (state) {
+          let currentArr = state.operators ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
+          if (currentArr.includes(opName)) {
+            currentArr = currentArr.filter(name => name !== opName);
+            state.operators = currentArr.join(', ');
+            saveDayFields({ operators: state.operators });
+          }
+        }
 
         renderOperatorsList();
         showToast(`Operator "${opName}" removed`);
@@ -1127,10 +1395,12 @@ document.getElementById('addNewOperatorBtn').addEventListener('click', () => {
       globalOperatorsList.push(val);
       db.ref('globalOperatorsList').set(globalOperatorsList);
       
-      let currentArr = (state && state.operators) ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
-      if (!currentArr.includes(val)) currentArr.push(val);
-      state.operators = currentArr.join(', ');
-      saveState();
+      if (state) {
+        let currentArr = state.operators ? state.operators.split(', ').map(s => s.trim()).filter(Boolean) : [];
+        if (!currentArr.includes(val)) currentArr.push(val);
+        state.operators = currentArr.join(', ');
+        saveDayFields({ operators: state.operators });
+      }
 
       input.value = '';
       renderOperatorsList();
@@ -1141,6 +1411,7 @@ document.getElementById('addNewOperatorBtn').addEventListener('click', () => {
   }
 });
 
+// ---------- Header & theme ----------
 const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
 const headerCollapsible = document.getElementById('headerCollapsible');
 
@@ -1200,23 +1471,7 @@ populate1To50Select(document.getElementById('newRbu'));
 populate1To50Select(document.getElementById('newVru'));
 populate1To50Select(document.getElementById('newMcp'));
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCoq-GXRGkJLJ3jDeYo_KiZ04oqMyENFpY",
-  authDomain: "workday-kits-operations-9de4d.firebaseapp.com",
-  databaseURL: "https://workday-kits-operations-9de4d-default-rtdb.firebaseio.com",
-  projectId: "workday-kits-operations-9de4d",
-  storageBucket: "workday-kits-operations-9de4d.firebasestorage.app",
-  messagingSenderId: "781011410308",
-  appId: "1:781011410308:web:85c2805bd989c7851651d1"
-};
-
-try {
-  firebase.initializeApp(firebaseConfig);
-  firebase.database().goOnline();
-} catch(e) { console.error(e); }
-
-const db = firebase.database();
-
+// ---------- Sites & cycles ----------
 function renderSitesDropdown() {
   const sel = document.getElementById('siteSelect');
   if (!sel) return;
@@ -1238,88 +1493,86 @@ function renderSitesDropdown() {
   renderCyclesDropdown();
 }
 
-// Rename Current Site (Admin Password Protected)
+// Rename Current Site (password step)
 document.getElementById('renameSiteBtn').addEventListener('click', () => {
   if (!verifyAdminPassword("rename the site")) return;
   
   const newName = prompt(`Rename site "${currentSite}" to:`, currentSite);
   if (newName && newName.trim() && newName.trim() !== currentSite) {
     const oldSite = currentSite;
-    const cleanOldSite = oldSite.replace(/[.#$/\[\]]/g, "_");
+    const cleanOldSite = cleanKeyPart(oldSite);
     const cleanNewSite = newName.trim();
-    const cleanNewSiteKey = cleanNewSite.replace(/[.#$/\[\]]/g, "_");
+    const cleanNewSiteKey = cleanKeyPart(cleanNewSite);
+
+    const finish = () => {
+      globalSitesList = globalSitesList.map(s => s === oldSite ? cleanNewSite : s);
+      globalSitesList = Array.from(new Set(globalSitesList));
+      db.ref('globalSitesList').set(globalSitesList);
+
+      currentSite = cleanNewSite;
+      localStorage.setItem('app-last-site', currentSite);
+      localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+      renderSitesDropdown();
+      loadDay(currentDate);
+      showToast(`Site renamed to "${cleanNewSite}"!`);
+    };
 
     db.ref(`sites/${cleanOldSite}`).once('value', (snap) => {
       const siteData = snap.val();
       if (siteData) {
         db.ref(`sites/${cleanNewSiteKey}`).set(siteData).then(() => {
           db.ref(`sites/${cleanOldSite}`).remove();
-          
-          globalSitesList = globalSitesList.map(s => s === oldSite ? cleanNewSite : s);
-          globalSitesList = Array.from(new Set(globalSitesList));
-          db.ref('globalSitesList').set(globalSitesList);
-
-          currentSite = cleanNewSite;
-          localStorage.setItem('app-last-site', currentSite);
-          renderSitesDropdown();
-          loadDay(currentDate);
-          showToast(`Site renamed to "${cleanNewSite}"!`);
-        });
+          finish();
+        }).catch(onSaveError);
       } else {
-        globalSitesList = globalSitesList.map(s => s === oldSite ? cleanNewSite : s);
-        globalSitesList = Array.from(new Set(globalSitesList));
-        db.ref('globalSitesList').set(globalSitesList);
-
-        currentSite = cleanNewSite;
-        localStorage.setItem('app-last-site', currentSite);
-        renderSitesDropdown();
-        loadDay(currentDate);
-        showToast(`Site renamed to "${cleanNewSite}"!`);
+        finish();
       }
     });
   }
 });
 
-// Delete Current Site (Admin Password Protected)
+// Delete Current Site (password step)
 document.getElementById('deleteSiteBtn').addEventListener('click', () => {
   if (!verifyAdminPassword("delete the entire site")) return;
 
   if (confirm(`CRITICAL WARNING: Are you sure you want to permanently DELETE site "${currentSite}" and ALL its cycles?`)) {
     const oldSite = currentSite;
-    const cleanOldSite = oldSite.replace(/[.#$/\[\]]/g, "_");
+    const cleanOldSite = cleanKeyPart(oldSite);
 
     db.ref(`sites/${cleanOldSite}`).remove().then(() => {
+      clearLocalCache(`offline_${cleanOldSite}/`);
       globalSitesList = globalSitesList.filter(s => s !== oldSite);
       if (!globalSitesList.length) globalSitesList = ['Suzuki'];
       db.ref('globalSitesList').set(globalSitesList);
 
       currentSite = globalSitesList[0];
-      currentCycle = 'Cycle 09/2026';
+      currentCycle = localStorage.getItem(`app-last-cycle_${currentSite}`) || 'Cycle 09/2026';
       localStorage.setItem('app-last-site', currentSite);
       localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
       
       renderSitesDropdown();
       loadDay(currentDate);
       showToast(`Site "${oldSite}" deleted successfully!`);
-    });
+    }).catch(onSaveError);
   }
 });
 
 function renderCyclesDropdown() {
   const cSel = document.getElementById('cycleSelect');
   if (!cSel) return;
-  cSel.innerHTML = '';
 
-  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+  const cleanSite = cleanKeyPart(currentSite);
+  const siteAtRequest = currentSite;
   
   db.ref(`sites/${cleanSite}/cyclesList`).once('value', (snap) => {
+    if (siteAtRequest !== currentSite) return;
     let cycles = snap.val() || ['Cycle 09/2026'];
+    cycles = Object.values(cycles).filter(Boolean);
     if (currentCycle && !cycles.includes(currentCycle)) cycles.push(currentCycle);
-    
-    // Clean duplicates rigorously via Set
     cycles = Array.from(new Set(cycles));
     siteCyclesList = cycles;
 
+    cSel.innerHTML = '';
     cycles.forEach(cName => {
       const opt = document.createElement('option');
       opt.value = cName;
@@ -1336,7 +1589,7 @@ document.getElementById('cycleSelect').addEventListener('change', (e) => {
   loadDay(currentDate);
 });
 
-// Create NEW Cycle (Admin Password Protected)
+// Create NEW Cycle (password step)
 document.getElementById('createNewCycleBtn').addEventListener('click', () => {
   if (!verifyAdminPassword("create a new cycle")) return;
 
@@ -1346,8 +1599,7 @@ document.getElementById('createNewCycleBtn').addEventListener('click', () => {
     if (!siteCyclesList.includes(cleanName)) {
       siteCyclesList.push(cleanName);
       siteCyclesList = Array.from(new Set(siteCyclesList));
-      const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-      db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
+      db.ref(`sites/${cleanKeyPart(currentSite)}/cyclesList`).set(siteCyclesList);
     }
     currentCycle = cleanName;
     localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
@@ -1357,7 +1609,7 @@ document.getElementById('createNewCycleBtn').addEventListener('click', () => {
   }
 });
 
-// Rename Current Cycle (Admin Password Protected)
+// Rename Current Cycle (password step)
 document.getElementById('renameCycleBtn').addEventListener('click', () => {
   if (!verifyAdminPassword("rename the current cycle")) return;
 
@@ -1365,51 +1617,48 @@ document.getElementById('renameCycleBtn').addEventListener('click', () => {
   if (newName && newName.trim() && newName.trim() !== currentCycle) {
     const oldCycle = currentCycle;
     const cleanName = newName.trim();
-    const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+    const cleanSite = cleanKeyPart(currentSite);
 
-    const oldKey = `${cleanSite}/${oldCycle.replace(/[.#$/\[\]]/g, "_")}`;
-    const newKey = `${cleanSite}/${cleanName.replace(/[.#$/\[\]]/g, "_")}`;
+    const oldKey = `${cleanSite}/${cleanKeyPart(oldCycle)}`;
+    const newKey = `${cleanSite}/${cleanKeyPart(cleanName)}`;
+
+    const finish = () => {
+      siteCyclesList = siteCyclesList.map(c => c === oldCycle ? cleanName : c);
+      siteCyclesList = Array.from(new Set(siteCyclesList));
+      db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
+
+      currentCycle = cleanName;
+      localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+      renderCyclesDropdown();
+      loadDay(currentDate);
+      showToast(`Cycle renamed to "${cleanName}"!`);
+    };
 
     db.ref(`sites/${oldKey}`).once('value', (snap) => {
       const cycleData = snap.val();
       if (cycleData) {
         db.ref(`sites/${newKey}`).set(cycleData).then(() => {
           db.ref(`sites/${oldKey}`).remove();
-          
-          siteCyclesList = siteCyclesList.map(c => c === oldCycle ? cleanName : c);
-          siteCyclesList = Array.from(new Set(siteCyclesList));
-          db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
-
-          currentCycle = cleanName;
-          localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
-          renderCyclesDropdown();
-          loadDay(currentDate);
-          showToast(`Cycle renamed to "${cleanName}"!`);
-        });
+          clearLocalCache(`offline_${oldKey}_`);
+          finish();
+        }).catch(onSaveError);
       } else {
-        siteCyclesList = siteCyclesList.map(c => c === oldCycle ? cleanName : c);
-        siteCyclesList = Array.from(new Set(siteCyclesList));
-        db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
-
-        currentCycle = cleanName;
-        localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
-        renderCyclesDropdown();
-        loadDay(currentDate);
-        showToast(`Cycle renamed to "${cleanName}"!`);
+        finish();
       }
     });
   }
 });
 
-// Delete Cycle (Admin Password Protected)
+// Delete Cycle (password step)
 document.getElementById('deleteCycleBtn').addEventListener('click', () => {
   if (!verifyAdminPassword("delete this cycle")) return;
 
   if (confirm(`CRITICAL ACTION: Are you sure you want to permanently DELETE cycle "${currentCycle}" and ALL its logged history?`)) {
-    const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+    const cleanSite = cleanKeyPart(currentSite);
     const siteKey = getCleanSiteKey();
 
     db.ref(`sites/${siteKey}`).remove().then(() => {
+      clearLocalCache(`offline_${siteKey}_`);
       siteCyclesList = siteCyclesList.filter(c => c !== currentCycle);
       if (!siteCyclesList.length) siteCyclesList = ['Cycle 09/2026'];
       
@@ -1420,14 +1669,14 @@ document.getElementById('deleteCycleBtn').addEventListener('click', () => {
       renderCyclesDropdown();
       loadDay(currentDate);
       showToast(`Cycle deleted successfully!`);
-    });
+    }).catch(onSaveError);
   }
 });
 
 db.ref('globalSitesList').on('value', (snap) => {
   const val = snap.val();
-  if (val && Array.isArray(val) && val.length > 0) {
-    globalSitesList = val;
+  if (val && Object.values(val).length > 0) {
+    globalSitesList = Object.values(val).filter(Boolean);
   } else {
     db.ref('globalSitesList').set(globalSitesList);
   }
@@ -1436,49 +1685,69 @@ db.ref('globalSitesList').on('value', (snap) => {
 
 db.ref('globalOperatorsList').on('value', (snap) => {
   const val = snap.val();
-  if (val && Array.isArray(val)) {
-    globalOperatorsList = val;
+  if (val) {
+    globalOperatorsList = Object.values(val).filter(Boolean);
     renderOperatorsList();
   }
 });
 
+// ---------- Backup ----------
+document.getElementById('exportBackupBtn').addEventListener('click', () => {
+  const cleanSite = cleanKeyPart(currentSite);
+  showToast('Preparing backup...');
+  db.ref(`sites/${cleanSite}`).once('value').then(snap => {
+    const payload = { exportedAt: new Date().toISOString(), site: currentSite, data: snap.val() };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_${cleanSite}_${todayISO()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast('Backup downloaded');
+  }).catch(err => { console.error(err); showToast('Backup failed'); });
+});
+
+// ---------- Weather (current conditions) ----------
 document.getElementById('fetchWeatherBtn').addEventListener('click', fetchLiveWeather);
 
 function fetchLiveWeather() {
   showToast('Fetching weather forecast...');
-  let lat = 32.0853, lon = 34.7818;
+  const lat = 32.0853, lon = 34.7818;
 
   function queryWeatherApi(latitude, longitude) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relativehumidity_2m,windgusts_10m`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+                `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_gusts_10m&wind_speed_unit=kmh&timezone=auto`;
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        if (data && data.current_weather) {
-          const temp = Math.round(data.current_weather.temperature);
-          const humidity = data.hourly && data.hourly.relativehumidity_2m ? data.hourly.relativehumidity_2m[0] : 60;
-          const windSpeed = Math.round(data.current_weather.windspeed);
-          const windGusts = data.hourly && data.hourly.windgusts_10m ? Math.round(data.hourly.windgusts_10m[0]) : windSpeed + 5;
+        const c = data && data.current;
+        if (!c) { showToast('Error fetching weather'); return; }
+        const temp = Math.round(c.temperature_2m);
+        const humidity = Math.round(c.relative_humidity_2m);
+        const windGusts = Math.round(c.wind_gusts_10m != null ? c.wind_gusts_10m : (c.wind_speed_10m || 0));
 
-          document.getElementById('tempInput').value = temp;
-          document.getElementById('humidityInput').value = humidity;
-          document.getElementById('windGustsInput').value = windGusts;
+        document.getElementById('tempInput').value = temp;
+        document.getElementById('humidityInput').value = humidity;
+        document.getElementById('windGustsInput').value = windGusts;
 
-          if (state) {
-            state.temp = temp; state.humidity = humidity;
-            state.windGusts = windGusts;
-            saveState();
-          }
-
-          checkWindAlert();
-          showToast(`Weather: ${temp}°C, Wind Gusts ${windGusts} km/h`);
+        if (state) {
+          state.temp = temp; state.humidity = humidity; state.windGusts = windGusts;
+          saveDayFields({ temp, humidity, windGusts });
         }
+
+        checkWindAlert();
+        showToast(`Weather: ${temp}°C, Wind Gusts ${windGusts} km/h`);
       }).catch(err => { console.error(err); showToast('Error fetching weather'); });
   }
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => queryWeatherApi(pos.coords.latitude, pos.coords.longitude),
-      () => queryWeatherApi(lat, lon)
+      () => queryWeatherApi(lat, lon),
+      { timeout: 8000 }
     );
   } else { queryWeatherApi(lat, lon); }
 }
@@ -1491,6 +1760,7 @@ function checkWindAlert() {
 
 document.getElementById('windGustsInput').addEventListener('input', checkWindAlert);
 
+// ---------- Building JSON & frames ----------
 function isFrameUnwalkable(frame) {
   if (!frame) return false;
   if (state && state.workType === 'Inspection') {
@@ -1499,9 +1769,9 @@ function isFrameUnwalkable(frame) {
   return (frame.walking_valid === false || frame.walkable === false || frame.unwalkable === true || siteDefectiveUnwalkableFrames.has(frame.frame_id));
 }
 
-function checkWindowOverlap(kitId, frameId) {
+function checkWindowOverlap(kitUid, frameId) {
   if (!state || !state.kits) return false;
-  return state.kits.some(k => k.id !== kitId && (k.selectedFrames || []).includes(frameId));
+  return state.kits.some(k => k.uid !== kitUid && (k.selectedFrames || []).includes(frameId));
 }
 
 document.getElementById('uploadJsonBtn').addEventListener('click', () => {
@@ -1518,83 +1788,75 @@ document.getElementById('jsonFileInput').addEventListener('change', (e) => {
     try {
       const parsed = JSON.parse(evt.target.result);
       buildingData = parsed;
-      const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-      db.ref(`sites/${cleanSite}/buildingJson`).set(parsed);
+      db.ref(`sites/${cleanKeyPart(currentSite)}/buildingJson`).set(parsed).catch(onSaveError);
       showToast(`Building JSON "${parsed.name || 'Building'}" loaded for site "${currentSite}"!`);
     } catch(err) {
       alert('Invalid JSON file format');
     }
+    e.target.value = '';
   };
   reader.readAsText(file);
 });
 
 function recalculateSiteCleanedHistory() {
   siteCleanedFramesHistory.clear();
-  if (!siteAllDaysData) return;
-
-  Object.keys(siteAllDaysData).forEach(dKey => {
-    const dayObj = siteAllDaysData[dKey];
-    if (dayObj && dayObj.kits) {
-      dayObj.kits.forEach(k => {
-        if (k.selectedFrames) {
-          k.selectedFrames.forEach(fId => siteCleanedFramesHistory.add(fId));
-        }
-      });
-    }
+  Object.keys(siteAllDaysData || {}).forEach(dKey => {
+    dayKits(siteAllDaysData[dKey]).forEach(k => {
+      (k.selectedFrames || []).forEach(fId => siteCleanedFramesHistory.add(fId));
+    });
   });
 }
 
-// Render active days bar (ONLY dates with actual recorded kits/data in THIS cycle)
+function dayHasActivity(day) {
+  return day && (dayKits(day).length > 0 || day.operators || day.generalIssues);
+}
+
+// Render active days bar (only dates with recorded data in THIS cycle)
 function renderActiveDaysBar() {
   const bar = document.getElementById('activeDaysBar');
   if (!bar) return;
   bar.innerHTML = '';
 
-  const activeDates = Object.keys(siteAllDaysData || {}).filter(dKey => {
-    const day = siteAllDaysData[dKey];
-    return day && ((day.kits && day.kits.length > 0) || day.operators || day.generalIssues);
-  }).sort();
-
+  const activeDates = Object.keys(siteAllDaysData || {}).filter(dKey => dayHasActivity(siteAllDaysData[dKey])).sort();
   if (!activeDates.length) return;
 
   activeDates.forEach(dStr => {
     const chip = document.createElement('div');
     chip.className = 'active-day-chip' + (dStr === currentDate ? ' current' : '');
     chip.textContent = formatDateDisplay(dStr);
-    chip.addEventListener('click', () => {
-      loadDay(dStr);
-    });
+    chip.addEventListener('click', () => loadDay(dStr));
     bar.appendChild(chip);
   });
 }
 
-// Reset Current Cycle (Admin Password Protected)
+// Reset Current Cycle (password step)
 document.getElementById('mainResetCycleBtn').addEventListener('click', () => {
   if (!verifyAdminPassword("RESET this entire cycle")) return;
 
   if (confirm(`CRITICAL WARNING: Are you sure you want to reset ALL window history AND delete ALL daily sessions for "${currentSite}" (${currentCycle})?`)) {
-    siteCleanedFramesHistory.clear();
-    siteDefectiveReportFrames.clear();
-    siteDefectiveUnwalkableFrames.clear();
-    selectedFrameIds.clear();
-    siteAllDaysData = {};
-    
-    state = blankDay(currentDate);
-
     const siteKey = getCleanSiteKey();
-    
-    db.ref(`sites/${siteKey}/cleanedFramesHistory`).remove();
-    db.ref(`sites/${siteKey}/defectiveReportFrames`).remove();
-    db.ref(`sites/${siteKey}/defectiveUnwalkableFrames`).remove();
-    db.ref(`sites/${siteKey}/days`).remove().then(() => {
-      saveState();
+    const upd = {
+      days: null, photos: null,
+      defectReport: null, defectBlock: null,
+      defectiveReportFrames: null, defectiveUnwalkableFrames: null,
+      cleanedFramesHistory: null
+    };
+
+    db.ref(`sites/${siteKey}`).update(upd).then(() => {
+      clearLocalCache(`offline_${siteKey}_`);
+      siteCleanedFramesHistory.clear();
+      siteDefectiveReportFrames.clear();
+      siteDefectiveUnwalkableFrames.clear();
+      selectedFrameIds.clear();
+      siteAllDaysData = {};
+      state = blankDay(currentDate);
       render();
       showToast('Cycle Reset Successfully!');
-    });
+    }).catch(onSaveError);
   }
 });
 
-// Logs History Explorer Modal
+// ---------- Logs history ----------
 document.getElementById('openHistoryModalBtn').addEventListener('click', () => {
   renderHistoryLogsList();
   document.getElementById('historyModal').classList.add('show');
@@ -1613,10 +1875,7 @@ function renderHistoryLogsList(filterText = '') {
   document.getElementById('historySiteSub').textContent = `Site: ${currentSite} (${currentCycle}) — Search & Review Logs`;
   container.innerHTML = '';
 
-  const activeDates = Object.keys(siteAllDaysData || {}).filter(dKey => {
-    const day = siteAllDaysData[dKey];
-    return day && ((day.kits && day.kits.length > 0) || day.operators || day.generalIssues);
-  }).sort().reverse();
+  const activeDates = Object.keys(siteAllDaysData || {}).filter(dKey => dayHasActivity(siteAllDaysData[dKey])).sort().reverse();
 
   if (!activeDates.length) {
     container.innerHTML = '<div class="empty-note">No recorded daily logs for this cycle yet</div>';
@@ -1625,13 +1884,13 @@ function renderHistoryLogsList(filterText = '') {
 
   activeDates.forEach(dKey => {
     const dayObj = siteAllDaysData[dKey];
+    const kits = dayKits(dayObj);
     const dateFormatted = formatDateDisplay(dKey);
     const ops = dayObj.operators || 'Unspecified';
     const notes = dayObj.generalIssues || '';
-    const kitCount = (dayObj.kits || []).length;
 
     let totalSqm = 0;
-    (dayObj.kits || []).forEach(k => { if (k.sqmCleaned) totalSqm += k.sqmCleaned; });
+    kits.forEach(k => { if (k.sqmCleaned) totalSqm += k.sqmCleaned; });
 
     const matchText = `${dKey} ${dateFormatted} ${ops} ${notes}`.toLowerCase();
     if (filterText && !matchText.includes(filterText)) return;
@@ -1640,11 +1899,11 @@ function renderHistoryLogsList(filterText = '') {
     card.className = 'history-log-card';
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--amber);">
-        <span>📅 Date: ${dateFormatted}</span>
-        <span>${totalSqm.toFixed(1)} m² | ${kitCount} Kits</span>
+        <span>📅 Date: ${esc(dateFormatted)}</span>
+        <span>${totalSqm.toFixed(1)} m² | ${kits.length} Kits</span>
       </div>
-      <div style="font-size:12px; margin-top:4px; color:var(--text);"><strong>Operators:</strong> ${ops}</div>
-      ${notes ? `<div style="font-size:11px; margin-top:2px; color:var(--orange);"><strong>Issues/Blockers:</strong> ${notes}</div>` : ''}
+      <div style="font-size:12px; margin-top:4px; color:var(--text);"><strong>Operators:</strong> ${esc(ops)}</div>
+      ${notes ? `<div style="font-size:11px; margin-top:2px; color:var(--orange);"><strong>Issues/Blockers:</strong> ${esc(notes)}</div>` : ''}
     `;
 
     card.addEventListener('click', () => {
@@ -1657,6 +1916,7 @@ function renderHistoryLogsList(filterText = '') {
   });
 }
 
+// ---------- Dashboard ----------
 document.getElementById('openDashboardBtn').addEventListener('click', () => {
   calculateAndRenderDashboard();
   document.getElementById('dashboardModal').classList.add('show');
@@ -1666,10 +1926,8 @@ document.getElementById('closeDashboardBtn').addEventListener('click', () => {
   document.getElementById('dashboardModal').classList.remove('show');
 });
 
-function calculateAndRenderDashboard() {
-  document.getElementById('dashboardSiteSub').textContent = `Site: ${currentSite} (${currentCycle})`;
-
-  let totalBuildingSqm = 0;
+function computeBuildingProgress() {
+  let totalBuildingSqm = 0, cleanedBuildingSqm = 0;
   const sectionSqmMap = {};
   const sectionCleanedMap = {};
 
@@ -1685,19 +1943,18 @@ function calculateAndRenderDashboard() {
       sectionSqmMap[name] = secTotal;
       sectionCleanedMap[name] = secCleaned;
       totalBuildingSqm += secTotal;
-    });
-  }
-
-  let cleanedBuildingSqm = 0;
-  if (buildingData && buildingData.sections) {
-    buildingData.sections.forEach(sec => {
-      (sec.window_frames || []).forEach(f => {
-        if (siteCleanedFramesHistory.has(f.frame_id)) cleanedBuildingSqm += (f.width || 0) * (f.height || 0);
-      });
+      cleanedBuildingSqm += secCleaned;
     });
   }
 
   const progressPercent = totalBuildingSqm > 0 ? (cleanedBuildingSqm / totalBuildingSqm * 100) : 0;
+  return { totalBuildingSqm, cleanedBuildingSqm, sectionSqmMap, sectionCleanedMap, progressPercent };
+}
+
+function calculateAndRenderDashboard() {
+  document.getElementById('dashboardSiteSub').textContent = `Site: ${currentSite} (${currentCycle})`;
+
+  const { totalBuildingSqm, cleanedBuildingSqm, sectionSqmMap, sectionCleanedMap, progressPercent } = computeBuildingProgress();
   
   document.getElementById('dashProgressPercent').textContent = progressPercent.toFixed(1);
   document.getElementById('dashCleanedSqm').textContent = cleanedBuildingSqm.toFixed(2);
@@ -1705,53 +1962,57 @@ function calculateAndRenderDashboard() {
   document.getElementById('dashStatSqm').textContent = cleanedBuildingSqm.toFixed(2);
   document.getElementById('dashProgressBarFill').style.width = `${Math.min(100, progressPercent)}%`;
 
-  let totalShiftMs = 0, totalUptimeMs = 0, totalDowntimeMs = 0;
+  let totalWallMs = 0, totalUptimeMs = 0, totalDowntimeMs = 0;
 
   const dailyTableBody = document.getElementById('dashDailyLogsTableBody');
   dailyTableBody.innerHTML = '';
 
-  Object.keys(siteAllDaysData).forEach(dateKey => {
-    const dayObj = siteAllDaysData[dateKey];
-    if (dayObj && dayObj.kits && dayObj.kits.length > 0) {
-      let earliestArrival = null, latestFinish = null, daySqm = 0;
+  Object.keys(siteAllDaysData).sort().forEach(dateKey => {
+    const kits = dayKits(siteAllDaysData[dateKey]);
+    if (!kits.length) return;
 
-      dayObj.kits.forEach(kit => {
-        const e = kit.events || {};
-        if (e.arrival) {
-          const t = new Date(e.arrival);
-          if (!earliestArrival || t < earliestArrival) earliestArrival = t;
-        }
-        if (e.finish) {
-          const t = new Date(e.finish);
-          if (!latestFinish || t > latestFinish) latestFinish = t;
-        }
+    let earliestArrival = null, latestFinish = null, daySqm = 0;
 
-        const { wallMs, netMs, stopsMs } = kitDurations(kit);
-        if (wallMs) totalShiftMs += wallMs;
-        if (netMs) totalUptimeMs += netMs;
-        if (stopsMs) totalDowntimeMs += stopsMs;
-        if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
-      });
+    kits.forEach(kit => {
+      const e = kit.events || {};
+      if (e.arrival) {
+        const t = new Date(e.arrival);
+        if (!earliestArrival || t < earliestArrival) earliestArrival = t;
+      }
+      if (e.finish) {
+        const t = new Date(e.finish);
+        if (!latestFinish || t > latestFinish) latestFinish = t;
+      }
 
-      const dayShiftMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
+      const { wallMs, netMs, stopsMs } = kitDurations(kit);
+      // Only count kits with a complete wall period, so stops and wall time match
+      if (wallMs != null) {
+        totalWallMs += wallMs;
+        totalUptimeMs += netMs || 0;
+        totalDowntimeMs += stopsMs || 0;
+      }
+      if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
+    });
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${formatDateDisplay(dateKey)}</td>
-        <td>${fmtDur(dayShiftMs)}</td>
-        <td>${daySqm.toFixed(2)} m²</td>
-        <td>${dayObj.kits.length} Kits</td>
-      `;
-      dailyTableBody.appendChild(tr);
-    }
+    const dayShiftMs = (earliestArrival && latestFinish) ? (latestFinish - earliestArrival) : null;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${esc(formatDateDisplay(dateKey))}</td>
+      <td>${fmtDur(dayShiftMs)}</td>
+      <td>${daySqm.toFixed(2)} m²</td>
+      <td>${kits.length} Kits</td>
+    `;
+    dailyTableBody.appendChild(tr);
   });
 
   const uptimeHours = totalUptimeMs / (1000 * 3600);
   const speedSqmPerHour = uptimeHours > 0 ? (cleanedBuildingSqm / uptimeHours) : 0;
-  const downtimePercent = (totalShiftMs + totalDowntimeMs) > 0 ? (totalDowntimeMs / (totalShiftMs + totalDowntimeMs) * 100) : 0;
+  // Wall time already includes stops, so it is the right denominator
+  const downtimePercent = totalWallMs > 0 ? (totalDowntimeMs / totalWallMs * 100) : 0;
 
   document.getElementById('dashStatSpeed').textContent = speedSqmPerHour.toFixed(1);
-  document.getElementById('dashStatTotalTime').textContent = fmtDur(totalShiftMs);
+  document.getElementById('dashStatTotalTime').textContent = fmtDur(totalWallMs);
   document.getElementById('dashStatDowntimePercent').textContent = downtimePercent.toFixed(1);
 
   const facadeListContainer = document.getElementById('dashFacadeProgressList');
@@ -1766,7 +2027,7 @@ function calculateAndRenderDashboard() {
     item.className = 'facade-progress-item';
     item.innerHTML = `
       <div class="facade-progress-label">
-        <span>${secName}</span>
+        <span>${esc(secName)}</span>
         <span>${cleanedSec.toFixed(1)} / ${totalSec.toFixed(1)} m² (${secPercent}%)</span>
       </div>
       <div class="progress-bar-bg" style="height: 10px;">
@@ -1777,6 +2038,7 @@ function calculateAndRenderDashboard() {
   });
 }
 
+// ---------- New kit drop areas ----------
 function renderNewKitDrops() {
   const container = document.getElementById('newKitDropList');
   if (!container) return;
@@ -1786,9 +2048,9 @@ function renderNewKitDrops() {
     row.className = 'drop-col-item';
     row.innerHTML = `
       <div class="drop-col-fields-grid">
-        <input type="text" placeholder="Facade (e.g. North)" value="${item.facade||''}" data-idx="${idx}" data-field="facade">
-        <input type="text" placeholder="Rows (e.g. 1-5)" value="${item.rows||''}" data-idx="${idx}" data-field="rows">
-        <input type="text" placeholder="Cols (e.g. 2-4)" value="${item.cols||''}" data-idx="${idx}" data-field="cols">
+        <input type="text" placeholder="Facade (e.g. North)" value="${esc(item.facade)}" data-idx="${idx}" data-field="facade">
+        <input type="text" placeholder="Rows (e.g. 1-5)" value="${esc(item.rows)}" data-idx="${idx}" data-field="rows">
+        <input type="text" placeholder="Cols (e.g. 2-4)" value="${esc(item.cols)}" data-idx="${idx}" data-field="cols">
       </div>
       ${newKitDrops.length > 1 ? `<button type="button" class="btn-remove-drop" data-idx="${idx}">🗑️ Remove Drop Area</button>` : ''}
     `;
@@ -1859,6 +2121,7 @@ customSiteInput.addEventListener('change', () => {
   }
 });
 
+// ---------- Date & formatting ----------
 function todayISO(){
   const d = new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -1894,6 +2157,8 @@ function blankDay(dateISO){
 
 function blankKit(kitNum, type, rbu, vru, mcp, dropsList, deployLoc, deployNotes){
   return { 
+    uid: newId('k'),
+    order: Date.now(),
     id: kitNum || ('KIT-'+(Date.now()%1000)), 
     type: type || 'Parapod', 
     rbu: rbu || '', 
@@ -1926,89 +2191,108 @@ function showToast(msg){
   const t = document.getElementById('toast');
   if (!t) return;
   t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 1600);
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove('show'), 1800);
 }
 
-function saveState(){
-  if(!state || !currentDate || !currentSite) return;
-  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
-  const siteKey = getCleanSiteKey();
-  
-  try {
-    localStorage.setItem(`offline_${siteKey}_${currentDate}`, JSON.stringify(state));
-  } catch(e) { console.error(e); }
+function timeInputValue(iso) {
+  const d = new Date(iso);
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+}
 
+function applyTimeToDate(baseIso, timeStr) {
+  const p = timeStr.split(':');
+  const d = new Date(baseIso);
+  d.setHours(parseInt(p[0],10));
+  d.setMinutes(parseInt(p[1],10));
+  d.setSeconds(p[2] ? parseInt(p[2],10) : 0);
+  return d.toISOString();
+}
+
+// ---------- Loading a day ----------
+function readCachedDay(dateISO) {
   try {
-    db.ref(`sites/${siteKey}/defectiveReportFrames`).set(Array.from(siteDefectiveReportFrames));
-    db.ref(`sites/${siteKey}/defectiveUnwalkableFrames`).set(Array.from(siteDefectiveUnwalkableFrames));
-    db.ref(`sites/${cleanSite}/siteLinks`).set(siteLinksData);
-    db.ref(`sites/${siteKey}/days/${currentDate}`).set(state);
-  } catch(e) { console.error(e); }
+    const raw = localStorage.getItem(cacheKey(dateISO));
+    return raw ? normalizeState(JSON.parse(raw), dateISO) : null;
+  } catch(e) { return null; }
+}
+
+function applyInspectionClass() {
+  if (state && state.workType === 'Inspection') document.body.classList.add('inspection-mode');
+  else document.body.classList.remove('inspection-mode');
 }
 
 function loadDay(dateISO){
+  detachAll();
   currentDate = dateISO;
-  if (dbRef) dbRef.off();
 
-  const cleanSite = currentSite.replace(/[.#$/\[\]]/g, "_");
+  const cleanSite = cleanKeyPart(currentSite);
   const siteKey = getCleanSiteKey();
 
-  // Load Building JSON (Shared across all cycles of the site)
-  db.ref(`sites/${cleanSite}/buildingJson`).on('value', (snap) => {
+  // Clear everything that belonged to the previous site/cycle/date
+  buildingData = null;
+  siteAllDaysData = {};
+  siteCleanedFramesHistory = new Set();
+  siteDefectiveReportFrames = new Set();
+  siteDefectiveUnwalkableFrames = new Set();
+
+  // Show cached data immediately (useful with weak reception), server data replaces it
+  state = readCachedDay(dateISO) || blankDay(dateISO);
+  render();
+  renderActiveDaysBar();
+
+  // Building JSON (shared across all cycles of the site)
+  listen(`sites/${cleanSite}/buildingJson`, (snap) => {
     buildingData = snap.val() || null;
   });
 
-  // Load Site-level persistent Links (Persists across cycles)
-  db.ref(`sites/${cleanSite}/siteLinks`).on('value', (snap) => {
+  // Site-level links (persist across cycles)
+  listen(`sites/${cleanSite}/siteLinks`, (snap) => {
     siteLinksData = snap.val() || { opReportLink: '', projectAlbumLink: '' };
     document.getElementById('opReportLinkInput').value = siteLinksData.opReportLink || '';
     document.getElementById('projectAlbumLinkInput').value = siteLinksData.projectAlbumLink || '';
   });
 
-  db.ref(`sites/${siteKey}/defectiveReportFrames`).on('value', (snap) => {
-    siteDefectiveReportFrames = new Set(snap.val() || []);
+  listen(`sites/${siteKey}/defectReport`, (snap) => {
+    siteDefectiveReportFrames = new Set(Object.values(snap.val() || {}));
+  });
+  listen(`sites/${siteKey}/defectBlock`, (snap) => {
+    siteDefectiveUnwalkableFrames = new Set(Object.values(snap.val() || {}));
   });
 
-  db.ref(`sites/${siteKey}/defectiveUnwalkableFrames`).on('value', (snap) => {
-    siteDefectiveUnwalkableFrames = new Set(snap.val() || []);
-  });
+  // Older format → migrate once
+  listen(`sites/${siteKey}/defectiveReportFrames`, (snap) => migrateLegacyDefects(siteKey, 'defectiveReportFrames', 'defectReport', snap.val()));
+  listen(`sites/${siteKey}/defectiveUnwalkableFrames`, (snap) => migrateLegacyDefects(siteKey, 'defectiveUnwalkableFrames', 'defectBlock', snap.val()));
 
-  db.ref(`sites/${siteKey}/days`).on('value', (snap) => {
+  listen(`sites/${siteKey}/days`, (snap) => {
     siteAllDaysData = snap.val() || {};
+    migrateLegacyDays(siteKey, siteAllDaysData);
     recalculateSiteCleanedHistory();
     renderActiveDaysBar();
   });
 
-  dbRef = db.ref(`sites/${siteKey}/days/${dateISO}`);
-  dbRef.on('value', (snapshot) => {
+  listen(`sites/${siteKey}/days/${dateISO}`, (snapshot) => {
     const data = snapshot.val();
     if (data) {
-      state = data;
-      if(!state.kits) state.kits = [];
-      state.kits.forEach(k => {
-        if(!k.stops) k.stops = [];
-        if(!k.events) k.events = {};
-        if(!k.drops) k.drops = [{ facade: k.facade||'', rows: k.rows||'', cols: k.cols||'' }];
-        if(!k.selectedFrames) k.selectedFrames = [];
-      });
+      state = normalizeState(data, dateISO);
+      cacheLocal();
     } else {
-      const localFallback = localStorage.getItem(`offline_${siteKey}_${dateISO}`);
-      if (localFallback) {
-        state = JSON.parse(localFallback);
+      // Nothing on the server. If this device has unsynced data for this day
+      // (e.g. it was entered offline and the page was reloaded), upload it.
+      const cached = readCachedDay(dateISO);
+      if (cached && cached.kits && cached.kits.length) {
+        state = cached;
+        db.ref(dayPath()).set(fullDayPayload(state)).catch(onSaveError);
+        showToast('Restored unsynced data from this device');
       } else {
         state = blankDay(dateISO);
       }
-    }
-    
-    if (state.workType === 'Inspection') {
-      document.body.classList.add('inspection-mode');
-    } else {
-      document.body.classList.remove('inspection-mode');
     }
     render();
   });
 }
 
+// ---------- Kit cards ----------
 function nextUnlockedIndex(kit){
   for(let i=0;i<STAGES.length;i++){ if(!kit.events[STAGES[i].key]) return i; }
   return STAGES.length;
@@ -2016,10 +2300,12 @@ function nextUnlockedIndex(kit){
 
 function openStopIndex(kit){ return (kit.stops || []).findIndex(p => p.end == null); }
 
+function findKit(uid) { return state && state.kits ? state.kits.find(k => k.uid === uid) : null; }
+
 function markEvent(kit, key){
   if(kit.events[key]) return;
   kit.events[key] = new Date().toISOString();
-  saveState();
+  saveKit(kit);
   showToast('Kit ' + kit.id + ' · ' + STAGES.find(s=>s.key===key).label + ' logged');
 }
 
@@ -2028,7 +2314,7 @@ function kitDurations(kit){
   const totalMs = (e.arrival && e.finish) ? new Date(e.finish)-new Date(e.arrival) : null;
   const wallMs = (e.onWall && e.dismantle) ? new Date(e.dismantle)-new Date(e.onWall) : null;
   let stopsMs = 0;
-  (kit.stops || []).forEach(p=>{ if(p.start && p.end) stopsMs += new Date(p.end)-new Date(p.start); });
+  (kit.stops || []).forEach(p=>{ if(p && p.start && p.end) stopsMs += new Date(p.end)-new Date(p.start); });
   const netMs = (wallMs != null) ? Math.max(0, wallMs - stopsMs) : null;
   return {totalMs, wallMs, netMs, stopsMs};
 }
@@ -2036,13 +2322,13 @@ function kitDurations(kit){
 function renderKitCard(kit){
   const wallActive = kit.events?.onWall && !kit.events?.dismantle;
   const finished = !!kit.events?.finish;
-  const collapsed = !!collapsedMap[kit.id];
+  const collapsed = !!collapsedMap[kit.uid];
   const nextIdx = nextUnlockedIndex(kit);
-  const {totalMs, wallMs, netMs, stopsMs} = kitDurations(kit);
+  const {wallMs, netMs, stopsMs} = kitDurations(kit);
 
   const card = document.createElement('div');
   card.className = 'kit-card' + (wallActive?' wall-active':'') + (finished?' finished':'') + (collapsed?' collapsed':'');
-  card.setAttribute('data-card-kit-id', kit.id);
+  card.setAttribute('data-card-kit-uid', kit.uid);
 
   let clockText = '';
   if(wallActive){ clockText = fmtDur(new Date() - new Date(kit.events.onWall)); }
@@ -2050,15 +2336,17 @@ function renderKitCard(kit){
 
   const sqmText = kit.sqmCleaned ? `${kit.sqmCleaned.toFixed(2)} m²` : '0 m²';
   const isCustomType = kit.type && !STANDARD_PARADEVICES.includes(kit.type);
+  const opt = (v) => `<option value="${esc(v)}" ${kit.type===v?'selected':''}>${esc(v)}</option>`;
+  const locOpt = (v) => `<option value="${v}" ${kit.deployLoc===v?'selected':''}>${v}</option>`;
 
   card.innerHTML = `
     <div class="kit-head">
       <div class="kit-head-left">
         <div class="kit-status-dot"></div>
-        <div class="kit-type">Kit #${kit.id} (${kit.type})</div>
+        <div class="kit-type">Kit #${esc(kit.id)} (${esc(kit.type)})</div>
       </div>
       <div class="kit-head-right">
-        <div class="kit-clock" data-clock-kit-id="${kit.id}">${clockText}</div>
+        <div class="kit-clock" data-clock-kit-uid="${esc(kit.uid)}">${clockText}</div>
         <div class="chevron">▾</div>
       </div>
     </div>
@@ -2071,18 +2359,13 @@ function renderKitCard(kit){
         <div class="field">
           <label>ParaDevice</label>
           <select data-field="type" class="paradevice-sel">
-            <option value="Parapod" ${kit.type==='Parapod'?'selected':''}>Parapod</option>
-            <option value="Paraslide" ${kit.type==='Paraslide'?'selected':''}>Paraslide</option>
-            <option value="ParaSlide Top row" ${kit.type==='ParaSlide Top row'?'selected':''}>ParaSlide Top row</option>
-            <option value="Paraclamp" ${kit.type==='Paraclamp'?'selected':''}>Paraclamp</option>
-            <option value="Paraline" ${kit.type==='Paraline'?'selected':''}>Paraline</option>
-            <option value="Paradavit" ${kit.type==='Paradavit'?'selected':''}>Paradavit</option>
+            ${STANDARD_PARADEVICES.map(opt).join('')}
             <option value="custom" ${isCustomType?'selected':''}>+ Custom / Other...</option>
           </select>
         </div>
         <div class="field card-custom-type-wrap" style="display:${isCustomType ? 'block' : 'none'}; grid-column:span 2;">
           <label>Custom ParaDevice Name</label>
-          <input type="text" class="card-custom-type-input" value="${isCustomType ? kit.type : ''}" placeholder="Enter custom ParaDevice name...">
+          <input type="text" class="card-custom-type-input" value="${isCustomType ? esc(kit.type) : ''}" placeholder="Enter custom ParaDevice name...">
         </div>
         <div class="field">
           <label>RBU #</label>
@@ -2099,13 +2382,11 @@ function renderKitCard(kit){
         <div class="field">
           <label>Deployment Mode</label>
           <select data-field="deployLoc">
-            <option value="Roof" ${kit.deployLoc==='Roof'?'selected':''}>Roof</option>
-            <option value="Ground" ${kit.deployLoc==='Ground'?'selected':''}>Ground</option>
-            <option value="Grasshopper" ${kit.deployLoc==='Grasshopper'?'selected':''}>Grasshopper</option>
+            ${locOpt('Roof')}${locOpt('Ground')}${locOpt('Grasshopper')}
           </select>
         </div>
 
-        <button type="button" class="map-select-btn" data-kit-id="${kit.id}">🗺️ Open Building Map & Select Windows (${sqmText})</button>
+        <button type="button" class="map-select-btn">🗺️ Open Building Map & Select Windows (${sqmText})</button>
 
         <div class="drop-cols-container" style="grid-column: span 2;">
           <div class="drop-cols-header">
@@ -2117,12 +2398,12 @@ function renderKitCard(kit){
 
         <div class="field full-width">
           <label>Deployment Notes</label>
-          <textarea data-field="deployNotes" placeholder="Notes (multiple lines supported)...">${kit.deployNotes||''}</textarea>
+          <textarea data-field="deployNotes" placeholder="Notes (multiple lines supported)...">${esc(kit.deployNotes)}</textarea>
         </div>
 
         <div class="field full-width">
           <label style="color:var(--orange);">Kit Specific Issues & Notes</label>
-          <textarea data-field="kitIssues" placeholder="e.g. Cable issue, squeaking wheel, camera glitch...">${kit.kitIssues||''}</textarea>
+          <textarea data-field="kitIssues" placeholder="e.g. Cable issue, squeaking wheel, camera glitch...">${esc(kit.kitIssues)}</textarea>
         </div>
       </div>
 
@@ -2142,7 +2423,7 @@ function renderKitCard(kit){
         <div class="stat"><div class="k">Cleaned SQM</div><div class="v">${sqmText}</div></div>
       </div>
 
-      <button class="delete-kit-btn" data-kit-id="${kit.id}">🗑️ Delete Kit #${kit.id}</button>
+      <button class="delete-kit-btn">🗑️ Delete Kit #${esc(kit.id)}</button>
     </div>
   `;
 
@@ -2162,8 +2443,7 @@ function renderKitCard(kit){
     } else {
       customWrap.style.display = 'none';
       kit.type = ev.target.value;
-      saveState();
-      renderKits();
+      saveKit(kit);
     }
   });
 
@@ -2171,8 +2451,7 @@ function renderKitCard(kit){
     const val = ev.target.value.trim();
     if (val) {
       kit.type = val;
-      saveState();
-      renderKits();
+      saveKit(kit);
     }
   });
 
@@ -2188,8 +2467,8 @@ function renderKitCard(kit){
   card.querySelector('.delete-kit-btn').addEventListener('click', (ev) => {
     ev.stopPropagation();
     if(confirm(`Are you sure you want to delete Kit #${kit.id}?`)){
-      state.kits = state.kits.filter(k => k.id !== kit.id);
-      saveState();
+      removeKit(kit);
+      render();
       showToast(`Kit #${kit.id} deleted`);
     }
   });
@@ -2203,9 +2482,9 @@ function renderKitCard(kit){
       row.className = 'drop-col-item';
       row.innerHTML = `
         <div class="drop-col-fields-grid">
-          <input type="text" placeholder="Facade (e.g. North)" value="${dItem.facade||''}" data-didx="${dIdx}" data-dfield="facade">
-          <input type="text" placeholder="Rows (e.g. 1-5)" value="${dItem.rows||''}" data-didx="${dIdx}" data-dfield="rows">
-          <input type="text" placeholder="Cols (e.g. 2-4)" value="${dItem.cols||''}" data-didx="${dIdx}" data-dfield="cols">
+          <input type="text" placeholder="Facade (e.g. North)" value="${esc(dItem.facade)}" data-didx="${dIdx}" data-dfield="facade">
+          <input type="text" placeholder="Rows (e.g. 1-5)" value="${esc(dItem.rows)}" data-didx="${dIdx}" data-dfield="rows">
+          <input type="text" placeholder="Cols (e.g. 2-4)" value="${esc(dItem.cols)}" data-didx="${dIdx}" data-dfield="cols">
         </div>
         ${kit.drops.length > 1 ? `<button type="button" class="btn-remove-drop" data-didx="${dIdx}">🗑️ Remove Drop Area</button>` : ''}
       `;
@@ -2217,7 +2496,7 @@ function renderKitCard(kit){
         const didx = ev.target.getAttribute('data-didx');
         const dfield = ev.target.getAttribute('data-dfield');
         kit.drops[didx][dfield] = ev.target.value;
-        saveState();
+        saveKit(kit);
       });
     });
 
@@ -2225,7 +2504,7 @@ function renderKitCard(kit){
       btn.addEventListener('click', (ev) => {
         const didx = parseInt(ev.target.getAttribute('data-didx'), 10);
         kit.drops.splice(didx, 1);
-        saveState();
+        saveKit(kit);
         renderCardDrops();
       });
     });
@@ -2236,35 +2515,34 @@ function renderKitCard(kit){
   card.querySelector('.card-add-drop').addEventListener('click', () => {
     if(!kit.drops) kit.drops = [];
     kit.drops.push({ facade: '', rows: '', cols: '' });
-    saveState();
+    saveKit(kit);
     renderCardDrops();
   });
 
   card.querySelector('.kit-head').addEventListener('click', ()=>{
-    collapsedMap[kit.id] = !collapsedMap[kit.id];
+    collapsedMap[kit.uid] = !collapsedMap[kit.uid];
     render();
   });
 
-  card.querySelectorAll('.kit-fields-grid > .field select[data-field="id"]').forEach(elem => {
-    elem.addEventListener('change', (ev) => {
-      const newVal = ev.target.value;
-      const isTaken = state.kits.some(k => k.id !== kit.id && String(k.id) === String(newVal));
-      if (isTaken) {
-        showToast(`Kit #${newVal} is already in use today!`);
-        ev.target.value = kit.id;
-        return;
-      }
-      kit.id = newVal;
-      saveState();
-    });
+  card.querySelector('.kit-id-sel').addEventListener('change', (ev) => {
+    const newVal = ev.target.value;
+    if (!newVal) { ev.target.value = kit.id; return; }
+    const isTaken = state.kits.some(k => k.uid !== kit.uid && String(k.id) === String(newVal));
+    if (isTaken) {
+      showToast(`Kit #${newVal} is already in use today!`);
+      ev.target.value = kit.id;
+      return;
+    }
+    kit.id = newVal;
+    saveKit(kit);
   });
 
-  card.querySelectorAll('.kit-fields-grid > .field input, .kit-fields-grid > .field select:not([data-field="id"]):not(.paradevice-sel), .kit-fields-grid > .field textarea').forEach(elem => {
+  card.querySelectorAll('.kit-fields-grid > .field input:not(.card-custom-type-input), .kit-fields-grid > .field select:not(.kit-id-sel):not(.paradevice-sel), .kit-fields-grid > .field textarea').forEach(elem => {
     elem.addEventListener('change', (ev) => {
       const fieldName = ev.target.getAttribute('data-field');
       if(fieldName) {
         kit[fieldName] = ev.target.value;
-        saveState();
+        saveKit(kit);
       }
     });
   });
@@ -2289,15 +2567,10 @@ function renderKitCard(kit){
     }
 
     if(done){
-      const editBtn = chip.querySelector('.edit-tm-btn');
-      editBtn.addEventListener('click', (ev) => {
+      chip.querySelector('.edit-tm-btn').addEventListener('click', (ev) => {
         ev.stopPropagation();
-        editingTimeInfo = { kitId: kit.id, stageKey: s.key };
-        const curDate = new Date(kit.events[s.key]);
-        const timeStr = String(curDate.getHours()).padStart(2,'0') + ':' + 
-                        String(curDate.getMinutes()).padStart(2,'0') + ':' + 
-                        String(curDate.getSeconds()).padStart(2,'0');
-        document.getElementById('timeEditInput').value = timeStr;
+        editingTimeInfo = { kitUid: kit.uid, stageKey: s.key };
+        document.getElementById('timeEditInput').value = timeInputValue(kit.events[s.key]);
         document.getElementById('timeEditSub').textContent = `Editing stage time for: ${kit.type} (#${kit.id}) — ${s.label}`;
         document.getElementById('timeEditModal').classList.add('show');
       });
@@ -2315,7 +2588,7 @@ function renderKitCard(kit){
   stopBtn.addEventListener('click', (ev)=>{
     ev.stopPropagation();
     if(!wallActive){ showToast('Stops can only be recorded while on the wall'); return; }
-    pendingStopKitId = kit.id;
+    pendingStopKitUid = kit.uid;
     pendingStopPhotoData = null;
     document.getElementById('stopModalSub').textContent = `Kit #${kit.id} — Reason for stop?`;
     document.getElementById('stopReasonInput').value = '';
@@ -2330,7 +2603,7 @@ function renderKitCard(kit){
     const idx = openStopIndex(kit);
     if(idx === -1) return;
     kit.stops[idx].end = new Date().toISOString();
-    saveState();
+    saveKit(kit);
   });
 
   const log = card.querySelector('.stop-log');
@@ -2342,10 +2615,10 @@ function renderKitCard(kit){
       return `
         <div class="stop-item">
           <div class="stop-item-top">
-            <div>Stop ${i+1}: ${fmtTime(p.start)} → ${p.end?fmtTime(p.end):'—'} (${dur})<br><span class="reason">↳ ${p.reason||''}</span></div>
-            <span class="edit-stop-btn" data-stop-idx="${i}" title="Edit stop">✏️</span>
+            <div>Stop ${i+1}: ${fmtTime(p.start)} → ${p.end?fmtTime(p.end):'—'} (${dur})<br><span class="reason">↳ ${esc(p.reason)}</span></div>
+            <span class="edit-stop-btn" data-stop-idx="${i}" title="Edit stop" style="cursor:pointer;">✏️</span>
           </div>
-          ${p.photoUrl ? `<img src="${p.photoUrl}" class="stop-img-preview">` : ''}
+          ${stopPhotoHtml(p)}
         </div>
       `;
     }).join('');
@@ -2353,39 +2626,7 @@ function renderKitCard(kit){
     log.querySelectorAll('.edit-stop-btn').forEach(btn => {
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        const stopIdx = parseInt(btn.getAttribute('data-stop-idx'), 10);
-        editingStopInfo = { kitId: kit.id, stopIdx };
-        const st = kit.stops[stopIdx];
-        
-        const dStart = new Date(st.start);
-        document.getElementById('stopEditStart').value = String(dStart.getHours()).padStart(2,'0') + ':' + String(dStart.getMinutes()).padStart(2,'0') + ':' + String(dStart.getSeconds()).padStart(2,'0');
-        
-        if(st.end){
-          const dEnd = new Date(st.end);
-          document.getElementById('stopEditEnd').value = String(dEnd.getHours()).padStart(2,'0') + ':' + String(dEnd.getMinutes()).padStart(2,'0') + ':' + String(dEnd.getSeconds()).padStart(2,'0');
-        } else {
-          document.getElementById('stopEditEnd').value = '';
-        }
-        
-        document.getElementById('stopEditReason').value = st.reason || '';
-
-        const photoWrap = document.getElementById('stopEditPhotoWrap');
-        if (st.photoUrl) {
-          photoWrap.innerHTML = `
-            <img src="${st.photoUrl}" class="stop-img-preview"><br>
-            <button type="button" class="remove-photo-btn" id="removeExistingEditPhoto">🗑️ Remove Photo</button>
-          `;
-          document.getElementById('removeExistingEditPhoto').addEventListener('click', () => {
-            delete st.photoUrl;
-            photoWrap.innerHTML = '<div style="font-size:11px; color:var(--dim);">Photo removed</div>';
-            saveState();
-          });
-        } else {
-          photoWrap.innerHTML = '<div style="font-size:11px; color:var(--dim);">No photo attached</div>';
-        }
-
-        document.getElementById('stopEditPhotoInput').value = '';
-        document.getElementById('stopEditModal').classList.add('show');
+        openStopEditModal(kit, parseInt(btn.getAttribute('data-stop-idx'), 10));
       });
     });
   }
@@ -2393,8 +2634,37 @@ function renderKitCard(kit){
   return card;
 }
 
+function openStopEditModal(kit, stopIdx) {
+  editingStopInfo = { kitUid: kit.uid, stopIdx };
+  const st = kit.stops[stopIdx];
+
+  document.getElementById('stopEditStart').value = timeInputValue(st.start);
+  document.getElementById('stopEditEnd').value = st.end ? timeInputValue(st.end) : '';
+  document.getElementById('stopEditReason').value = st.reason || '';
+
+  const photoWrap = document.getElementById('stopEditPhotoWrap');
+  const photoHtml = stopPhotoHtml(st);
+  if (photoHtml) {
+    photoWrap.innerHTML = `${photoHtml}<br><button type="button" class="remove-photo-btn" id="removeExistingEditPhoto">🗑️ Remove Photo</button>`;
+    hydratePhotos(photoWrap);
+    document.getElementById('removeExistingEditPhoto').addEventListener('click', () => {
+      if (st.photoId) deletePhoto(st.photoId);
+      delete st.photoId;
+      delete st.photoUrl;
+      photoWrap.innerHTML = '<div style="font-size:11px; color:var(--dim);">Photo removed</div>';
+      saveKit(kit);
+    });
+  } else {
+    photoWrap.innerHTML = '<div style="font-size:11px; color:var(--dim);">No photo attached</div>';
+  }
+
+  document.getElementById('stopEditPhotoInput').value = '';
+  document.getElementById('stopEditModal').classList.add('show');
+}
+
+// ---------- Facade map ----------
 function openFacadeMapModal(kit) {
-  activeMapKitId = kit.id;
+  activeMapKitUid = kit.uid;
   selectedFrameIds = new Set(kit.selectedFrames || []);
   
   const sectionSel = document.getElementById('facadeSectionSelect');
@@ -2443,36 +2713,28 @@ function calculateSelectedSqm() {
 
 function toggleWindowCell(cell, frame, frameId) {
   if (currentMapInteractionMode === 'scroll') return;
+  const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
 
   if (currentMapInteractionMode === 'deflect-report') {
-    if (siteDefectiveReportFrames.has(frameId)) {
-      siteDefectiveReportFrames.delete(frameId);
-    } else {
-      siteDefectiveReportFrames.add(frameId);
-    }
-    const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
-    saveState();
+    const on = !siteDefectiveReportFrames.has(frameId);
+    if (on) siteDefectiveReportFrames.add(frameId); else siteDefectiveReportFrames.delete(frameId);
+    setDefect('defectReport', frameId, on);
     renderFacadeGrid(sectionIdx);
     return;
   }
 
   if (currentMapInteractionMode === 'deflect-block') {
-    if (siteDefectiveUnwalkableFrames.has(frameId)) {
-      siteDefectiveUnwalkableFrames.delete(frameId);
-      selectedFrameIds.delete(frameId);
-    } else {
-      siteDefectiveUnwalkableFrames.add(frameId);
-      selectedFrameIds.delete(frameId);
-    }
-    const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
-    saveState();
+    const on = !siteDefectiveUnwalkableFrames.has(frameId);
+    if (on) siteDefectiveUnwalkableFrames.add(frameId); else siteDefectiveUnwalkableFrames.delete(frameId);
+    selectedFrameIds.delete(frameId);
+    setDefect('defectBlock', frameId, on);
     renderFacadeGrid(sectionIdx);
     return;
   }
 
   if (isFrameUnwalkable(frame)) return;
 
-  if (checkWindowOverlap(activeMapKitId, frameId)) {
+  if (checkWindowOverlap(activeMapKitUid, frameId)) {
     showToast(`Warning: Frame ${frameId} is already selected by another kit today!`);
   }
 
@@ -2507,7 +2769,7 @@ function renderFacadeGrid(sectionIdx) {
   const sortedRowKeys = Object.keys(rowMap).map(Number).sort((a,b) => b - a);
 
   sortedRowKeys.forEach(yKey => {
-    const rowFrames = rowMap[yKey].sort((a,b) => parseInt(a.frame_pos.x || 0, 10) - parseInt(b.frame_pos.x || 0, 10));
+    const rowFrames = rowMap[yKey].sort((a,b) => parseInt((a.frame_pos && a.frame_pos.x) || 0, 10) - parseInt((b.frame_pos && b.frame_pos.x) || 0, 10));
     const rowContainer = document.createElement('div');
     rowContainer.className = 'facade-row-container';
 
@@ -2526,7 +2788,7 @@ function renderFacadeGrid(sectionIdx) {
                        (isSelected ? ' selected' : '') + 
                        (isPrevCleaned ? ' previously-cleaned' : '');
 
-      cell.setAttribute('data-frame-id', frame.frame_id);
+      cell.setAttribute('data-frame-id', String(frame.frame_id));
 
       const sqm = ((frame.width || 0) * (frame.height || 0)).toFixed(2);
       
@@ -2537,7 +2799,7 @@ function renderFacadeGrid(sectionIdx) {
       else if (isPrevCleaned) statusTag = `<div class="cell-tag" style="opacity:0.9; font-weight:bold;">(Clean)</div>`;
 
       cell.innerHTML = `
-        <div class="cell-header">${frame.frame_id}</div>
+        <div class="cell-header">${esc(frame.frame_id)}</div>
         <div class="cell-body">
           <div class="cell-sqm-val">${sqm}m²</div>
           ${statusTag}
@@ -2559,16 +2821,29 @@ function renderFacadeGrid(sectionIdx) {
         }
       };
 
-      cell.addEventListener('dblclick', (e) => {
-        e.preventDefault();
+      const unlockFrame = () => {
         if (isPrevCleaned && !unwalkable) {
-          siteCleanedFramesHistory.delete(frame.frame_id);
           selectedFrameIds.add(frame.frame_id);
-          recalculateSiteCleanedHistory();
           renderFacadeGrid(sectionIdx);
           showToast(`Frame ${frame.frame_id} unlocked!`);
         }
-      });
+      };
+
+      cell.addEventListener('dblclick', (e) => { e.preventDefault(); unlockFrame(); });
+
+      // Long-press to unlock on touch screens (double-click is unreliable there)
+      if (isPrevCleaned && !unwalkable) {
+        let lpTimer = null;
+        const cancelLp = () => { clearTimeout(lpTimer); lpTimer = null; };
+        cell.addEventListener('touchstart', () => {
+          cancelLp();
+          lpTimer = setTimeout(() => { lpTimer = null; if (navigator.vibrate) navigator.vibrate(30); unlockFrame(); }, 600);
+        }, {passive: true});
+        cell.addEventListener('touchmove', cancelLp, {passive: true});
+        cell.addEventListener('touchend', cancelLp, {passive: true});
+        cell.addEventListener('touchcancel', cancelLp, {passive: true});
+        cell.addEventListener('contextmenu', (e) => e.preventDefault());
+      }
 
       cell.addEventListener('mousedown', handleStart);
       cell.addEventListener('mouseenter', handleEnter);
@@ -2592,83 +2867,57 @@ function clearMapModeButtons() {
   [modeSelectBtn, modeDeflectReportBtn, modeDeflectBlockBtn].forEach(b => b.classList.remove('active'));
 }
 
-modeSelectBtn.addEventListener('click', () => {
-  if (currentMapInteractionMode === 'select') {
+function setMapMode(mode, btn, wrapperClass) {
+  if (currentMapInteractionMode === mode) {
     currentMapInteractionMode = 'scroll';
     clearMapModeButtons();
     gridWrapper.className = 'facade-grid-wrapper mode-scroll';
   } else {
-    currentMapInteractionMode = 'select';
+    currentMapInteractionMode = mode;
     clearMapModeButtons();
-    modeSelectBtn.classList.add('active');
-    gridWrapper.className = 'facade-grid-wrapper mode-select';
+    btn.classList.add('active');
+    gridWrapper.className = 'facade-grid-wrapper ' + wrapperClass;
   }
-});
+}
 
-modeDeflectReportBtn.addEventListener('click', () => {
-  if (currentMapInteractionMode === 'deflect-report') {
-    currentMapInteractionMode = 'scroll';
-    clearMapModeButtons();
-    gridWrapper.className = 'facade-grid-wrapper mode-scroll';
-  } else {
-    currentMapInteractionMode = 'deflect-report';
-    clearMapModeButtons();
-    modeDeflectReportBtn.classList.add('active');
-    gridWrapper.className = 'facade-grid-wrapper mode-deflect';
-  }
-});
-
-modeDeflectBlockBtn.addEventListener('click', () => {
-  if (currentMapInteractionMode === 'deflect-block') {
-    currentMapInteractionMode = 'scroll';
-    clearMapModeButtons();
-    gridWrapper.className = 'facade-grid-wrapper mode-scroll';
-  } else {
-    currentMapInteractionMode = 'deflect-block';
-    clearMapModeButtons();
-    modeDeflectBlockBtn.classList.add('active');
-    gridWrapper.className = 'facade-grid-wrapper mode-deflect';
-  }
-});
+modeSelectBtn.addEventListener('click', () => setMapMode('select', modeSelectBtn, 'mode-select'));
+modeDeflectReportBtn.addEventListener('click', () => setMapMode('deflect-report', modeDeflectReportBtn, 'mode-deflect'));
+modeDeflectBlockBtn.addEventListener('click', () => setMapMode('deflect-block', modeDeflectBlockBtn, 'mode-deflect'));
 
 window.addEventListener('mouseup', () => { isDraggingSelection = false; });
 window.addEventListener('touchend', () => { isDraggingSelection = false; });
 
-document.getElementById('facadeGridWrapper').addEventListener('touchmove', (e) => {
-  if (!isDraggingSelection || currentMapInteractionMode === 'scroll') return;
+gridWrapper.addEventListener('touchmove', (e) => {
+  if (!isDraggingSelection || currentMapInteractionMode !== 'select') return;
   e.preventDefault();
   const touch = e.touches[0];
   const targetElem = document.elementFromPoint(touch.clientX, touch.clientY);
-  if (targetElem) {
-    const cell = targetElem.closest('.window-cell');
-    if (cell) {
-      const frameId = cell.getAttribute('data-frame-id');
-      const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
-      const sec = buildingData?.sections[sectionIdx];
-      const frame = sec?.window_frames?.find(f => f.frame_id === frameId);
-      if (frameId && frame) toggleWindowCell(cell, frame, frameId);
-    }
-  }
+  if (!targetElem) return;
+  const cell = targetElem.closest('.window-cell');
+  if (!cell || cell.classList.contains('previously-cleaned') || cell.classList.contains('unwalkable')) return;
+  const frameIdAttr = cell.getAttribute('data-frame-id');
+  const sectionIdx = document.getElementById('facadeSectionSelect').value || 0;
+  const sec = buildingData && buildingData.sections ? buildingData.sections[sectionIdx] : null;
+  const frame = sec && sec.window_frames ? sec.window_frames.find(f => String(f.frame_id) === frameIdAttr) : null;
+  if (frame) toggleWindowCell(cell, frame, frame.frame_id);
 }, {passive: false});
 
 document.getElementById('facadeMapCancel').addEventListener('click', () => {
   document.getElementById('facadeMapModal').classList.remove('show');
-  activeMapKitId = null;
+  activeMapKitUid = null;
 });
 
 document.getElementById('facadeMapConfirm').addEventListener('click', () => {
-  const kit = state.kits.find(k => k.id === activeMapKitId);
+  const kit = findKit(activeMapKitUid);
   if (kit) {
     kit.selectedFrames = Array.from(selectedFrameIds);
     kit.sqmCleaned = calculateSelectedSqm();
-    
     kit.drops = deriveDropAreasFromFrames(kit.selectedFrames);
-
-    saveState();
+    saveKit(kit);
     showToast(`SQM Updated: ${kit.sqmCleaned.toFixed(2)} m² & Drops Auto-filled!`);
   }
   document.getElementById('facadeMapModal').classList.remove('show');
-  activeMapKitId = null;
+  activeMapKitUid = null;
 });
 
 function renderKits(){
@@ -2683,6 +2932,7 @@ function renderKits(){
     return;
   }
   state.kits.forEach(kit => wrap.appendChild(renderKitCard(kit)));
+  hydratePhotos(wrap);
 }
 
 document.getElementById('addKitToggle').addEventListener('click', ()=>{
@@ -2724,8 +2974,9 @@ document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
   const kit = blankKit(kitNum, type, rbu, vru, mcp, newKitDrops, deployLoc, deployNotes);
   if(!state.kits) state.kits = [];
   state.kits.push(kit);
-  collapsedMap[kit.id] = false;
-  saveState();
+  collapsedMap[kit.uid] = false;
+  saveKit(kit);
+  render();
 
   document.getElementById('kitNewRow').style.display = 'none';
   document.getElementById('newKitCustomInput').value = '';
@@ -2734,6 +2985,7 @@ document.getElementById('kitCreateBtn').addEventListener('click', ()=>{
   renderNewKitDrops();
 });
 
+// ---------- Stops ----------
 document.getElementById('stopPhotoInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (file) {
@@ -2751,27 +3003,28 @@ document.getElementById('removeStopPhotoBtn').addEventListener('click', () => {
 
 document.getElementById('stopReasonCancel').addEventListener('click', ()=>{
   document.getElementById('stopModal').classList.remove('show');
-  pendingStopKitId = null;
+  pendingStopKitUid = null;
   pendingStopPhotoData = null;
 });
 
 document.getElementById('stopReasonConfirm').addEventListener('click', ()=>{
-  const kit = state.kits.find(k=>k.id === pendingStopKitId);
+  const kit = findKit(pendingStopKitUid);
   if(!kit){ document.getElementById('stopModal').classList.remove('show'); return; }
   const reason = document.getElementById('stopReasonInput').value.trim();
 
   if(!kit.stops) kit.stops = [];
-  kit.stops.push({
-    start: new Date().toISOString(), 
-    end: null, 
-    reason: reason || '(No reason specified)',
-    photoUrl: pendingStopPhotoData
-  });
+  const stop = {
+    start: new Date().toISOString(),
+    end: null,
+    reason: reason || '(No reason specified)'
+  };
+  if (pendingStopPhotoData) stop.photoId = savePhoto(pendingStopPhotoData);
+  kit.stops.push(stop);
 
   document.getElementById('stopModal').classList.remove('show');
-  pendingStopKitId = null;
+  pendingStopKitUid = null;
   pendingStopPhotoData = null;
-  saveState();
+  saveKit(kit);
 });
 
 document.getElementById('stopEditCancel').addEventListener('click', ()=>{
@@ -2781,10 +3034,12 @@ document.getElementById('stopEditCancel').addEventListener('click', ()=>{
 
 document.getElementById('stopEditDelete').addEventListener('click', ()=>{
   if(!editingStopInfo) return;
-  const kit = state.kits.find(k=>k.id === editingStopInfo.kitId);
-  if(kit && kit.stops){
+  const kit = findKit(editingStopInfo.kitUid);
+  if(kit && kit.stops && kit.stops[editingStopInfo.stopIdx]){
+    const st = kit.stops[editingStopInfo.stopIdx];
+    if (st.photoId) deletePhoto(st.photoId);
     kit.stops.splice(editingStopInfo.stopIdx, 1);
-    saveState();
+    saveKit(kit);
     showToast('Stop entry deleted');
   }
   document.getElementById('stopEditModal').classList.remove('show');
@@ -2793,41 +3048,40 @@ document.getElementById('stopEditDelete').addEventListener('click', ()=>{
 
 document.getElementById('stopEditConfirm').addEventListener('click', async ()=>{
   if(!editingStopInfo) return;
-  const kit = state.kits.find(k=>k.id === editingStopInfo.kitId);
-  if(kit && kit.stops && kit.stops[editingStopInfo.stopIdx]){
-    const st = kit.stops[editingStopInfo.stopIdx];
+  const info = editingStopInfo;
+  const kit = findKit(info.kitUid);
+  if(kit && kit.stops && kit.stops[info.stopIdx]){
+    const st = kit.stops[info.stopIdx];
     const valStart = document.getElementById('stopEditStart').value;
     const valEnd = document.getElementById('stopEditEnd').value;
     const reason = document.getElementById('stopEditReason').value.trim();
     const photoInput = document.getElementById('stopEditPhotoInput');
 
     if(valStart){
-      const p = valStart.split(':');
-      const d = new Date(st.start);
-      d.setHours(parseInt(p[0],10)); d.setMinutes(parseInt(p[1],10)); d.setSeconds(p[2]?parseInt(p[2],10):0);
-      st.start = d.toISOString();
+      st.start = applyTimeToDate(st.start, valStart);
     }
     if(valEnd){
-      const p = valEnd.split(':');
-      const d = st.end ? new Date(st.end) : new Date();
-      d.setHours(parseInt(p[0],10)); d.setMinutes(parseInt(p[1],10)); d.setSeconds(p[2]?parseInt(p[2],10):0);
-      st.end = d.toISOString();
+      // Use the stop's own date, not today's (matters when editing older logs)
+      st.end = applyTimeToDate(st.end || st.start, valEnd);
     } else {
       st.end = null;
     }
     st.reason = reason;
 
     if (photoInput.files && photoInput.files[0]) {
-      st.photoUrl = await compressImage(photoInput.files[0]);
+      if (st.photoId) deletePhoto(st.photoId);
+      delete st.photoUrl;
+      st.photoId = savePhoto(await compressImage(photoInput.files[0]));
     }
     
-    saveState();
+    saveKit(kit);
     showToast('Stop updated');
   }
   document.getElementById('stopEditModal').classList.remove('show');
   editingStopInfo = null;
 });
 
+// ---------- Stage time edit ----------
 document.getElementById('timeEditCancel').addEventListener('click', ()=>{
   document.getElementById('timeEditModal').classList.remove('show');
   editingTimeInfo = null;
@@ -2835,17 +3089,11 @@ document.getElementById('timeEditCancel').addEventListener('click', ()=>{
 
 document.getElementById('timeEditConfirm').addEventListener('click', ()=>{
   if(!editingTimeInfo) return;
-  const kit = state.kits.find(k=>k.id === editingTimeInfo.kitId);
+  const kit = findKit(editingTimeInfo.kitUid);
   const timeVal = document.getElementById('timeEditInput').value;
-  if(kit && timeVal){
-    const parts = timeVal.split(':');
-    const existingDate = new Date(kit.events[editingTimeInfo.stageKey]);
-    existingDate.setHours(parseInt(parts[0],10));
-    existingDate.setMinutes(parseInt(parts[1],10));
-    existingDate.setSeconds(parts[2] ? parseInt(parts[2],10) : 0);
-    
-    kit.events[editingTimeInfo.stageKey] = existingDate.toISOString();
-    saveState();
+  if(kit && timeVal && kit.events[editingTimeInfo.stageKey]){
+    kit.events[editingTimeInfo.stageKey] = applyTimeToDate(kit.events[editingTimeInfo.stageKey], timeVal);
+    saveKit(kit);
     showToast('Time updated successfully');
   }
   document.getElementById('timeEditModal').classList.remove('show');
@@ -2854,48 +3102,53 @@ document.getElementById('timeEditConfirm').addEventListener('click', ()=>{
 
 document.getElementById('timeEditReset').addEventListener('click', ()=>{
   if(!editingTimeInfo) return;
-  const kit = state.kits.find(k=>k.id === editingTimeInfo.kitId);
+  const kit = findKit(editingTimeInfo.kitUid);
   if(kit && kit.events && kit.events[editingTimeInfo.stageKey]){
     delete kit.events[editingTimeInfo.stageKey];
-    saveState();
+    saveKit(kit);
     showToast('Stage reset successfully');
   }
   document.getElementById('timeEditModal').classList.remove('show');
   editingTimeInfo = null;
 });
 
+// ---------- Day-level fields ----------
 document.getElementById('workTypeInput').addEventListener('change', (e)=>{ 
   if(state) { 
     state.workType = e.target.value; 
-    if (state.workType === 'Inspection') {
-      document.body.classList.add('inspection-mode');
-    } else {
-      document.body.classList.remove('inspection-mode');
-    }
-    saveState(); 
+    applyInspectionClass();
+    saveDayFields({ workType: state.workType }); 
   } 
 });
 
-document.getElementById('qualityRatingInput').addEventListener('change', (e)=>{ if(state) { state.qualityRating = e.target.value; saveState(); } });
-document.getElementById('peopleInput').addEventListener('change', (e)=>{ if(state) { state.people = e.target.value; saveState(); } });
-document.getElementById('juniorCountInput').addEventListener('change', (e)=>{ if(state) { state.juniorCount = e.target.value; saveState(); } });
-document.getElementById('expertCountInput').addEventListener('change', (e)=>{ if(state) { state.expertCount = e.target.value; saveState(); } });
+function bindDayField(inputId, field, after) {
+  document.getElementById(inputId).addEventListener('change', (e) => {
+    if (!state) return;
+    state[field] = e.target.value;
+    saveDayFields({ [field]: e.target.value });
+    if (after) after();
+  });
+}
 
-document.getElementById('tempInput').addEventListener('change', (e)=>{ if(state) { state.temp = e.target.value; saveState(); } });
-document.getElementById('humidityInput').addEventListener('change', (e)=>{ if(state) { state.humidity = e.target.value; saveState(); } });
-document.getElementById('windGustsInput').addEventListener('change', (e)=>{ if(state) { state.windGusts = e.target.value; saveState(); checkWindAlert(); } });
-
-document.getElementById('generalIssuesInput').addEventListener('change', (e)=>{ if(state) { state.generalIssues = e.target.value; saveState(); } });
+bindDayField('qualityRatingInput', 'qualityRating');
+bindDayField('peopleInput', 'people');
+bindDayField('juniorCountInput', 'juniorCount');
+bindDayField('expertCountInput', 'expertCount');
+bindDayField('tempInput', 'temp');
+bindDayField('humidityInput', 'humidity');
+bindDayField('windGustsInput', 'windGusts', checkWindAlert);
+bindDayField('generalIssuesInput', 'generalIssues');
 
 document.getElementById('opReportLinkInput').addEventListener('change', (e)=>{ 
   siteLinksData.opReportLink = e.target.value; 
-  saveState(); 
+  saveSiteLinks(); 
 });
 document.getElementById('projectAlbumLinkInput').addEventListener('change', (e)=>{ 
   siteLinksData.projectAlbumLink = e.target.value; 
-  saveState(); 
+  saveSiteLinks(); 
 });
 
+// ---------- Summary & render ----------
 function renderSummary(){
   const box = document.getElementById('summaryBox');
   if(!box) return;
@@ -2952,20 +3205,15 @@ function render(){
   document.getElementById('juniorCountInput').value = state ? (state.juniorCount || '') : '';
   document.getElementById('expertCountInput').value = state ? (state.expertCount || '') : '';
   
-  document.getElementById('tempInput').value = state ? (state.temp || '') : '';
-  document.getElementById('humidityInput').value = state ? (state.humidity || '') : '';
-  document.getElementById('windGustsInput').value = state ? (state.windGusts || '') : '';
+  document.getElementById('tempInput').value = state ? (state.temp ?? '') : '';
+  document.getElementById('humidityInput').value = state ? (state.humidity ?? '') : '';
+  document.getElementById('windGustsInput').value = state ? (state.windGusts ?? '') : '';
 
   document.getElementById('generalIssuesInput').value = state ? (state.generalIssues || '') : '';
   document.getElementById('opReportLinkInput').value = siteLinksData ? (siteLinksData.opReportLink || '') : '';
   document.getElementById('projectAlbumLinkInput').value = siteLinksData ? (siteLinksData.projectAlbumLink || '') : '';
 
-  if (state && state.workType === 'Inspection') {
-    document.body.classList.add('inspection-mode');
-  } else {
-    document.body.classList.remove('inspection-mode');
-  }
-
+  applyInspectionClass();
   checkWindAlert();
 
   if(state) {
@@ -2974,6 +3222,7 @@ function render(){
   }
 }
 
+// ---------- Email ----------
 function generateRichHTMLEmail() {
   if (!state) return '';
 
@@ -2986,21 +3235,20 @@ function generateRichHTMLEmail() {
 
   if (state.kits && state.kits.length > 0) {
     state.kits.forEach((kit, idx) => {
+      dayTotalSqm += kit.sqmCleaned || 0;
       const sqmNum = kit.sqmCleaned ? Math.round(kit.sqmCleaned) : 0;
-      dayTotalSqm += sqmNum;
       
       const { netMs } = kitDurations(kit);
       const netDurStr = netMs != null ? fmtDur(netMs) : '00:00:00';
 
       const bgStyle = idx % 2 === 0 ? 'background-color: #F8FAFC;' : 'background-color: #FFFFFF;';
-
       const componentsStr = `RBU: ${kit.rbu || 'N/A'} | VRU: ${kit.vru || 'N/A'} | MCP: ${kit.mcp || 'N/A'}`;
 
       tableRowsHTML += `
         <tr style="${bgStyle}">
           <td style="padding: 10px 14px; border: 1px solid #CBD5E1; color: #0F172A;">
-            <strong>Kit #${kit.id} (${kit.type})</strong>
-            <div style="font-size: 11px; color: #64748B; margin-top: 2px;">🔧 Components: ${componentsStr}</div>
+            <strong>Kit #${esc(kit.id)} (${esc(kit.type)})</strong>
+            <div style="font-size: 11px; color: #64748B; margin-top: 2px;">🔧 Components: ${esc(componentsStr)}</div>
           </td>
           <td style="padding: 10px 14px; border: 1px solid #CBD5E1; font-weight: bold; color: #2563EB; text-align: center;">${sqmNum} SQM</td>
           <td style="padding: 10px 14px; border: 1px solid #CBD5E1; text-align: center; color: #334155;">${netDurStr}</td>
@@ -3008,17 +3256,17 @@ function generateRichHTMLEmail() {
       `;
 
       if (kit.kitIssues && kit.kitIssues.trim()) {
-        const issuesFormatted = kit.kitIssues.trim().split('\n').map(line => `<li style="margin-bottom: 4px;">${line}</li>`).join('');
+        const issuesFormatted = kit.kitIssues.trim().split('\n').map(line => `<li style="margin-bottom: 4px;">${esc(line)}</li>`).join('');
         kitIssuesHTML += `
           <div style="margin-bottom: 12px;">
-            <strong style="color: #0F172A;">Kit #${kit.id} (${kit.type}):</strong>
+            <strong style="color: #0F172A;">Kit #${esc(kit.id)} (${esc(kit.type)}):</strong>
             <ul style="margin: 4px 0 0 20px; padding: 0; color: #334155;">${issuesFormatted}</ul>
           </div>
         `;
       } else {
         kitIssuesHTML += `
           <div style="margin-bottom: 12px;">
-            <strong style="color: #0F172A;">Kit #${kit.id} (${kit.type}):</strong>
+            <strong style="color: #0F172A;">Kit #${esc(kit.id)} (${esc(kit.type)}):</strong>
             <ul style="margin: 4px 0 0 20px; padding: 0; color: #64748B;"><li>N/A</li></ul>
           </div>
         `;
@@ -3031,19 +3279,21 @@ function generateRichHTMLEmail() {
 
   let genIssuesHTML = '<p style="color: #64748B;">N/A</p>';
   if (state.generalIssues && state.generalIssues.trim()) {
-    const genList = state.generalIssues.trim().split('\n').map(line => `<li style="margin-bottom: 4px;">${line}</li>`).join('');
+    const genList = state.generalIssues.trim().split('\n').map(line => `<li style="margin-bottom: 4px;">${esc(line)}</li>`).join('');
     genIssuesHTML = `<ul style="margin: 4px 0 0 20px; padding: 0; color: #334155;">${genList}</ul>`;
   }
 
-  const opLink = siteLinksData.opReportLink ? `<a href="${siteLinksData.opReportLink.trim()}" style="color: #2563EB; font-weight: bold;">Operational Report</a>` : 'N/A';
-  const albumLink = siteLinksData.projectAlbumLink ? `<a href="${siteLinksData.projectAlbumLink.trim()}" style="color: #2563EB; font-weight: bold;">Project Album</a>` : 'N/A';
+  const opUrl = safeUrl(siteLinksData.opReportLink);
+  const albumUrl = safeUrl(siteLinksData.projectAlbumLink);
+  const opLink = opUrl ? `<a href="${esc(opUrl)}" style="color: #2563EB; font-weight: bold;">Operational Report</a>` : 'N/A';
+  const albumLink = albumUrl ? `<a href="${esc(albumUrl)}" style="color: #2563EB; font-weight: bold;">Project Album</a>` : 'N/A';
 
-  const fullHTML = `
+  return `
     <div style="font-family: Arial, sans-serif; font-size: 15px; color: #0F172A; max-width: 680px; margin: 0 auto; line-height: 1.6; border: 1px solid #E2E8F0; padding: 20px; border-radius: 12px; background: #FFFFFF;">
-      <h2 style="color: #0F172A; font-size: 20px; border-bottom: 2px solid #0072E5; padding-bottom: 8px; margin-top: 0;">📅 Daily Summary - ${formattedDate} (${currentCycle})</h2>
+      <h2 style="color: #0F172A; font-size: 20px; border-bottom: 2px solid #0072E5; padding-bottom: 8px; margin-top: 0;">📅 Daily Summary - ${esc(formattedDate)} (${esc(currentCycle)})</h2>
       <p style="margin: 6px 0;">Hi Team,</p>
-      <p style="margin: 6px 0;">Below is the daily summary of today's work in <strong>${currentSite}</strong> (${currentCycle}).</p>
-      <p style="margin: 6px 0; color: #64748B;"><strong>Operators:</strong> ${operators}</p>
+      <p style="margin: 6px 0;">Below is the daily summary of today's work in <strong>${esc(currentSite)}</strong> (${esc(currentCycle)}).</p>
+      <p style="margin: 6px 0; color: #64748B;"><strong>Operators:</strong> ${esc(operators)}</p>
       
       <div style="background-color: #EFF6FF; border-left: 4px solid #2563EB; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
         <span style="font-size: 16px; font-weight: bold; color: #1E40AF;">Total Throughput: </span>
@@ -3079,13 +3329,10 @@ function generateRichHTMLEmail() {
       <p style="margin: 6px 0; font-weight: bold; color: #0072E5;">IsraOps Team</p>
     </div>
   `;
-
-  return fullHTML;
 }
 
 document.getElementById('generateEmailBtn').addEventListener('click', () => {
-  const emailHTML = generateRichHTMLEmail();
-  document.getElementById('emailTextPreview').innerHTML = emailHTML;
+  document.getElementById('emailTextPreview').innerHTML = generateRichHTMLEmail();
   document.getElementById('emailModal').classList.add('show');
 });
 
@@ -3142,16 +3389,16 @@ document.getElementById('openEmailClientBtn').addEventListener('click', () => {
   window.location.href = `mailto:?subject=${subject}&body=${body}`;
 });
 
+// ---------- Google Sheets rows ----------
 function formatDropColumns(kit) {
   if (kit.drops && kit.drops.length) {
-    const formatted = kit.drops.map(d => {
+    return kit.drops.map(d => {
       const parts = [];
       if (d.facade) parts.push(`Facade ${d.facade}`);
       if (d.rows) parts.push(`Rows ${d.rows}`);
       if (d.cols) parts.push(`Cols ${d.cols}`);
       return parts.join(', ');
-    }).filter(str => str.length > 0);
-    return formatted.join(' | ');
+    }).filter(str => str.length > 0).join(' | ');
   }
   const parts = [];
   if (kit.facade) parts.push(`Facade ${kit.facade}`);
@@ -3183,15 +3430,14 @@ function copyRowsForSheets(){
   const rows = [];
   state.kits.forEach(kit => {
     const e = kit.events || {};
-    const { totalMs, wallMs, netMs, stopsMs } = kitDurations(kit);
+    const { wallMs, netMs, stopsMs } = kitDurations(kit);
     
     const stopsDetail = (kit.stops || []).map((s, idx) => {
       const dur = s.end ? fmtDur(new Date(s.end) - new Date(s.start)) : 'Active';
       return `Stop ${idx+1}: ${fmtTime(s.start)}-${s.end ? fmtTime(s.end) : '—'} (${dur}) [Reason: ${s.reason || 'None'}]`;
     }).join(' | ');
 
-    let locLabel = kit.deployLoc || 'Roof';
-    const dropColsStr = formatDropColumns(kit);
+    const locLabel = kit.deployLoc || 'Roof';
     const sqmRawNumber = kit.sqmCleaned ? kit.sqmCleaned.toFixed(2) : '0';
 
     const row = [
@@ -3205,7 +3451,7 @@ function copyRowsForSheets(){
       kit.rbu || '',                        // 8. RBU
       kit.vru || '',                        // 9. VRU
       kit.mcp || '',                        // 10. MCP
-      dropColsStr,                          // 11. Drop Columns
+      formatDropColumns(kit),               // 11. Drop Columns
       e.deployment ? fmtTime(e.deployment) : '', // 12. Deployment
       e.onWall ? fmtTime(e.onWall) : '',    // 13. On the wall
       e.dismantle ? fmtTime(e.dismantle) : '', // 14. Dismantle
@@ -3222,11 +3468,12 @@ function copyRowsForSheets(){
       state.temp || '—',                    // 25. Temperature (°C)
       state.humidity || '—',                // 26. Humidity (%)
       state.windGusts || '—',               // 27. Wind Gusts (km/h)
-      `[Mode: ${locLabel}] ${kit.deployNotes||''}`.trim(), // 28. Deployment Notes
+      `[Mode: ${locLabel}] ${kit.deployNotes||''}`, // 28. Deployment Notes
       stopsDetail                            // 29. Stops & Reasons
     ];
 
-    rows.push(row.join('\t'));
+    // Tabs/line breaks inside a value would split it into extra cells or rows
+    rows.push(row.map(sheetCell).join('\t'));
   });
 
   const textToCopy = rows.join('\n');
@@ -3244,73 +3491,44 @@ function copyRowsForSheets(){
   });
 }
 
+// ---------- PDF client report ----------
 function exportFullCyclePdfReport() {
-  let totalBuildingSqm = 0;
-  const sectionSqmMap = {};
-  const sectionCleanedMap = {};
+  const { totalBuildingSqm, cleanedBuildingSqm, sectionSqmMap, sectionCleanedMap, progressPercent } = computeBuildingProgress();
 
-  if (buildingData && buildingData.sections) {
-    buildingData.sections.forEach(sec => {
-      let secTotal = 0, secCleaned = 0;
-      (sec.window_frames || []).forEach(f => {
-        const sqm = (f.width || 0) * (f.height || 0);
-        secTotal += sqm;
-        if (siteCleanedFramesHistory.has(f.frame_id)) secCleaned += sqm;
-      });
-      const name = sec.name || sec.section_id;
-      sectionSqmMap[name] = secTotal;
-      sectionCleanedMap[name] = secCleaned;
-      totalBuildingSqm += secTotal;
-    });
-  }
-
-  let cleanedBuildingSqm = 0;
-  if (buildingData && buildingData.sections) {
-    buildingData.sections.forEach(sec => {
-      (sec.window_frames || []).forEach(f => {
-        if (siteCleanedFramesHistory.has(f.frame_id)) cleanedBuildingSqm += (f.width || 0) * (f.height || 0);
-      });
-    });
-  }
-
-  const progressPercent = totalBuildingSqm > 0 ? (cleanedBuildingSqm / totalBuildingSqm * 100) : 0;
-
-  let totalUptimeMs = 0;
   let dailyLogsRowsHTML = '';
+  let workDays = 0;
 
-  const sortedDates = Object.keys(siteAllDaysData).sort();
-  sortedDates.forEach(dKey => {
-    const dayObj = siteAllDaysData[dKey];
-    if (dayObj && dayObj.kits && dayObj.kits.length > 0) {
-      let daySqm = 0, dayShiftMs = 0;
-      let earliestArrival = null, latestFinish = null;
+  Object.keys(siteAllDaysData).sort().forEach(dKey => {
+    const kits = dayKits(siteAllDaysData[dKey]);
+    if (!kits.length) return;
+    workDays++;
 
-      dayObj.kits.forEach(kit => {
-        const e = kit.events || {};
-        if (e.arrival) {
-          const t = new Date(e.arrival);
-          if (!earliestArrival || t < earliestArrival) earliestArrival = t;
-        }
-        if (e.finish) {
-          const t = new Date(e.finish);
-          if (!latestFinish || t > latestFinish) latestFinish = t;
-        }
-        const { netMs } = kitDurations(kit);
-        if (netMs) totalUptimeMs += netMs;
-        if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
-      });
+    let daySqm = 0, dayShiftMs = 0;
+    let earliestArrival = null, latestFinish = null;
 
-      if (earliestArrival && latestFinish) dayShiftMs = latestFinish - earliestArrival;
+    kits.forEach(kit => {
+      const e = kit.events || {};
+      if (e.arrival) {
+        const t = new Date(e.arrival);
+        if (!earliestArrival || t < earliestArrival) earliestArrival = t;
+      }
+      if (e.finish) {
+        const t = new Date(e.finish);
+        if (!latestFinish || t > latestFinish) latestFinish = t;
+      }
+      if (kit.sqmCleaned) daySqm += kit.sqmCleaned;
+    });
 
-      dailyLogsRowsHTML += `
-        <tr>
-          <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${formatDateDisplay(dKey)}</td>
-          <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-weight: bold;">${daySqm.toFixed(2)} m²</td>
-          <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${fmtDur(dayShiftMs)}</td>
-          <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; text-align: center;">${dayObj.kits.length} Systems</td>
-        </tr>
-      `;
-    }
+    if (earliestArrival && latestFinish) dayShiftMs = latestFinish - earliestArrival;
+
+    dailyLogsRowsHTML += `
+      <tr>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${esc(formatDateDisplay(dKey))}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-weight: bold;">${daySqm.toFixed(2)} m²</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${fmtDur(dayShiftMs)}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; text-align: center;">${kits.length} Systems</td>
+      </tr>
+    `;
   });
 
   let facadeRowsHTML = '';
@@ -3321,7 +3539,7 @@ function exportFullCyclePdfReport() {
 
     facadeRowsHTML += `
       <tr>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-weight: bold;">${secName}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-weight: bold;">${esc(secName)}</td>
         <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${cleanedSec.toFixed(2)} m²</td>
         <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0;">${totalSec.toFixed(2)} m²</td>
         <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-weight: bold; color: #2563EB;">${secPercent}%</td>
@@ -3330,11 +3548,12 @@ function exportFullCyclePdfReport() {
   });
 
   const printWin = window.open('', '_blank');
+  if (!printWin) { showToast('Allow pop-ups to export the PDF'); return; }
   printWin.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Cleaning Cycle Progress Report - ${currentSite}</title>
+      <title>Cleaning Cycle Progress Report - ${esc(currentSite)}</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 25px; color: #0F172A; max-width: 800px; margin: 0 auto; }
         .header { border-bottom: 3px solid #0072E5; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
@@ -3353,7 +3572,7 @@ function exportFullCyclePdfReport() {
       <div class="header">
         <div>
           <div class="title">Cleaning Cycle Progress Report</div>
-          <div class="subtitle">Building: <strong>${currentSite}</strong> (${currentCycle}) | Date: ${formatDateDisplay(todayISO())}</div>
+          <div class="subtitle">Building: <strong>${esc(currentSite)}</strong> (${esc(currentCycle)}) | Date: ${formatDateDisplay(todayISO())}</div>
         </div>
         <div style="font-size: 12px; font-weight: bold; color: #0072E5;">IsraOps Field Report</div>
       </div>
@@ -3369,7 +3588,7 @@ function exportFullCyclePdfReport() {
         </div>
         <div class="metric-card">
           <div class="metric-title">Active Work Sessions</div>
-          <div class="metric-val">${sortedDates.length} Days</div>
+          <div class="metric-val">${workDays} Days</div>
         </div>
       </div>
 
@@ -3423,6 +3642,7 @@ document.getElementById('loadBtn').addEventListener('click', ()=>{
   if(inputDate) loadDay(inputDate);
 });
 
+// ---------- Init ----------
 (function init(){
   const today = todayISO();
   document.getElementById('dateInput').value = today;
@@ -3434,10 +3654,11 @@ document.getElementById('loadBtn').addEventListener('click', ()=>{
     state.kits.forEach(kit => {
       const wallActive = kit.events?.onWall && !kit.events?.dismantle;
       if(wallActive){
-        const clockElem = document.querySelector(`[data-clock-kit-id="${kit.id}"]`);
-        if(clockElem){
-          clockElem.textContent = fmtDur(new Date() - new Date(kit.events.onWall));
-        }
+        document.querySelectorAll('[data-clock-kit-uid]').forEach(el => {
+          if (el.getAttribute('data-clock-kit-uid') === kit.uid) {
+            el.textContent = fmtDur(new Date() - new Date(kit.events.onWall));
+          }
+        });
       }
     });
   }, 1000);
