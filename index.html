@@ -698,6 +698,15 @@
     .btn-lg { font-size:16px; }
     .kit-live { padding:0 12px 12px; }
   }
+
+  /* Active cycle */
+  [hidden] { display:none !important; }
+  .cycle-banner {
+    margin-top:10px; display:flex; flex-direction:column; gap:8px;
+    background:var(--amber-dim); border:1px solid var(--amber); color:var(--text);
+    border-radius:10px; padding:10px 12px; font-size:14px; line-height:1.4;
+  }
+  .cycle-banner .btn { align-self:flex-start; }
 </style>
 
 <!-- Firebase SDK -->
@@ -738,6 +747,7 @@
       </div>
       <div id="activeDaysBar" class="active-days-bar"></div>
     </div>
+    <div id="cycleBanner" class="cycle-banner" hidden></div>
   </header>
 
   <section>
@@ -940,7 +950,9 @@
       <div class="settings-grid">
         <button type="button" class="btn" id="createNewCycleBtn">➕ New cycle</button>
         <button type="button" class="btn" id="renameCycleBtn">✏️ Rename cycle</button>
+        <button type="button" class="btn" id="setActiveCycleBtn" style="grid-column: span 2;">⭐ Make this the active cycle</button>
       </div>
+      <div class="settings-hint" id="activeCycleInfo"></div>
     </div>
 
     <div class="settings-group">
@@ -1455,11 +1467,14 @@ db.ref('.info/connected').on('value', (snap) => {
 let activeListeners = [];
 function listen(path, cb) {
   const ref = db.ref(path);
-  ref.on('value', cb);
-  activeListeners.push([ref, cb]);
+  const entry = { ref, active: true };
+  // A detached listener must never touch the screen, even if one last event is already queued
+  entry.cb = (snap) => { if (entry.active) cb(snap); };
+  ref.on('value', entry.cb);
+  activeListeners.push(entry);
 }
 function detachAll() {
-  activeListeners.forEach(([ref, cb]) => ref.off('value', cb));
+  activeListeners.forEach(e => { e.active = false; e.ref.off('value', e.cb); });
   activeListeners = [];
 }
 
@@ -1858,9 +1873,156 @@ function renderSitesDropdown() {
   renderCyclesDropdown();
 }
 
+// ---------- Active cycle (one per site, shared by all devices) ----------
+let activeCycle = null;          // from Firebase: sites/<site>/activeCycle
+let browsingOtherCycle = false;  // user deliberately opened a non-active cycle (this session only)
+let watchedSite = null;
+let activeCycleRef = null, activeCycleCb = null;
+
+// Cycles that actually hold data under a site, even if they were never added to the list.
+// Reads only the key names (shallow), not the data itself. Returns null if it can't check.
+// Site-level keys that are never cycles (settings, plus data from the very first app version)
+const NON_CYCLE_KEYS = ['buildingJson', 'siteLinks', 'cyclesList', 'activeCycle',
+  'days', 'photos', 'cleanedFramesHistory', 'cleanedFrames',
+  'defectiveReportFrames', 'defectiveUnwalkableFrames', 'defectReport', 'defectBlock'];
+
+async function shallowKeys(path) {
+  const res = await fetch(`${firebaseConfig.databaseURL}/${path}.json?shallow=true`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('shallow read failed');
+  const obj = await res.json();
+  return (obj && typeof obj === 'object') ? Object.keys(obj) : [];
+}
+
+async function discoverCycleKeys(site) {
+  try {
+    const sitePath = `sites/${encodeURIComponent(cleanKeyPart(site))}`;
+    const candidates = (await shallowKeys(sitePath)).filter(k => !NON_CYCLE_KEYS.includes(k));
+    // A real cycle has a "days" node inside it
+    const checks = await Promise.all(candidates.map(k =>
+      shallowKeys(`${sitePath}/${encodeURIComponent(k)}`).then(ch => ch.includes('days')).catch(() => false)
+    ));
+    return candidates.filter((k, i) => checks[i]);
+  } catch (e) { return null; }
+}
+
+function cycleNameFromKey(key, knownNames) {
+  const hit = knownNames.find(n => cleanKeyPart(n) === key);
+  if (hit) return hit;
+  const m = key.match(/^(.*\d{1,2})_(\d{4})$/);   // "Cycle 09_2026" -> "Cycle 09/2026"
+  return m ? `${m[1]}/${m[2]}` : key;
+}
+
+async function allSiteCycles(site, storedList) {
+  const known = (storedList || []).slice();
+  const keys = await discoverCycleKeys(site);
+  if (keys) keys.forEach(k => { const n = cycleNameFromKey(k, known); if (!known.includes(n)) known.push(n); });
+  return { cycles: known, discovered: !!keys, keys: keys || [] };
+}
+
+function goToCycle(name) {
+  currentCycle = name;
+  localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
+  renderCyclesDropdown();
+  loadDay(currentDate);
+}
+
+function watchActiveCycle() {
+  if (activeCycleRef) activeCycleRef.off('value', activeCycleCb);
+  const site = currentSite;
+  watchedSite = site;
+  activeCycle = null;
+  browsingOtherCycle = false;
+  activeCycleRef = db.ref(`sites/${cleanKeyPart(site)}/activeCycle`);
+  activeCycleCb = (snap) => {
+    if (site !== currentSite) return;
+    const val = snap.val();
+    if (!val) { autoPickActiveCycle(site); return; }
+    const changed = activeCycle !== null && activeCycle !== val;
+    activeCycle = val;
+    if (!browsingOtherCycle && currentCycle !== val) {
+      goToCycle(val);
+      showToast(changed ? `Active cycle changed to ${val}` : `Opened active cycle: ${val}`);
+    } else {
+      renderCyclesDropdown();
+      renderCycleBanner();
+    }
+  };
+  activeCycleRef.on('value', activeCycleCb);
+}
+
+// First time a site has no active cycle: pick the cycle with the most recent logged day.
+// Nothing is moved or deleted; this only decides which cycle devices open by default.
+async function autoPickActiveCycle(site) {
+  try {
+    const cleanSite = cleanKeyPart(site);
+    const listSnap = await db.ref(`sites/${cleanSite}/cyclesList`).once('value');
+    const stored = listSnap.val() ? Object.values(listSnap.val()).filter(Boolean) : [];
+    let { cycles } = await allSiteCycles(site, stored);
+    if (currentCycle && !cycles.includes(currentCycle)) cycles.push(currentCycle);
+    if (!cycles.length) cycles = ['Cycle 09/2026'];
+
+    let best = null, bestDate = '';
+    let bestKits = -1;
+    for (const c of cycles) {
+      const snap = await db.ref(`sites/${cleanSite}/${cleanKeyPart(c)}/days`).orderByKey().limitToLast(5).once('value');
+      const days = snap.val() || {};
+      const activeDates = Object.keys(days).filter(d => dayHasActivity(days[d])).sort();
+      const lastDate = activeDates.length ? activeDates[activeDates.length - 1] : '';
+      const kitsThatDay = lastDate ? dayKits(days[lastDate]).length : 0;
+      if (lastDate > bestDate || (lastDate && lastDate === bestDate && kitsThatDay > bestKits)) {
+        bestDate = lastDate; best = c; bestKits = kitsThatDay;
+      }
+    }
+    if (!best) best = cycles[cycles.length - 1];
+    if (site !== currentSite) return;
+    db.ref(`sites/${cleanSite}/activeCycle`).transaction(cur => cur || best);
+  } catch (e) { console.error(e); }
+}
+
+function renderCycleBanner() {
+  const el = document.getElementById('cycleBanner');
+  if (!el) return;
+  const off = !!activeCycle && currentCycle !== activeCycle;
+  el.hidden = !off;
+  if (!off) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div>⚠️ You are viewing <strong>${esc(currentCycle)}</strong>, not the active cycle (<strong>${esc(activeCycle)}</strong>). Anything you log now is saved to ${esc(currentCycle)}.</div>
+    <button type="button" class="btn btn-primary" id="goActiveCycleBtn">Go to active cycle</button>`;
+  document.getElementById('goActiveCycleBtn').addEventListener('click', () => {
+    browsingOtherCycle = false;
+    goToCycle(activeCycle);
+  });
+}
+
+document.getElementById('setActiveCycleBtn').addEventListener('click', async () => {
+  if (!(await requireAdmin('change the active cycle'))) return;
+  const ok = await uiConfirm(`Make "${currentCycle}" the active cycle?`,
+    `All devices on ${currentSite} will switch to it automatically. Data in other cycles is kept.`,
+    { confirmText: 'Make active' });
+  if (!ok) return;
+  const target = currentCycle;
+  const cleanSite = cleanKeyPart(currentSite);
+  browsingOtherCycle = false;
+  activeCycle = target;
+  db.ref(`sites/${cleanSite}/activeCycle`).set(target).catch(onSaveError);
+  if (!siteCyclesList.includes(target)) {
+    siteCyclesList = siteCyclesList.concat(target);
+    db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList).catch(onSaveError);
+  }
+  if (currentCycle !== target) goToCycle(target);
+  renderCyclesDropdown();
+  renderCycleBanner();
+  refreshSettingsInfo();
+  showToast(`${target} is now the active cycle`);
+});
+
 // ---------- Settings (site & cycle management) ----------
 function refreshSettingsInfo() {
   document.getElementById('settingsSub').textContent = `${currentSite} · ${currentCycle}`;
+  document.getElementById('activeCycleInfo').textContent = activeCycle
+    ? `Active cycle on all devices: ${activeCycle}`
+    : 'Active cycle: being set up…';
+  document.getElementById('setActiveCycleBtn').hidden = currentCycle === activeCycle;
   const st = document.getElementById('buildingJsonStatus');
   if (buildingData && buildingData.sections) {
     const n = Object.keys(buildingData.sections).length;
@@ -1974,35 +2136,63 @@ function renderCyclesDropdown() {
   const cleanSite = cleanKeyPart(currentSite);
   const siteAtRequest = currentSite;
   
-  db.ref(`sites/${cleanSite}/cyclesList`).once('value', (snap) => {
+  db.ref(`sites/${cleanSite}/cyclesList`).once('value', async (snap) => {
     if (siteAtRequest !== currentSite) return;
-    let cycles = snap.val() || ['Cycle 09/2026'];
-    cycles = Object.values(cycles).filter(Boolean);
-    if (currentCycle && !cycles.includes(currentCycle)) cycles.push(currentCycle);
+    const stored = snap.val() ? Object.values(snap.val()).filter(Boolean) : null;
+    // Display only: the stored list is changed solely by New / Rename / Delete / Make active,
+    // so devices can never race each other and bring a deleted cycle back.
+    const found = await allSiteCycles(siteAtRequest, stored || []);
+    if (siteAtRequest !== currentSite) return;
+    let cycles = found.cycles.length ? found.cycles : ['Cycle 09/2026'];
+    if (activeCycle && !cycles.includes(activeCycle)) cycles.push(activeCycle);
+
+    if (currentCycle && !cycles.includes(currentCycle)) {
+      // This device remembers a cycle that is not in the list (deleted or renamed elsewhere).
+      // Keep it only if it really holds data; otherwise move to the active cycle.
+      let hasData = found.discovered && found.keys.includes(cleanKeyPart(currentCycle));
+      if (!found.discovered) {
+        const has = await db.ref(`sites/${cleanSite}/${cleanKeyPart(currentCycle)}/days`).limitToFirst(1).once('value');
+        hasData = !!has.val();
+      }
+      if (siteAtRequest !== currentSite) return;
+      if (hasData) {
+        cycles.push(currentCycle);
+      } else {
+        const fallback = activeCycle || cycles[cycles.length - 1];
+        showToast(`"${currentCycle}" no longer exists — opened ${fallback}`);
+        browsingOtherCycle = false;
+        goToCycle(fallback);
+        return;
+      }
+    }
+
     cycles = Array.from(new Set(cycles));
-    siteCyclesList = cycles;
+    siteCyclesList = stored ? Array.from(new Set(stored)) : cycles;
 
     cSel.innerHTML = '';
     cycles.forEach(cName => {
       const opt = document.createElement('option');
       opt.value = cName;
-      opt.textContent = cName;
+      opt.textContent = cName + (cName === activeCycle ? '  ★ active' : '');
       if (cName === currentCycle) opt.selected = true;
       cSel.appendChild(opt);
     });
+    renderCycleBanner();
   });
 }
 
 document.getElementById('cycleSelect').addEventListener('change', (e) => {
   currentCycle = e.target.value;
+  browsingOtherCycle = !!activeCycle && currentCycle !== activeCycle;
   localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
   loadDay(currentDate);
+  renderCycleBanner();
 });
 
 // Create new cycle
 document.getElementById('createNewCycleBtn').addEventListener('click', async () => {
   if (!(await requireAdmin('create a new cycle'))) return;
-  const name = await uiPrompt('New cycle', 'Name the new cycle, e.g. Cycle 10/2026 or Winter 2026.', '', 'Cycle 10/2026');
+  const name = await uiPrompt('New cycle', 'Name the new cycle, e.g. Cycle 10/2026 or Winter 2026.\nIt becomes the active cycle on all devices. Older cycles and their data are kept.', '', 'Cycle 10/2026');
   const cleanName = (name || '').trim();
   if (!cleanName) return;
   if (!siteCyclesList.includes(cleanName)) {
@@ -2010,6 +2200,9 @@ document.getElementById('createNewCycleBtn').addEventListener('click', async () 
     siteCyclesList = Array.from(new Set(siteCyclesList));
     db.ref(`sites/${cleanKeyPart(currentSite)}/cyclesList`).set(siteCyclesList);
   }
+  browsingOtherCycle = false;
+  activeCycle = cleanName;
+  db.ref(`sites/${cleanKeyPart(currentSite)}/activeCycle`).set(cleanName).catch(onSaveError);
   currentCycle = cleanName;
   localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
   renderCyclesDropdown();
@@ -2031,7 +2224,13 @@ document.getElementById('renameCycleBtn').addEventListener('click', async () => 
   const newKey = `${cleanSite}/${cleanKeyPart(cleanName)}`;
 
   const finish = () => {
-    siteCyclesList = siteCyclesList.map(c => c === oldCycle ? cleanName : c);
+    if (activeCycle === oldCycle) {
+      activeCycle = cleanName;
+      db.ref(`sites/${cleanSite}/activeCycle`).set(cleanName).catch(onSaveError);
+    }
+    siteCyclesList = siteCyclesList.includes(oldCycle)
+      ? siteCyclesList.map(c => c === oldCycle ? cleanName : c)
+      : siteCyclesList.concat(cleanName);
     siteCyclesList = Array.from(new Set(siteCyclesList));
     db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
 
@@ -2074,7 +2273,16 @@ document.getElementById('deleteCycleBtn').addEventListener('click', async () => 
     if (!siteCyclesList.length) siteCyclesList = ['Cycle 09/2026'];
     db.ref(`sites/${cleanSite}/cyclesList`).set(siteCyclesList);
 
-    currentCycle = siteCyclesList[0];
+    const deletedCycle = currentCycle;
+    browsingOtherCycle = false;
+    if (!activeCycle || activeCycle === deletedCycle) {
+      // Let the app pick the remaining cycle with the most recent data
+      activeCycle = null;
+      currentCycle = siteCyclesList[siteCyclesList.length - 1];
+      db.ref(`sites/${cleanSite}/activeCycle`).remove().catch(onSaveError);
+    } else {
+      currentCycle = activeCycle;
+    }
     localStorage.setItem(`app-last-cycle_${currentSite}`, currentCycle);
     renderCyclesDropdown();
     loadDay(currentDate);
@@ -2835,6 +3043,8 @@ function applyInspectionClass() {
 
 function loadDay(dateISO){
   detachAll();
+  if (watchedSite !== currentSite) watchActiveCycle();
+  renderCycleBanner();
   currentDate = dateISO;
 
   const cleanSite = cleanKeyPart(currentSite);
